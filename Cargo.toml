@@ -3,5 +3,10 @@ name = "routing-platform"
 version = "0.1.0"
 authors = ["Spanfile <spansdev@gmail.com>"]
 edition = "2018"
+build = "build_schema.rs"
 
 [dependencies]
+common = { path = "common" }
+
+[build-dependencies]
+common = { path = "common" }
