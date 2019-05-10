@@ -1,9 +1,6 @@
-#[derive(Debug)]
-pub struct Schema {
-    value: i32,
-}
+use common::Schema;
 
 fn main() {
-    let schema = include_str!(concat!(env!("OUT_DIR"), "/schema"));
-    println!("{}", schema);
+    let schema = Schema::from_binary(String::from(include_str!(concat!(env!("OUT_DIR"), "/schema"))));
+    println!("{:?}", schema);
 }
