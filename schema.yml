@@ -15,54 +15,61 @@ templates:
 - name: ssh-key
   regex: 'ssh-rsa AAAA[0-9A-Za-z+\/]+={0,3}'
 nodes:
-- node: interfaces
+- name: interfaces
   subnodes:
-  - node: ethernet <query>
-    query: ls /sys/class/net
+  - name: ethernet <query>
+    query:
+      ls: /sys/class/net
     properties:
-    - name: description
+    - key: description
       values:
       - template: string
-    - name: address
+    - key: address
       values:
       - literal: dhcp
       - template: ipv4-cidr
-    - name: hardware
+    - key: hardware
       values:
       - template: mac
-- node: system
+    - key: mtu
+      values:
+      - range:
+          from:
+            inclusive: 1
+          to:
+            exclusive: 10000
+- name: system
   properties:
-  - name: hostname
+  - key: hostname
     values:
     - template: hostname
   subnodes:
-  - node: dns
+  - name: dns
     properties:
-    - name: domain
+    - key: domain
       values:
       - template: fqdn
-    - name: nameserver
-      multiple: yes
+    - key: nameserver
+      multiple: true
       values:
       - template: fqdn
-  - node: ntp
+  - name: ntp
     properties:
-    - name: server
-      multiple: yes
+    - key: server
+      multiple: true
       values:
       - template: fqdn
-  - node: users
+  - name: users
     subnodes:
-    - node: user <query>
-      query: db users
+    - name: user <query>
       properties:
-      - name: password
+      - key: password
         values:
         - literal: string
       subnodes:
-      - node: ssh-keys
+      - name: ssh-keys
         properties:
-        - name: key
-          multiple: yes
+        - key: key
+          multiple: true
           values:
           - template: ssh-key

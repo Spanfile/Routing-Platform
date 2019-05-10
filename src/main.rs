@@ -1,9 +1,7 @@
-#[derive(Debug)]
-pub struct Schema {
-    value: i32,
-}
+use common::schema::Schema;
+use std::path::Path;
 
 fn main() {
-    let schema = include_str!(concat!(env!("OUT_DIR"), "/schema"));
-    println!("{}", schema);
+    let schema = Schema::from_file(&Path::new(env!("OUT_DIR")).join("schema")).unwrap();
+    println!("{:?}", schema);
 }
