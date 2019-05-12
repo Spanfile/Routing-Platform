@@ -23,6 +23,10 @@ pub struct ValidationError {
     pub message: String,
 }
 
+trait Validate {
+    fn validate(&self, schema: &Schema) -> Vec<ValidationError>;
+}
+
 impl ValidationError {
     pub fn new(message: String) -> ValidationError {
         ValidationError { message }
@@ -46,19 +50,16 @@ impl Schema {
 }
 
 impl Schema {
-    pub fn validate(&self) -> Vec<ValidationError> {
+    pub fn validate(&mut self) -> Vec<ValidationError> {
         let mut errors = self.validate_templates();
         errors.extend(self.validate_nodes());
         errors
     }
 
-    fn validate_templates(&self) -> Vec<ValidationError> {
+    fn validate_templates(&mut self) -> Vec<ValidationError> {
         let mut errors: Vec<ValidationError> = Vec::new();
         for template in &self.templates {
-            match template.validate() {
-                Ok(()) => (),
-                Err(e) => errors.push(e),
-            }
+            errors.extend(template.validate(&self));
         }
         errors
     }
@@ -76,5 +77,13 @@ impl Schema {
             errors.extend(node.validate(self));
         }
         errors
+    }
+}
+
+impl Schema {
+    pub fn build_regex_cache(&mut self) {
+        for template in &self.templates {
+            let regex_bytes = template.serialise_regex();
+        }
     }
 }

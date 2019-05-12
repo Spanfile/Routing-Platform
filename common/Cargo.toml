@@ -8,4 +8,4 @@ edition = "2018"
 serde = { version = "1.0.90", features = ["derive"] }
 serde_yaml = "0.8.9"
 serde_cbor = "0.9"
-regex = "1"
+regex-automata = "0.1"

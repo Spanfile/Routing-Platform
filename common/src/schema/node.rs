@@ -1,6 +1,6 @@
 use super::property::Property;
 use super::query::Query;
-use super::{Schema, ValidationError};
+use super::{Schema, Validate, ValidationError};
 use serde::{Deserialize, Serialize};
 use std::collections::HashSet;
 
@@ -15,8 +15,8 @@ pub struct Node {
     pub query: Option<Query>,
 }
 
-impl Node {
-    pub fn validate(&self, schema: &Schema) -> Vec<ValidationError> {
+impl Validate for Node {
+    fn validate(&self, schema: &Schema) -> Vec<ValidationError> {
         let mut errors: Vec<ValidationError> = Vec::new();
         let mut prop_keys = HashSet::new();
 
@@ -28,10 +28,7 @@ impl Node {
                 )));
             }
 
-            match prop.validate(schema) {
-                Ok(()) => (),
-                Err(e) => errors.push(e),
-            }
+            errors.extend(prop.validate(schema));
         }
 
         for node in &self.subnodes {

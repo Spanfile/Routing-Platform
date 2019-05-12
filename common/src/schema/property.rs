@@ -1,5 +1,5 @@
 use super::value::{Bound, Value};
-use super::{Schema, ValidationError};
+use super::{Schema, Validate, ValidationError};
 use serde::{Deserialize, Serialize};
 
 #[derive(Serialize, Deserialize, Debug, Default)]
@@ -12,16 +12,18 @@ pub struct Property {
     pub values: Vec<Value>,
 }
 
-impl Property {
-    pub fn validate(&self, schema: &Schema) -> Result<(), ValidationError> {
+impl Validate for Property {
+    fn validate(&self, schema: &Schema) -> Vec<ValidationError> {
+        let mut errors = Vec::new();
+
         if self.key.is_empty() {
-            return Err(ValidationError::new(format!(
+            errors.push(ValidationError::new(format!(
                 "Property validation error\nEmpty key",
             )));
         }
 
         if self.values.is_empty() {
-            return Err(ValidationError::new(format!(
+            errors.push(ValidationError::new(format!(
                 "Property validation error\nKey: {}\nNo values defined",
                 self.key
             )));
@@ -32,7 +34,7 @@ impl Property {
                 Value::Template(template) => {
                     let templ = schema.templates.iter().find(|&t| &t.name == template);
                     if templ.is_none() {
-                        return Err(ValidationError::new(format!(
+                        errors.push(ValidationError::new(format!(
                             "Property validation error\nKey: {}\nTemplate '{}' for template value doesn't exist",
                             self.key,
                             template
@@ -43,7 +45,7 @@ impl Property {
                     Bound::Inclusive(lower_v) => match upper {
                         Bound::Inclusive(upper_v) => {
                             if upper_v < lower_v {
-                                return Err(ValidationError::new(format!(
+                                errors.push(ValidationError::new(format!(
                                     "Property validation error\nKey: {}\nValue: {:?}\nInclusive upper bound {} lower than inclusive lower bound {}",
                                     self.key,
                                     value,
@@ -54,7 +56,7 @@ impl Property {
                         }
                         Bound::Exclusive(upper_v) => {
                             if upper_v < lower_v {
-                                return Err(ValidationError::new(format!(
+                                errors.push(ValidationError::new(format!(
                                     "Property validation error\nKey: {}\nValue: {:?}\nExclusive upper bound {} lower than inclusive lower bound {}",
                                     self.key,
                                     value,
@@ -67,7 +69,7 @@ impl Property {
                     Bound::Exclusive(lower_v) => match upper {
                         Bound::Inclusive(upper_v) => {
                             if upper_v <= lower_v {
-                                return Err(ValidationError::new(format!(
+                                errors.push(ValidationError::new(format!(
                                     "Property validation error\nKey: {}\nValue: {:?}\nInclusive upper bound {} lower or equal to exclusive lower bound {}",
                                     self.key,
                                     value,
@@ -78,7 +80,7 @@ impl Property {
                         }
                         Bound::Exclusive(upper_v) => {
                             if upper_v <= lower_v {
-                                return Err(ValidationError::new(format!(
+                                errors.push(ValidationError::new(format!(
                                     "Property validation error\nKey: {}\nValue: {:?}\nExclusive upper bound {} lower or equal to exclusive lower bound {}",
                                     self.key,
                                     value,
@@ -95,7 +97,7 @@ impl Property {
 
         if !self.default.is_empty() {
             if !self.multiple && self.default.len() > 1 {
-                return Err(ValidationError::new(format!(
+                errors.push(ValidationError::new(format!(
                     "Property validation error\nKey: {}\nMultiple default values given where multiple values is disallowed",
                     self.key
                 )));
@@ -112,7 +114,7 @@ impl Property {
                             }
                         }
                         Value::Template(template) => {
-                            // by now it's guaranteed the specified template exists
+                            // by now it's guaranteed the specified template exists (it has been validated above)
                             let templ = schema
                                 .templates
                                 .iter()
@@ -147,7 +149,7 @@ impl Property {
                 }
 
                 if !match_found {
-                    return Err(ValidationError::new(format!(
+                    errors.push(ValidationError::new(format!(
                         "Property validation error\nKey: {}\nNo value allows given default value '{}'",
                         self.key,
                         default
@@ -156,6 +158,6 @@ impl Property {
             }
         }
 
-        Ok(())
+        errors
     }
 }
