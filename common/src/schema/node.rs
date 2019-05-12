@@ -15,6 +15,24 @@ pub struct Node {
     pub query: Option<Query>,
 }
 
+impl Node {
+    pub fn node_count(&self) -> usize {
+        let mut sum = 1;
+        for node in &self.subnodes {
+            sum += node.node_count();
+        }
+        sum
+    }
+
+    pub fn property_count(&self) -> usize {
+        let mut sum = self.properties.len();
+        for node in &self.subnodes {
+            sum += node.property_count();
+        }
+        sum
+    }
+}
+
 impl Validate for Node {
     fn validate(&self, schema: &Schema) -> Vec<ValidationError> {
         let mut errors: Vec<ValidationError> = Vec::new();

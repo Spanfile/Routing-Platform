@@ -4,6 +4,9 @@ mod query;
 mod template;
 mod value;
 
+use flate2::read::ZlibDecoder;
+use flate2::write::ZlibEncoder;
+use flate2::Compression;
 use node::Node;
 use serde::{Deserialize, Serialize};
 use std::collections::{HashMap, HashSet};
@@ -37,7 +40,8 @@ impl ValidationError {
 
 impl Schema {
     pub fn to_binary_file(self, file: &mut File) -> Result<(), serde_cbor::error::Error> {
-        serde_cbor::to_writer(file, &self)
+        let mut encoder = ZlibEncoder::new(file, Compression::best());
+        serde_cbor::to_writer(&mut encoder, &self)
     }
 
     pub fn from_yaml_file(file: &File) -> Result<Schema, Box<Error>> {
@@ -45,9 +49,9 @@ impl Schema {
         Ok(serde_yaml::from_reader(reader)?)
     }
 
-    pub fn from_binary_file(file: &File) -> Result<Schema, Box<Error>> {
-        let reader = BufReader::new(file);
-        Ok(serde_cbor::from_reader(reader)?)
+    pub fn from_binary(binary: &[u8]) -> Result<Schema, Box<Error>> {
+        let decoder = ZlibDecoder::new(binary);
+        Ok(serde_cbor::from_reader(decoder)?)
     }
 }
 
@@ -117,9 +121,10 @@ impl Schema {
 impl Schema {
     pub fn print_debug_info(&self) {
         println!(
-            "Schema {{\n\tTemplates: {}\n\tTop-level nodes: {}\n\tRegex cache DFA size: {}\n}}",
+            "Schema {{\n\tTemplates: {}\n\tNodes: {}\n\tProperties: {}\n\tRegex cache DFA size: {}\n}}",
             self.templates.len(),
-            self.nodes.len(),
+            self.node_count(),
+            self.property_count(),
             self.regex_cache_dfa_size(),
         );
     }
@@ -128,6 +133,22 @@ impl Schema {
         let mut sum = 0;
         for template in &self.templates {
             sum += template.compiled_regex_size();
+        }
+        sum
+    }
+
+    fn node_count(&self) -> usize {
+        let mut sum = 0;
+        for node in &self.nodes {
+            sum += node.node_count();
+        }
+        sum
+    }
+
+    fn property_count(&self) -> usize {
+        let mut sum = 0;
+        for node in &self.nodes {
+            sum += node.property_count();
         }
         sum
     }

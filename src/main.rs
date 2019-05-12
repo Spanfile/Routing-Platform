@@ -1,11 +1,8 @@
 use common::schema::Schema;
-use std::fs::File;
-use std::path::Path;
 
 fn main() {
-    let path = Path::new(env!("OUT_DIR")).join("schema");
-    let file = File::open(&path).unwrap();
-    let schema = Schema::from_binary_file(&file).unwrap();
+    let binary = include_bytes!(concat!(env!("OUT_DIR"), "/schema"));
+    let schema = Schema::from_binary(binary).expect("couldn't load schema from binary");
     schema
         .load_regexes_from_cache()
         .expect("couldn't load regexes from cache");
