@@ -1,5 +1,5 @@
-use super::schema::{Schema, ValidationError};
 use super::value::{Bound, Value};
+use super::{Schema, ValidationError};
 use serde::{Deserialize, Serialize};
 
 #[derive(Serialize, Deserialize, Debug, Default)]

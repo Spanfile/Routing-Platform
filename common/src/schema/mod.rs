@@ -1,10 +1,16 @@
-use super::node::Node;
-use super::template::Template;
+mod node;
+mod property;
+mod query;
+mod template;
+mod value;
+
+use node::Node;
 use serde::{Deserialize, Serialize};
 use std::collections::HashSet;
 use std::error::Error;
 use std::fs::File;
 use std::io::BufReader;
+use template::Template;
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct Schema {

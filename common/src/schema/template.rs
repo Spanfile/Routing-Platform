@@ -1,4 +1,4 @@
-use super::schema::ValidationError;
+use super::ValidationError;
 use regex::Regex;
 use serde::{Deserialize, Serialize};
 use std::error::Error;

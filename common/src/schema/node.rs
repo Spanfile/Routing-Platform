@@ -1,6 +1,6 @@
 use super::property::Property;
 use super::query::Query;
-use super::schema::{Schema, ValidationError};
+use super::{Schema, ValidationError};
 use serde::{Deserialize, Serialize};
 use std::collections::HashSet;
 
