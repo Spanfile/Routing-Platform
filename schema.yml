@@ -65,7 +65,7 @@ nodes:
       properties:
       - key: password
         values:
-        - literal: string
+        - template: string
       subnodes:
       - name: ssh-keys
         properties:

@@ -10,7 +10,8 @@ fn main() {
     let schema_path = Path::new(&pwd).join("schema.yml");
     let dest_path = Path::new(&out_dir).join("schema");
 
-    let schema = Schema::from_file(&schema_path).unwrap();
+    let file = File::open(&schema_path).unwrap();
+    let schema = Schema::from_yaml_file(&file).unwrap();
     let mut dest = File::create(dest_path).unwrap();
-    schema.to_file(&mut dest).unwrap();
+    schema.to_binary_file(&mut dest).unwrap();
 }

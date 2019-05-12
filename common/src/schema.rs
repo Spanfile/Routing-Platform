@@ -2,7 +2,6 @@ use serde::{Deserialize, Serialize};
 use std::error::Error;
 use std::fs::File;
 use std::io::BufReader;
-use std::path::Path;
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct Schema {
@@ -60,13 +59,17 @@ pub enum Bound {
 }
 
 impl Schema {
-    pub fn to_file(self, file: &mut File) -> Result<(), serde_cbor::error::Error> {
+    pub fn to_binary_file(self, file: &mut File) -> Result<(), serde_cbor::error::Error> {
         serde_cbor::to_writer(file, &self)
     }
 
-    pub fn from_file(schema_path: &Path) -> Result<Schema, Box<Error>> {
-        let schema_file = File::open(schema_path)?;
-        let reader = BufReader::new(schema_file);
+    pub fn from_yaml_file(file: &File) -> Result<Schema, Box<Error>> {
+        let reader = BufReader::new(file);
         Ok(serde_yaml::from_reader(reader)?)
+    }
+
+    pub fn from_binary_file(file: &File) -> Result<Schema, Box<Error>> {
+        let reader = BufReader::new(file);
+        Ok(serde_cbor::from_reader(reader)?)
     }
 }
