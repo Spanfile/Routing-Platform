@@ -1,4 +1,7 @@
+use super::node::Node;
+use super::template::Template;
 use serde::{Deserialize, Serialize};
+use std::collections::HashSet;
 use std::error::Error;
 use std::fs::File;
 use std::io::BufReader;
@@ -9,53 +12,15 @@ pub struct Schema {
     pub nodes: Vec<Node>,
 }
 
-#[derive(Serialize, Deserialize, Debug)]
-pub struct Template {
-    pub name: String,
-    pub regex: String,
+#[derive(Debug)]
+pub struct ValidationError {
+    pub message: String,
 }
 
-#[derive(Serialize, Deserialize, Debug, Default)]
-pub struct Node {
-    pub name: String,
-    #[serde(default)]
-    pub subnodes: Vec<Box<Node>>,
-    #[serde(default)]
-    pub properties: Vec<Property>,
-    #[serde(default)]
-    pub query: Option<Query>,
-}
-
-#[derive(Serialize, Deserialize, Debug, Default)]
-pub struct Property {
-    pub key: String,
-    #[serde(default)]
-    pub multiple: bool,
-    pub values: Vec<Value>,
-}
-
-#[derive(Serialize, Deserialize, Debug)]
-pub enum Query {
-    #[serde(rename = "ls")]
-    Ls(String),
-}
-
-#[derive(Serialize, Deserialize, Debug)]
-pub enum Value {
-    #[serde(rename = "literal")]
-    Literal(String),
-    #[serde(rename = "template")]
-    Template(String),
-    #[serde(rename = "range")]
-    Range { from: Bound, to: Bound },
-}
-
-#[derive(Serialize, Deserialize, Debug)]
-pub enum Bound {
-    #[serde(rename = "inclusive")]
-    Inclusive(i64),
-    #[serde(rename = "exclusive")]
-    Exclusive(i64),
+impl ValidationError {
+    pub fn new(message: String) -> ValidationError {
+        ValidationError { message }
+    }
 }
 
 impl Schema {
@@ -71,5 +36,39 @@ impl Schema {
     pub fn from_binary_file(file: &File) -> Result<Schema, Box<Error>> {
         let reader = BufReader::new(file);
         Ok(serde_cbor::from_reader(reader)?)
+    }
+}
+
+impl Schema {
+    pub fn validate(&self) -> Vec<ValidationError> {
+        let mut errors = self.validate_templates();
+        errors.extend(self.validate_nodes());
+        errors
+    }
+
+    fn validate_templates(&self) -> Vec<ValidationError> {
+        let mut errors: Vec<ValidationError> = Vec::new();
+        for template in &self.templates {
+            match template.validate() {
+                Ok(()) => (),
+                Err(e) => errors.push(e),
+            }
+        }
+        errors
+    }
+
+    fn validate_nodes(&self) -> Vec<ValidationError> {
+        let mut errors: Vec<ValidationError> = Vec::new();
+        let mut node_names = HashSet::new();
+        for node in &self.nodes {
+            if !node_names.insert(&node.name) {
+                errors.push(ValidationError::new(format!(
+                    "Node validation error\nName: {}\nDuplicate node name",
+                    node.name
+                )));
+            }
+            errors.extend(node.validate(self));
+        }
+        errors
     }
 }

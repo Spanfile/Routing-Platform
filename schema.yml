@@ -5,15 +5,15 @@ templates:
 - name: hostname
   regex: '^[a-zA-Z0-9][a-zA-Z0-9\-]{0,63}$'
 - name: ipv4-cidr
-  regex: ^((?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?))/([0-9]|[12][0-9]|3[0-2])$
+  regex: '^((?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?))/([0-9]|[12][0-9]|3[0-2])$'
 - name: ipv4
   regex: ^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$
 - name: fqdn
   regex: '^(?:[a-zA-Z0-9][a-zA-Z0-9\-]{0,63}\.?)+$'
 - name: mac
-  regex: '^(?:[[:xdigit:]]{2}([-:]))(?:[[:xdigit:]]{2}\1){4}[[:xdigit:]]{2}$'
+  regex: '^(?:[[:xdigit:]]{2}:)(?:[[:xdigit:]]{2}:){4}[[:xdigit:]]{2}$'
 - name: ssh-key
-  regex: 'ssh-rsa AAAA[0-9A-Za-z+\/]+={0,3}'
+  regex: 'ssh-rsa AAAA[0-9A-Za-z+/]+={0,3}'
 nodes:
 - name: interfaces
   subnodes:
@@ -32,12 +32,14 @@ nodes:
       values:
       - template: mac
     - key: mtu
+      default:
+      - 1500
       values:
       - range:
-          from:
+          lower:
             inclusive: 1
-          to:
-            exclusive: 10000
+          upper:
+            inclusive: 9000
 - name: system
   properties:
   - key: hostname
@@ -51,12 +53,20 @@ nodes:
       - template: fqdn
     - key: nameserver
       multiple: true
+      default:
+      - "1.1.1.1"
+      - "1.0.0.1"
       values:
       - template: fqdn
   - name: ntp
     properties:
     - key: server
       multiple: true
+      default:
+      - "1.pool.ntp.org"
+      - "2.pool.ntp.org"
+      - "3.pool.ntp.org"
+      - "4.pool.ntp.org"
       values:
       - template: fqdn
   - name: users
