@@ -1,8 +1,8 @@
-mod node;
-mod property;
-mod query;
-mod template;
-mod value;
+pub mod node;
+pub mod property;
+pub mod query;
+pub mod template;
+pub mod value;
 
 use flate2::read::ZlibDecoder;
 use flate2::write::ZlibEncoder;

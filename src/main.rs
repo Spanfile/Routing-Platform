@@ -1,3 +1,4 @@
+use common::config::Config;
 use common::schema::Schema;
 
 fn main() {
@@ -8,4 +9,8 @@ fn main() {
         .expect("couldn't load regexes from cache");
 
     schema.print_debug_info();
+
+    let config = Config::from_schema(&schema);
+
+    println!("{:#?}", config);
 }
