@@ -1,4 +1,5 @@
 use super::query::Query;
+use crate::context::Context;
 use serde::{Deserialize, Serialize};
 
 #[derive(Serialize, Deserialize, Debug)]
@@ -28,10 +29,10 @@ pub enum DefaultValue {
 }
 
 impl DefaultValue {
-    pub fn resolve(&self) -> Result<Vec<String>, Box<dyn std::error::Error>> {
+    pub fn resolve(&self, context: &Context) -> Result<Vec<String>, Box<dyn std::error::Error>> {
         match self {
             DefaultValue::Literal(literal) => Ok(vec![literal.to_owned()]),
-            DefaultValue::Query(query) => query.run(),
+            DefaultValue::Query(query) => query.run(context),
         }
     }
 }

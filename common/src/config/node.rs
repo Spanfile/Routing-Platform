@@ -20,7 +20,7 @@ impl Node {
         node: &crate::schema::node::Node,
     ) -> Vec<Node> {
         match &node.query {
-            Some(query) => match query.run() {
+            Some(query) => match query.run(context) {
                 Ok(results) => {
                     let mut nodes = Vec::new();
 
@@ -58,7 +58,7 @@ impl Node {
         }
 
         for property in &node.properties {
-            properties.push(Property::from_schema_property(&path, property));
+            properties.push(Property::from_schema_property(&path, context, property));
         }
 
         Node {

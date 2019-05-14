@@ -1,3 +1,5 @@
+use crate::context::Context;
+
 #[derive(Debug)]
 pub struct Property {
     pub key: String,
@@ -8,12 +10,13 @@ pub struct Property {
 impl Property {
     pub fn from_schema_property(
         parent: &String,
+        context: &Context,
         property: &crate::schema::property::Property,
     ) -> Property {
         let mut values = Vec::new();
 
         for default in &property.default {
-            values.extend(match default.resolve() {
+            values.extend(match default.resolve(context) {
                 Ok(v) => v,
                 Err(e) => {
                     println!(

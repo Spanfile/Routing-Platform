@@ -40,7 +40,10 @@ nodes:
       - template: mac
     - key: mtu
       default:
-      - literal: 1500
+      - query:
+          id: mtu
+          command:
+            cat: /sys/class/net/{interface}/mtu
       values:
       - range:
           lower:
