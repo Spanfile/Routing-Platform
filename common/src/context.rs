@@ -14,6 +14,17 @@ pub enum FormatError {
     IDNotInContext,
 }
 
+impl std::fmt::Display for FormatError {
+    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+        match &self {
+            FormatError::FormatStringEmpty => write!(f, "format string empty"),
+            FormatError::IDNotInContext => write!(f, "ID not in given context"),
+        }
+    }
+}
+
+impl std::error::Error for FormatError {}
+
 impl<'a> Context<'a> {
     pub fn new(parent: Option<&'a Context>) -> Context<'a> {
         Context {

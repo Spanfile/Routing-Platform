@@ -11,7 +11,7 @@ pub struct Config {
 }
 
 impl Config {
-    pub fn from_schema(schema: &Schema) -> Config {
+    pub fn from_schema(schema: &Schema) -> Result<Config, Box<dyn std::error::Error>> {
         let mut nodes = Vec::new();
 
         for node in &schema.nodes {
@@ -19,9 +19,9 @@ impl Config {
                 &String::from("config"),
                 &Context::new(None),
                 node,
-            ));
+            )?);
         }
 
-        Config { nodes }
+        Ok(Config { nodes })
     }
 }

@@ -20,9 +20,7 @@ impl Query {
     pub fn run(&self, context: &Context) -> Result<Vec<String>, Box<dyn std::error::Error>> {
         match &self.command {
             Command::Ls(path) => {
-                let path = context
-                    .format(path.to_owned())
-                    .expect("couldn't context format query ls command path");
+                let path = context.format(path.to_owned())?;
                 let mut dirs = Vec::new();
 
                 for entry in fs::read_dir(path)? {
@@ -33,17 +31,8 @@ impl Query {
                 Ok(dirs)
             }
             Command::Cat(path) => {
-                let path = context
-                    .format(path.to_owned())
-                    .expect("couldn't context format query cat command path");
-
-                Ok(vec![fs::read_to_string(&path)
-                    .expect(&format!(
-                        "couldn't read file {} for query cat command",
-                        path
-                    ))
-                    .trim()
-                    .to_owned()])
+                let path = context.format(path.to_owned())?;
+                Ok(vec![fs::read_to_string(&path)?.trim().to_owned()])
             }
         }
     }

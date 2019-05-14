@@ -18,30 +18,29 @@ impl Node {
         parent: &String,
         context: &Context,
         node: &crate::schema::node::Node,
-    ) -> Vec<Node> {
+    ) -> Result<Vec<Node>, Box<dyn std::error::Error>> {
         match &node.query {
-            Some(query) => match query.run(context) {
-                Ok(results) => {
-                    let mut nodes = Vec::new();
+            Some(query) => {
+                let results = query.run(context)?;
+                let mut nodes = Vec::new();
 
-                    for result in &results {
-                        let mut result_context = Context::new(Some(context));
-                        result_context.set_value(query.id.to_owned(), result.to_owned());
-                        nodes.push(Node::build_node(parent, &result_context, node));
-                    }
-
-                    nodes
+                for result in &results {
+                    let mut result_context = Context::new(Some(context));
+                    result_context.set_value(query.id.to_owned(), result.to_owned());
+                    nodes.push(Node::build_node(parent, &result_context, node)?);
                 }
-                Err(e) => panic!(
-                    "Error while running query for node\nNode: {:?}\nError:\n{}",
-                    node, e
-                ),
-            },
-            None => vec![Node::build_node(parent, &context, node)],
+
+                Ok(nodes)
+            }
+            None => Ok(vec![Node::build_node(parent, &context, node)?]),
         }
     }
 
-    fn build_node(parent: &String, context: &Context, node: &crate::schema::node::Node) -> Node {
+    fn build_node(
+        parent: &String,
+        context: &Context,
+        node: &crate::schema::node::Node,
+    ) -> Result<Node, Box<dyn std::error::Error>> {
         let name = context
             .format(node.name.to_owned())
             .expect("couldn't context format node name");
@@ -51,21 +50,21 @@ impl Node {
 
         for subnode in &node.subnodes {
             subnodes.extend(
-                Node::from_schema_node(&path, context, subnode)
+                Node::from_schema_node(&path, context, subnode)?
                     .into_iter()
                     .map(|n| Box::new(n)),
             );
         }
 
         for property in &node.properties {
-            properties.push(Property::from_schema_property(&path, context, property));
+            properties.push(Property::from_schema_property(&path, context, property)?);
         }
 
-        Node {
+        Ok(Node {
             name,
             path: parent.to_owned(),
             subnodes,
             properties,
-        }
+        })
     }
 }

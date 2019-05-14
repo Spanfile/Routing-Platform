@@ -10,7 +10,7 @@ fn main() {
 
     schema.print_debug_info();
 
-    let config = Config::from_schema(&schema);
+    let config = Config::from_schema(&schema).expect("couldn't build config from schema");
 
     println!("{:#?}", config);
 }
