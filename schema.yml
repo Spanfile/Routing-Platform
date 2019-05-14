@@ -17,7 +17,7 @@ templates:
 nodes:
 - name: interfaces
   subnodes:
-  - name: ethernet <interface>
+  - name: ethernet {interface}
     query:
       id: interface
       command:
@@ -35,7 +35,7 @@ nodes:
       - query:
           id: mac
           command:
-            cat: /sys/class/net/<interface>/address
+            cat: /sys/class/net/{interface}/address
       values:
       - template: mac
     - key: mtu
@@ -78,7 +78,7 @@ nodes:
       - template: fqdn
   - name: users
     subnodes:
-    - name: user <query>
+    - name: user
       properties:
       - key: password
         values:

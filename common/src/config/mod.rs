@@ -1,6 +1,7 @@
 mod node;
 mod property;
 
+use super::context::Context;
 use super::schema::Schema;
 use node::Node;
 
@@ -14,7 +15,11 @@ impl Config {
         let mut nodes = Vec::new();
 
         for node in &schema.nodes {
-            nodes.extend(Node::from_schema_node(&String::from("config"), node));
+            nodes.extend(Node::from_schema_node(
+                &String::from("config"),
+                &Context::new(None),
+                node,
+            ));
         }
 
         Config { nodes }
