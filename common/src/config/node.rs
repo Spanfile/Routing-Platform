@@ -9,26 +9,30 @@ pub struct Node {
 }
 
 impl Node {
-    pub fn from_schema_node(parent: &String, node: &crate::schema::node::Node) -> Node {
+    pub fn from_schema_node(parent: &String, node: &crate::schema::node::Node) -> Vec<Node> {
         let name = node.name.clone();
         let path = String::from([parent.as_str(), name.as_str()].join("."));
         let mut subnodes = Vec::new();
         let mut properties = Vec::new();
 
         for subnode in &node.subnodes {
-            subnodes.push(Box::new(Node::from_schema_node(&path, subnode)));
+            subnodes.extend(
+                Node::from_schema_node(&path, subnode)
+                    .into_iter()
+                    .map(|n| Box::new(n)),
+            );
         }
 
         for property in &node.properties {
             properties.push(Property::from_schema_property(&path, property));
         }
 
-        Node {
+        vec![Node {
             name,
             path: parent.clone(),
             subnodes,
             properties,
-        }
+        }]
     }
 
     pub fn full_path(&self) -> String {

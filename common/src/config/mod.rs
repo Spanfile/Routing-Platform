@@ -14,7 +14,7 @@ impl Config {
         let mut nodes = Vec::new();
 
         for node in &schema.nodes {
-            nodes.push(Node::from_schema_node(&String::from("config"), node));
+            nodes.extend(Node::from_schema_node(&String::from("config"), node));
         }
 
         Config { nodes }

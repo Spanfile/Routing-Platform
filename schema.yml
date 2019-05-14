@@ -17,9 +17,11 @@ templates:
 nodes:
 - name: interfaces
   subnodes:
-  - name: ethernet <query>
+  - name: ethernet <interface>
     query:
-      ls: /sys/class/net
+      id: interface
+      command:
+        ls: /sys/class/net
     properties:
     - key: description
       values:
@@ -29,11 +31,16 @@ nodes:
       - literal: dhcp
       - template: ipv4-cidr
     - key: hardware
+      default:
+      - query:
+          id: mac
+          command:
+            cat: /sys/class/net/<interface>/address
       values:
       - template: mac
     - key: mtu
       default:
-      - 1500
+      - literal: 1500
       values:
       - range:
           lower:
@@ -54,8 +61,8 @@ nodes:
     - key: nameserver
       multiple: true
       default:
-      - "1.1.1.1"
-      - "1.0.0.1"
+      - literal: '1.1.1.1'
+      - literal: '1.0.0.1'
       values:
       - template: fqdn
   - name: ntp
@@ -63,10 +70,10 @@ nodes:
     - key: server
       multiple: true
       default:
-      - "1.pool.ntp.org"
-      - "2.pool.ntp.org"
-      - "3.pool.ntp.org"
-      - "4.pool.ntp.org"
+      - literal: 1.pool.ntp.org
+      - literal: 2.pool.ntp.org
+      - literal: 3.pool.ntp.org
+      - literal: 4.pool.ntp.org
       values:
       - template: fqdn
   - name: users

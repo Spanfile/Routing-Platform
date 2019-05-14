@@ -2,7 +2,13 @@ use serde::{Deserialize, Serialize};
 use std::fs;
 
 #[derive(Serialize, Deserialize, Debug)]
-pub enum Query {
+pub struct Query {
+    pub id: String,
+    pub command: Command,
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+pub enum Command {
     #[serde(rename = "ls")]
     Ls(String),
     #[serde(rename = "cat")]
@@ -11,8 +17,8 @@ pub enum Query {
 
 impl Query {
     pub fn run(&self) -> Result<Vec<String>, Box<dyn std::error::Error>> {
-        match self {
-            Query::Ls(path) => {
+        match &self.command {
+            Command::Ls(path) => {
                 let mut dirs = Vec::new();
                 for entry in fs::read_dir(path)? {
                     let path = entry?.path();
@@ -21,7 +27,7 @@ impl Query {
                 }
                 Ok(dirs)
             }
-            Query::Cat(path) => {}
+            Command::Cat(path) => Ok(vec![]),
         }
     }
 }

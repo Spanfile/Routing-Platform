@@ -1,4 +1,4 @@
-use super::value::{Bound, Value};
+use super::value::{Bound, DefaultValue, Value};
 use super::{Schema, Validate, ValidationError};
 use serde::{Deserialize, Serialize};
 
@@ -8,7 +8,7 @@ pub struct Property {
     #[serde(default)]
     pub multiple: bool,
     #[serde(default)]
-    pub default: Vec<String>,
+    pub default: Vec<DefaultValue>,
     pub values: Vec<Value>,
 }
 
@@ -105,52 +105,57 @@ impl Validate for Property {
 
             let mut match_found = false;
             for default in &self.default {
-                for value in &self.values {
-                    match value {
-                        Value::Literal(literal) => {
-                            if default == literal {
-                                match_found = true;
-                                break;
-                            }
-                        }
-                        Value::Template(template) => {
-                            // by now it's guaranteed the specified template exists (it has been validated above)
-                            let templ = schema
-                                .templates
-                                .iter()
-                                .find(|&t| &t.name == template)
-                                .unwrap();
-                            if templ.matches(default) {
-                                match_found = true;
-                                break;
-                            }
-                        }
-                        Value::Range { lower, upper } => {
-                            let numeric_default: f64 = match default.parse() {
-                                Ok(v) => v,
-                                Err(_e) => break, // not being an integer means the range isn't valid but another value could still be
-                            };
+                match default {
+                    DefaultValue::Literal(def) => {
+                        for value in &self.values {
+                            match value {
+                                Value::Literal(literal) => {
+                                    if def == literal {
+                                        match_found = true;
+                                        break;
+                                    }
+                                }
+                                Value::Template(template) => {
+                                    // by now it's guaranteed the specified template exists (it has been validated above)
+                                    let templ = schema
+                                        .templates
+                                        .iter()
+                                        .find(|&t| &t.name == template)
+                                        .unwrap();
+                                    if templ.matches(def) {
+                                        match_found = true;
+                                        break;
+                                    }
+                                }
+                                Value::Range { lower, upper } => {
+                                    let numeric_default: f64 = match def.parse() {
+                                        Ok(v) => v,
+                                        Err(_e) => break, // not being an integer means the range isn't valid but another value could still be
+                                    };
 
-                            let matches_from = match lower {
-                                Bound::Inclusive(v) => numeric_default >= *v,
-                                Bound::Exclusive(v) => numeric_default > *v,
-                            };
-                            let matches_to = match upper {
-                                Bound::Inclusive(v) => numeric_default <= *v,
-                                Bound::Exclusive(v) => numeric_default < *v,
-                            };
+                                    let matches_from = match lower {
+                                        Bound::Inclusive(bound) => numeric_default >= *bound,
+                                        Bound::Exclusive(bound) => numeric_default > *bound,
+                                    };
+                                    let matches_to = match upper {
+                                        Bound::Inclusive(bound) => numeric_default <= *bound,
+                                        Bound::Exclusive(bound) => numeric_default < *bound,
+                                    };
 
-                            if matches_from && matches_to {
-                                match_found = true;
-                                break;
+                                    if matches_from && matches_to {
+                                        match_found = true;
+                                        break;
+                                    }
+                                }
                             }
                         }
                     }
+                    _ => match_found = true,
                 }
 
                 if !match_found {
                     errors.push(ValidationError::new(format!(
-                        "Property validation error\nKey: {}\nNo value allows given default value '{}'",
+                        "Property validation error\nKey: {}\nNo value allows given default value '{:?}'",
                         self.key,
                         default
                     )));
