@@ -33,5 +33,6 @@ fn main() {
         .set_property_value(String::from("mtu"), String::from("8000"))
         .unwrap();
 
-    println!("{:#?}", config);
+    editor.pretty_print_current_node();
+    editor.pretty_print_config();
 }

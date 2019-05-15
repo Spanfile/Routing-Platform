@@ -28,4 +28,12 @@ impl Config {
 
         Ok(Config { nodes })
     }
+
+    pub fn pretty_print(&self) {
+        for (name, node) in &self.nodes {
+            println!("{} {{", name);
+            node.pretty_print(1);
+            println!("}}");
+        }
+    }
 }

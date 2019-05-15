@@ -18,7 +18,7 @@ impl std::fmt::Display for FormatError {
     fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
         match &self {
             FormatError::FormatStringEmpty => write!(f, "format string empty"),
-            FormatError::IDNotInContext(id) => write!(f, "ID not in given context"),
+            FormatError::IDNotInContext(_id) => write!(f, "ID not in given context"),
         }
     }
 }

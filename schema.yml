@@ -68,9 +68,9 @@ nodes:
             - literal: '1.0.0.1'
             values:
             - template: fqdn
-        ntp:
-          properties:
-          - key: server
+      ntp:
+        properties:
+          server:
             multiple: true
             default:
             - literal: 1.pool.ntp.org
@@ -79,14 +79,14 @@ nodes:
             - literal: 4.pool.ntp.org
             values:
             - template: fqdn
-        users:
-          subnodes:
-            user:
-              properties:
+      users:
+        subnodes:
+          user:
+            properties:
               password:
                 values:
                 - template: string
-              subnodes:
+            subnodes:
               ssh-keys:
                 properties:
                   key:

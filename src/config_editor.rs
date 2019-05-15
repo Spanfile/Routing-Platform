@@ -139,3 +139,16 @@ impl<'a> ConfigEditor<'a> {
         }
     }
 }
+
+impl<'a> ConfigEditor<'a> {
+    pub fn pretty_print_config(&self) {
+        self.config.pretty_print();
+    }
+
+    pub fn pretty_print_current_node(&self) {
+        match self.node_stack.last() {
+            Some(n) => n.pretty_print(0),
+            None => self.config.pretty_print(),
+        }
+    }
+}

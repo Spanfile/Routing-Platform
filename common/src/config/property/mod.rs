@@ -74,7 +74,7 @@ impl Property {
     pub fn set(&self, value: String, schema: &Schema) -> Result<(), PropertyError> {
         match self.constraints.matches(&value, schema) {
             Ok(()) => (),
-            Err(e) => return Err(PropertyError::ConstraintNotMetError),
+            Err(_e) => return Err(PropertyError::ConstraintNotMetError),
         }
 
         let mut values = self.values.borrow_mut();
@@ -84,5 +84,13 @@ impl Property {
         values.push(value);
 
         Ok(())
+    }
+}
+
+impl Property {
+    pub fn pretty_print(&self, indent: usize) {
+        for value in self.values.borrow().iter() {
+            println!("{:indent$}{} {}", "", self.key, value, indent = indent * 4);
+        }
     }
 }

@@ -72,3 +72,17 @@ impl Node {
         })
     }
 }
+
+impl Node {
+    pub fn pretty_print(&self, indent: usize) {
+        for (name, node) in &self.subnodes {
+            println!("{:indent$}{} {{", "", name, indent = indent * 4);
+            node.pretty_print(indent + 1);
+            println!("{:indent$}}}", "", indent = indent * 4);
+        }
+
+        for property in self.properties.values() {
+            property.pretty_print(indent);
+        }
+    }
+}
