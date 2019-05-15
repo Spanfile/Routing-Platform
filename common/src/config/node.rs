@@ -18,6 +18,7 @@ impl Node {
     pub fn from_schema_node(
         parent: &String,
         context: &Context,
+        name: &String,
         node: &crate::schema::node::Node,
     ) -> Result<Vec<Node>, Box<dyn std::error::Error>> {
         match &node.query {
@@ -28,38 +29,39 @@ impl Node {
                 for result in &results {
                     let mut result_context = Context::new(Some(context));
                     result_context.set_value(query.id.to_owned(), result.to_owned());
-                    nodes.push(Node::build_node(parent, &result_context, node)?);
+                    nodes.push(Node::build_node(parent, &result_context, name, node)?);
                 }
 
                 Ok(nodes)
             }
-            None => Ok(vec![Node::build_node(parent, &context, node)?]),
+            None => Ok(vec![Node::build_node(parent, &context, name, node)?]),
         }
     }
 
     fn build_node(
         parent: &String,
         context: &Context,
+        name: &String,
         node: &crate::schema::node::Node,
     ) -> Result<Node, Box<dyn std::error::Error>> {
         let name = context
-            .format(node.name.to_owned())
+            .format(name.to_owned())
             .expect("couldn't context format node name");
         let path = String::from([parent.as_str(), name.as_str()].join("."));
         let mut subnodes = HashMap::new();
         let mut properties = HashMap::new();
 
-        for subnode in &node.subnodes {
+        for (subname, subnode) in &node.subnodes {
             subnodes.extend(
-                Node::from_schema_node(&path, context, subnode)?
+                Node::from_schema_node(&path, context, &subname, subnode)?
                     .into_iter()
                     .map(|n| (n.name.to_owned(), Box::new(n))),
             );
         }
 
-        for property in &node.properties {
-            let prop = Property::from_schema_property(&path, context, property)?;
-            properties.insert(prop.key.to_owned(), prop);
+        for (key, property) in &node.properties {
+            let prop = Property::from_schema_property(&path, context, &key, property)?;
+            properties.insert(key.to_owned(), prop);
         }
 
         Ok(Node {

@@ -18,9 +18,9 @@ impl Config {
         let mut context = Context::new(None);
         context.set_value(String::from("mock"), String::from("mock"));
 
-        for node in &schema.nodes {
+        for (name, node) in &schema.nodes {
             nodes.extend(
-                Node::from_schema_node(&String::from("config"), &context, node)?
+                Node::from_schema_node(&String::from("config"), &context, name, node)?
                     .into_iter()
                     .map(|n| (n.name.to_owned(), Box::new(n))),
             );

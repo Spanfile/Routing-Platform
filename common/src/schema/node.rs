@@ -2,15 +2,14 @@ use super::property::Property;
 use super::query::Query;
 use super::{Schema, Validate, ValidationError};
 use serde::{Deserialize, Serialize};
-use std::collections::HashSet;
+use std::collections::{HashMap, HashSet};
 
 #[derive(Serialize, Deserialize, Debug, Default)]
 pub struct Node {
-    pub name: String,
     #[serde(default)]
-    pub subnodes: Vec<Box<Node>>,
+    pub subnodes: HashMap<String, Box<Node>>,
     #[serde(default)]
-    pub properties: Vec<Property>,
+    pub properties: HashMap<String, Property>,
     #[serde(default)]
     pub query: Option<Query>,
 }
@@ -18,7 +17,7 @@ pub struct Node {
 impl Node {
     pub fn node_count(&self) -> usize {
         let mut sum = 1;
-        for node in &self.subnodes {
+        for node in self.subnodes.values() {
             sum += node.node_count();
         }
         sum
@@ -26,7 +25,7 @@ impl Node {
 
     pub fn property_count(&self) -> usize {
         let mut sum = self.properties.len();
-        for node in &self.subnodes {
+        for node in self.subnodes.values() {
             sum += node.property_count();
         }
         sum
@@ -38,18 +37,18 @@ impl Validate for Node {
         let mut errors: Vec<ValidationError> = Vec::new();
         let mut prop_keys = HashSet::new();
 
-        for prop in &self.properties {
-            if !prop_keys.insert(&prop.key) {
+        for (key, property) in &self.properties {
+            if !prop_keys.insert(key) {
                 errors.push(ValidationError::new(format!(
                     "Property validation error\nKey: {}\nDuplicate property key",
-                    prop.key
+                    &key
                 )));
             }
 
-            errors.extend(prop.validate(schema));
+            errors.extend(property.validate(schema));
         }
 
-        for node in &self.subnodes {
+        for node in self.subnodes.values() {
             errors.extend(node.validate(schema));
         }
 

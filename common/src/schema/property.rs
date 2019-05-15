@@ -4,7 +4,6 @@ use serde::{Deserialize, Serialize};
 
 #[derive(Serialize, Deserialize, Debug, Default)]
 pub struct Property {
-    pub key: String,
     #[serde(default)]
     pub multiple: bool,
     #[serde(default)]
@@ -16,16 +15,9 @@ impl Validate for Property {
     fn validate(&self, schema: &Schema) -> Vec<ValidationError> {
         let mut errors = Vec::new();
 
-        if self.key.is_empty() {
-            errors.push(ValidationError::new(format!(
-                "Property validation error\nEmpty key",
-            )));
-        }
-
         if self.values.is_empty() {
             errors.push(ValidationError::new(format!(
-                "Property validation error\nKey: {}\nNo values defined",
-                self.key
+                "Property validation error\nNo values defined",
             )));
         }
 
@@ -34,8 +26,7 @@ impl Validate for Property {
                 Value::Template(template) => {
                     if !schema.templates.contains_key(template) {
                         errors.push(ValidationError::new(format!(
-                            "Property validation error\nKey: {}\nTemplate '{}' for template value doesn't exist",
-                            self.key,
+                            "Property validation error\nTemplate '{}' for template value doesn't exist",
                             template
                         )));
                     }
@@ -45,8 +36,7 @@ impl Validate for Property {
                         Bound::Inclusive(upper_v) => {
                             if upper_v < lower_v {
                                 errors.push(ValidationError::new(format!(
-                                    "Property validation error\nKey: {}\nValue: {:?}\nInclusive upper bound {} lower than inclusive lower bound {}",
-                                    self.key,
+                                    "Property validation error\nValue: {:?}\nInclusive upper bound {} lower than inclusive lower bound {}",
                                     value,
                                     upper_v,
                                     lower_v
@@ -56,8 +46,7 @@ impl Validate for Property {
                         Bound::Exclusive(upper_v) => {
                             if upper_v < lower_v {
                                 errors.push(ValidationError::new(format!(
-                                    "Property validation error\nKey: {}\nValue: {:?}\nExclusive upper bound {} lower than inclusive lower bound {}",
-                                    self.key,
+                                    "Property validation error\nValue: {:?}\nExclusive upper bound {} lower than inclusive lower bound {}",
                                     value,
                                     upper_v,
                                     lower_v
@@ -69,8 +58,7 @@ impl Validate for Property {
                         Bound::Inclusive(upper_v) => {
                             if upper_v <= lower_v {
                                 errors.push(ValidationError::new(format!(
-                                    "Property validation error\nKey: {}\nValue: {:?}\nInclusive upper bound {} lower or equal to exclusive lower bound {}",
-                                    self.key,
+                                    "Property validation error\nValue: {:?}\nInclusive upper bound {} lower or equal to exclusive lower bound {}",
                                     value,
                                     upper_v,
                                     lower_v
@@ -80,8 +68,7 @@ impl Validate for Property {
                         Bound::Exclusive(upper_v) => {
                             if upper_v <= lower_v {
                                 errors.push(ValidationError::new(format!(
-                                    "Property validation error\nKey: {}\nValue: {:?}\nExclusive upper bound {} lower or equal to exclusive lower bound {}",
-                                    self.key,
+                                    "Property validation error\nValue: {:?}\nExclusive upper bound {} lower or equal to exclusive lower bound {}",
                                     value,
                                     upper_v,
                                     lower_v
@@ -97,8 +84,7 @@ impl Validate for Property {
         if !self.default.is_empty() {
             if !self.multiple && self.default.len() > 1 {
                 errors.push(ValidationError::new(format!(
-                    "Property validation error\nKey: {}\nMultiple default values given where multiple values is disallowed",
-                    self.key
+                    "Property validation error\nMultiple default values given where multiple values is disallowed",
                 )));
             }
 
@@ -153,8 +139,7 @@ impl Validate for Property {
 
                 if !match_found {
                     errors.push(ValidationError::new(format!(
-                        "Property validation error\nKey: {}\nNo value allows given default value '{:?}'",
-                        self.key,
+                        "Property validation error\nNo value allows given default value '{:?}'",
                         default
                     )));
                 }

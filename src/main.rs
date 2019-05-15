@@ -30,7 +30,7 @@ fn main() {
         .set_property_value(String::from("description"), String::from("test"))
         .unwrap();
     editor
-        .set_property_value(String::from("mtu"), String::from("test"))
+        .set_property_value(String::from("mtu"), String::from("8000"))
         .unwrap();
 
     println!("{:#?}", config);

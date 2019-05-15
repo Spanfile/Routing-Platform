@@ -43,6 +43,7 @@ impl Property {
     pub fn from_schema_property(
         parent: &String,
         context: &Context,
+        key: &String,
         property: &crate::schema::property::Property,
     ) -> Result<Property, PropertyError> {
         let mut values = Vec::new();
@@ -58,8 +59,8 @@ impl Property {
             Err(PropertyError::ConstraintNotMetError)
         } else {
             Ok(Property {
-                key: property.key.clone(),
-                path: parent.clone(),
+                key: key.to_owned(),
+                path: parent.to_owned(),
                 values: RefCell::new(values),
                 constraints: Constraints::from_schema_property(property),
             })

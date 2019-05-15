@@ -15,81 +15,81 @@ templates:
   ssh-key:
     regex: 'ssh-rsa AAAA[0-9A-Za-z+/]+={0,3}'
 nodes:
-- name: interfaces
-  subnodes:
-  - name: ethernet {interface}
-    query:
-      id: interface
-      command:
-        ls: /sys/class/net
-    properties:
-    - key: description
-      values:
-      - template: string
-    - key: address
-      values:
-      - literal: dhcp
-      - template: ipv4-cidr
-    - key: hardware
-      default:
-      - query:
-          id: mac
-          command:
-            cat: /sys/class/net/{interface}/address
-      values:
-      - template: mac
-    - key: mtu
-      default:
-      - query:
-          id: mtu
-          command:
-            cat: /sys/class/net/{interface}/mtu
-      values:
-      - range:
-          lower:
-            inclusive: 1
-          upper:
-            inclusive: 9000
-- name: system
-  properties:
-  - key: hostname
-    values:
-    - template: hostname
-  subnodes:
-  - name: dns
-    properties:
-    - key: domain
-      values:
-      - template: fqdn
-    - key: nameserver
-      multiple: true
-      default:
-      - literal: '1.1.1.1'
-      - literal: '1.0.0.1'
-      values:
-      - template: fqdn
-  - name: ntp
-    properties:
-    - key: server
-      multiple: true
-      default:
-      - literal: 1.pool.ntp.org
-      - literal: 2.pool.ntp.org
-      - literal: 3.pool.ntp.org
-      - literal: 4.pool.ntp.org
-      values:
-      - template: fqdn
-  - name: users
+  interfaces:
     subnodes:
-    - name: user
-      properties:
-      - key: password
-        values:
-        - template: string
-      subnodes:
-      - name: ssh-keys
+      ethernet {interface}:
+        query:
+          id: interface
+          command:
+            ls: /sys/class/net
         properties:
-        - key: key
-          multiple: true
-          values:
-          - template: ssh-key
+          description:
+            values:
+            - template: string
+          address:
+            values:
+            - literal: dhcp
+            - template: ipv4-cidr
+          hardware:
+            default:
+            - query:
+                id: mac
+                command:
+                  cat: /sys/class/net/{interface}/address
+            values:
+            - template: mac
+          mtu:
+            default:
+            - query:
+                id: mtu
+                command:
+                  cat: /sys/class/net/{interface}/mtu
+            values:
+            - range:
+                lower:
+                  inclusive: 1
+                upper:
+                  inclusive: 9000
+  system:
+    properties:
+      hostname:
+        values:
+        - template: hostname
+    subnodes:
+      dns:
+        properties:
+          domain:
+            values:
+            - template: fqdn
+          nameserver:
+            multiple: true
+            default:
+            - literal: '1.1.1.1'
+            - literal: '1.0.0.1'
+            values:
+            - template: fqdn
+        ntp:
+          properties:
+          - key: server
+            multiple: true
+            default:
+            - literal: 1.pool.ntp.org
+            - literal: 2.pool.ntp.org
+            - literal: 3.pool.ntp.org
+            - literal: 4.pool.ntp.org
+            values:
+            - template: fqdn
+        users:
+          subnodes:
+            user:
+              properties:
+              password:
+                values:
+                - template: string
+              subnodes:
+              ssh-keys:
+                properties:
+                  key:
+                    multiple: true
+                    values:
+                    - template: ssh-key

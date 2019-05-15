@@ -18,7 +18,7 @@ use template::Template;
 #[derive(Serialize, Deserialize, Debug)]
 pub struct Schema {
     pub templates: HashMap<String, Template>,
-    pub nodes: Vec<Node>,
+    pub nodes: HashMap<String, Node>,
     #[serde(default)]
     regex_cache: HashMap<String, Vec<u8>>,
 }
@@ -74,11 +74,11 @@ impl Schema {
         let mut errors: Vec<ValidationError> = Vec::new();
         let mut node_names = HashSet::new();
 
-        for node in &self.nodes {
-            if !node_names.insert(&node.name) {
+        for (name, node) in &self.nodes {
+            if !node_names.insert(name) {
                 errors.push(ValidationError::new(format!(
                     "Node validation error\nName: {}\nDuplicate node name",
-                    node.name
+                    &name
                 )));
             }
             errors.extend(node.validate(self));
@@ -136,7 +136,7 @@ impl Schema {
 
     fn node_count(&self) -> usize {
         let mut sum = 0;
-        for node in &self.nodes {
+        for node in self.nodes.values() {
             sum += node.node_count();
         }
         sum
@@ -144,7 +144,7 @@ impl Schema {
 
     fn property_count(&self) -> usize {
         let mut sum = 0;
-        for node in &self.nodes {
+        for node in self.nodes.values() {
             sum += node.property_count();
         }
         sum
