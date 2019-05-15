@@ -32,8 +32,7 @@ impl Validate for Property {
         for value in &self.values {
             match value {
                 Value::Template(template) => {
-                    let templ = schema.templates.iter().find(|&t| &t.name == template);
-                    if templ.is_none() {
+                    if !schema.templates.contains_key(template) {
                         errors.push(ValidationError::new(format!(
                             "Property validation error\nKey: {}\nTemplate '{}' for template value doesn't exist",
                             self.key,
@@ -117,11 +116,10 @@ impl Validate for Property {
                                 }
                                 Value::Template(template) => {
                                     // by now it's guaranteed the specified template exists (it has been validated above)
-                                    let templ = schema
-                                        .templates
-                                        .iter()
-                                        .find(|&t| &t.name == template)
-                                        .unwrap();
+                                    let templ = schema.templates.get(template).expect(&format!(
+                                        "template {} not found after existence validation",
+                                        template
+                                    ));
                                     if templ.matches(def) {
                                         match_found = true;
                                         break;

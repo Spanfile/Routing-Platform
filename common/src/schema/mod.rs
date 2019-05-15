@@ -17,7 +17,7 @@ use template::Template;
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct Schema {
-    pub templates: Vec<Template>,
+    pub templates: HashMap<String, Template>,
     pub nodes: Vec<Node>,
     #[serde(default)]
     regex_cache: HashMap<String, Vec<u8>>,
@@ -64,7 +64,7 @@ impl Schema {
 
     fn validate_templates(&mut self) -> Vec<ValidationError> {
         let mut errors: Vec<ValidationError> = Vec::new();
-        for template in &self.templates {
+        for template in self.templates.values() {
             errors.extend(template.validate(&self));
         }
         errors
@@ -92,23 +92,20 @@ impl Schema {
     pub fn build_regex_cache(&mut self) -> Result<(), Box<dyn Error>> {
         self.regex_cache = HashMap::new();
 
-        for template in &self.templates {
+        for (name, template) in &self.templates {
             let bytes = template.serialise_regex()?;
-            self.regex_cache.insert(template.name.clone(), bytes);
+            self.regex_cache.insert(name.clone(), bytes);
         }
 
         Ok(())
     }
 
     pub fn load_regexes_from_cache(&self) -> Result<(), Box<dyn Error>> {
-        for template in &self.templates {
-            match self.regex_cache.get(&template.name) {
+        for (name, template) in &self.templates {
+            match self.regex_cache.get(name) {
                 Some(cache) => template.deserialise_regex(cache),
                 None => {
-                    println!(
-                        "missing cached regex for template '{}', recompiling",
-                        template.name
-                    );
+                    println!("missing cached regex for template '{}', recompiling", &name);
                     template.compile_regex();
                 }
             }
@@ -131,7 +128,7 @@ impl Schema {
 
     fn regex_cache_dfa_size(&self) -> usize {
         let mut sum = 0;
-        for template in &self.templates {
+        for template in self.templates.values() {
             sum += template.compiled_regex_size();
         }
         sum

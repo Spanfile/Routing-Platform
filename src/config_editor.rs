@@ -1,8 +1,10 @@
 use common::config::{node::Node, Config};
+use common::schema::Schema;
 use std::collections::HashMap;
 
 #[derive(Debug)]
 pub struct ConfigEditor<'a> {
+    schema: &'a Schema,
     config: &'a Config,
     node_stack: Vec<&'a Node>,
 }
@@ -12,6 +14,7 @@ pub enum ConfigEditorError {
     NodeNotFound(String),
     PropertyNotFound(String),
     NoParentNode,
+    ValueError { source: Box<dyn std::error::Error> },
 }
 
 impl std::fmt::Display for ConfigEditorError {
@@ -20,15 +23,24 @@ impl std::fmt::Display for ConfigEditorError {
             ConfigEditorError::NodeNotFound(_name) => write!(f, "node not found"),
             ConfigEditorError::PropertyNotFound(_name) => write!(f, "property not found"),
             ConfigEditorError::NoParentNode => write!(f, "no parent node"),
+            ConfigEditorError::ValueError { source: _s } => write!(f, "invalid value"),
         }
     }
 }
 
-impl std::error::Error for ConfigEditorError {}
+impl std::error::Error for ConfigEditorError {
+    fn source(&self) -> Option<&(dyn std::error::Error + 'static)> {
+        match &self {
+            ConfigEditorError::ValueError { source } => Some(source.as_ref()),
+            _ => None,
+        }
+    }
+}
 
 impl<'a> ConfigEditor<'a> {
-    pub fn new(config: &'a Config) -> ConfigEditor<'a> {
+    pub fn new(config: &'a Config, schema: &'a Schema) -> ConfigEditor<'a> {
         ConfigEditor {
+            schema,
             config,
             node_stack: Vec::new(),
         }
@@ -95,8 +107,7 @@ impl<'a> ConfigEditor<'a> {
                     (
                         key,
                         property
-                            .values
-                            .borrow()
+                            .values()
                             .iter()
                             .map(|v| v.to_owned()) // maybe not the greatest idea to clone the values?
                             .collect(),
@@ -120,14 +131,11 @@ impl<'a> ConfigEditor<'a> {
             None => return Err(ConfigEditorError::PropertyNotFound(property)),
         };
 
-        // TODO: make sure value matches some value constraint
-
-        let mut values = property.values.borrow_mut();
-        if !property.constraints.multiple {
-            values.clear();
+        match property.set(value, self.schema) {
+            Ok(()) => Ok(()),
+            Err(e) => Err(ConfigEditorError::ValueError {
+                source: Box::new(e),
+            }),
         }
-        values.push(value);
-
-        Ok(())
     }
 }

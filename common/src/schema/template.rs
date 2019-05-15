@@ -6,7 +6,6 @@ use std::error::Error;
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct Template {
-    pub name: String,
     pub regex: String,
     #[serde(skip)]
     compiled_regex: RefCell<Option<DenseDFA<Vec<usize>, usize>>>,
@@ -65,8 +64,7 @@ impl Validate for Template {
                 vec![]
             }
             Err(e) => vec![ValidationError::new(format!(
-                "Template validation error\nName: {}\nRegex: {}\n{}",
-                &self.name,
+                "Template validation error\nRegex: {}\n{}",
                 &self.regex,
                 e.description()
             ))],
