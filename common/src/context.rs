@@ -11,14 +11,14 @@ pub struct Context<'a> {
 #[derive(Debug)]
 pub enum FormatError {
     FormatStringEmpty,
-    IDNotInContext,
+    IDNotInContext(String),
 }
 
 impl std::fmt::Display for FormatError {
     fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
         match &self {
             FormatError::FormatStringEmpty => write!(f, "format string empty"),
-            FormatError::IDNotInContext => write!(f, "ID not in given context"),
+            FormatError::IDNotInContext(id) => write!(f, "ID not in given context"),
         }
     }
 }
@@ -37,8 +37,8 @@ impl<'a> Context<'a> {
         self.parent = Some(parent);
     }
 
-    pub fn get_value(&self, id: String) -> Option<String> {
-        match &self.values.get(&id) {
+    pub fn get_value(&self, id: &str) -> Option<String> {
+        match &self.values.get(id) {
             Some(value) => Some(value.to_string()),
             None => match self.parent {
                 Some(p) => p.get_value(id),
@@ -54,7 +54,7 @@ impl<'a> Context<'a> {
     pub fn format(&self, text: String) -> Result<String, FormatError> {
         lazy_static! {
             static ref FORMAT_MATCHER: Regex =
-                Regex::new(r"\{.*\}").expect("couldn't compile format matcher regex");
+                Regex::new(r"\{[^\{\}]*\}").expect("couldn't compile format matcher regex");
         }
 
         let mut replacements: Vec<(usize, usize, String)> = Vec::new();
@@ -65,20 +65,26 @@ impl<'a> Context<'a> {
                 return Err(FormatError::FormatStringEmpty);
             } else {
                 let match_str = &text[mat.0 + 1..mat.1 - 1];
-                match &self.get_value(match_str.to_owned()) {
+                match &self.get_value(match_str) {
                     Some(value) => replacements.push((mat.0, mat.1, value.to_owned())),
-                    None => return Err(FormatError::IDNotInContext),
+                    None => return Err(FormatError::IDNotInContext(match_str.to_owned())),
                 };
             }
         }
+
+        // println!("{:?}", replacements);
 
         let mut text = text;
         let mut len_diff: i32 = 0;
 
         for replacement in &replacements {
-            let left_bound = replacement.0 as i32 - len_diff;
-            let right_bound = replacement.1 as i32 - len_diff;
+            let left_bound = replacement.0 as i32 + len_diff;
+            let right_bound = replacement.1 as i32 + len_diff;
             let value = &replacement.2;
+            // println!("{}", text);
+            // print!("{:>1$}", "^", left_bound as usize);
+            // println!("{:>1$}", "^", (right_bound - left_bound) as usize);
+            // println!("len diff: {}", len_diff);
 
             let orig_len = right_bound - left_bound;
             let new_len = value.len() as i32;

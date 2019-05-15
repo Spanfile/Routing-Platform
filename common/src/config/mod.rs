@@ -13,11 +13,13 @@ pub struct Config {
 impl Config {
     pub fn from_schema(schema: &Schema) -> Result<Config, Box<dyn std::error::Error>> {
         let mut nodes = Vec::new();
+        let mut context = Context::new(None);
+        context.set_value(String::from("mock"), String::from("mock"));
 
         for node in &schema.nodes {
             nodes.extend(Node::from_schema_node(
                 &String::from("config"),
-                &Context::new(None),
+                &context,
                 node,
             )?);
         }

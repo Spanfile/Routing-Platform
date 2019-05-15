@@ -20,7 +20,8 @@ impl Query {
     pub fn run(&self, context: &Context) -> Result<Vec<String>, Box<dyn std::error::Error>> {
         match &self.command {
             Command::Ls(path) => {
-                let path = context.format(path.to_owned())?;
+                let path = context.format(format!("{}{}", "{mock}", path.to_owned()))?;
+                // println!("{}", path);
                 let mut dirs = Vec::new();
 
                 for entry in fs::read_dir(path)? {
@@ -31,7 +32,8 @@ impl Query {
                 Ok(dirs)
             }
             Command::Cat(path) => {
-                let path = context.format(path.to_owned())?;
+                let path = context.format(format!("{}{}", "{mock}", path.to_owned()))?;
+                // println!("{}", path);
                 Ok(vec![fs::read_to_string(&path)?.trim().to_owned()])
             }
         }
