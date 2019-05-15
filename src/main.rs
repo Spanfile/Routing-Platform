@@ -3,18 +3,24 @@ mod config_editor;
 use common::config::Config;
 use common::schema::Schema;
 use config_editor::ConfigEditor;
+use std::time::Instant;
 
 fn main() {
     let binary = include_bytes!(concat!(env!("OUT_DIR"), "/schema"));
+
+    let start = Instant::now();
     let schema = Schema::from_binary(binary).expect("couldn't load schema from binary");
     schema
         .load_regexes_from_cache()
         .expect("couldn't load regexes from cache");
+    println!("Schema loaded in {}ms", start.elapsed().as_millis());
 
     schema.print_debug_info();
 
+    let start = Instant::now();
     let config = Config::from_schema(&schema).expect("couldn't build config from schema");
     let mut editor = ConfigEditor::new(&config, &schema);
+    println!("Config loaded in {}ms", start.elapsed().as_millis());
 
     println!("{:?}", editor.get_available_nodes_and_properties());
     editor.edit_node(String::from("interfaces")).unwrap();
