@@ -1,12 +1,13 @@
 use super::property::Property;
 use crate::context::Context;
+use std::collections::HashMap;
 
 #[derive(Debug)]
 pub struct Node {
     pub name: String,
     pub path: String,
-    pub subnodes: Vec<Box<Node>>,
-    pub properties: Vec<Property>,
+    pub subnodes: HashMap<String, Box<Node>>,
+    pub properties: HashMap<String, Property>,
 }
 
 impl Node {
@@ -45,19 +46,20 @@ impl Node {
             .format(node.name.to_owned())
             .expect("couldn't context format node name");
         let path = String::from([parent.as_str(), name.as_str()].join("."));
-        let mut subnodes = Vec::new();
-        let mut properties = Vec::new();
+        let mut subnodes = HashMap::new();
+        let mut properties = HashMap::new();
 
         for subnode in &node.subnodes {
             subnodes.extend(
                 Node::from_schema_node(&path, context, subnode)?
                     .into_iter()
-                    .map(|n| Box::new(n)),
+                    .map(|n| (n.name.to_owned(), Box::new(n))),
             );
         }
 
         for property in &node.properties {
-            properties.push(Property::from_schema_property(&path, context, property)?);
+            let prop = Property::from_schema_property(&path, context, property)?;
+            properties.insert(prop.key.to_owned(), prop);
         }
 
         Ok(Node {

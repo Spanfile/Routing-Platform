@@ -1,11 +1,19 @@
 use crate::context::Context;
+use crate::schema::value::Value;
+use std::cell::RefCell;
 
 #[derive(Debug)]
 pub struct Property {
     pub key: String,
     pub path: String,
-    pub values: Vec<String>,
-    // TODO: keep stuff from schema here = allowed value types and multiple values allowed etc
+    pub values: RefCell<Vec<String>>,
+    pub constraints: Constraints,
+}
+
+#[derive(Debug)]
+pub struct Constraints {
+    pub multiple: bool,
+    pub values: Vec<Value>,
 }
 
 #[derive(Debug)]
@@ -57,7 +65,11 @@ impl Property {
             Ok(Property {
                 key: property.key.clone(),
                 path: parent.clone(),
-                values: values,
+                values: RefCell::new(values),
+                constraints: Constraints {
+                    multiple: property.multiple,
+                    values: property.values.to_vec(),
+                },
             })
         }
     }

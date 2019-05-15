@@ -2,7 +2,7 @@ use super::query::Query;
 use crate::context::Context;
 use serde::{Deserialize, Serialize};
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Clone)]
 pub enum Value {
     #[serde(rename = "literal")]
     Literal(String),
@@ -12,7 +12,7 @@ pub enum Value {
     Range { lower: Bound, upper: Bound },
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Clone)]
 pub enum Bound {
     #[serde(rename = "inclusive")]
     Inclusive(f64),
