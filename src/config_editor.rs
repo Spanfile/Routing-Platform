@@ -1,4 +1,4 @@
-use common::config::{node::Node, Config};
+use common::config::{node::Node, property::Property, Config};
 use common::schema::Schema;
 use std::collections::HashMap;
 
@@ -123,19 +123,38 @@ impl<'a> ConfigEditor<'a> {
         property: String,
         value: String,
     ) -> Result<(), ConfigEditorError> {
-        let property = match self.node_stack.last() {
-            Some(n) => match n.properties.get(&property) {
-                Some(p) => p,
-                None => return Err(ConfigEditorError::PropertyNotFound(property)),
-            },
-            None => return Err(ConfigEditorError::PropertyNotFound(property)),
-        };
+        let property = self.get_property(property)?;
 
         match property.set(value, self.schema) {
             Ok(()) => Ok(()),
             Err(e) => Err(ConfigEditorError::ValueError {
                 source: Box::new(e),
             }),
+        }
+    }
+
+    pub fn remove_property_value(
+        &self,
+        property: String,
+        value: Option<String>,
+    ) -> Result<(), ConfigEditorError> {
+        let property = self.get_property(property)?;
+
+        match property.remove(value) {
+            Ok(()) => Ok(()),
+            Err(e) => Err(ConfigEditorError::ValueError {
+                source: Box::new(e),
+            }),
+        }
+    }
+
+    fn get_property(&self, property: String) -> Result<&Property, ConfigEditorError> {
+        match self.node_stack.last() {
+            Some(n) => match n.properties.get(&property) {
+                Some(p) => Ok(p),
+                None => Err(ConfigEditorError::PropertyNotFound(property)),
+            },
+            None => Err(ConfigEditorError::PropertyNotFound(property)),
         }
     }
 }

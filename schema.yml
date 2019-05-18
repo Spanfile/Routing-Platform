@@ -36,6 +36,7 @@ nodes:
                 id: mac
                 command:
                   cat: /sys/class/net/{interface}/address
+            deletable: false
             values:
             - template: mac
           mtu:
@@ -44,6 +45,7 @@ nodes:
                 id: mtu
                 command:
                   cat: /sys/class/net/{interface}/mtu
+            deletable: false
             values:
             - range:
                 lower:
@@ -53,6 +55,9 @@ nodes:
   system:
     properties:
       hostname:
+        default:
+        - literal: router
+        deletable: false
         values:
         - template: hostname
     subnodes:

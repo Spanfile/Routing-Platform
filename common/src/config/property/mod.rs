@@ -10,13 +10,15 @@ pub struct Property {
     pub key: String,
     pub path: String,
     values: RefCell<Vec<String>>,
+    default_values: Vec<String>, // this is pretty horrible just look it up from the schema or smth
     constraints: Constraints,
 }
 
 #[derive(Debug)]
 pub enum PropertyError {
     DefaultResolvingError { source: Box<dyn std::error::Error> },
-    ConstraintNotMetError,
+    ConstraintNotMet,
+    NoValueSet,
 }
 
 impl std::fmt::Display for PropertyError {
@@ -25,7 +27,8 @@ impl std::fmt::Display for PropertyError {
             PropertyError::DefaultResolvingError { source: _ } => {
                 write!(f, "default value failed to resolve")
             }
-            PropertyError::ConstraintNotMetError => write!(f, "constraint not met"),
+            PropertyError::ConstraintNotMet => write!(f, "constraint not met"),
+            PropertyError::NoValueSet => write!(f, "no value set"),
         }
     }
 }
@@ -56,11 +59,12 @@ impl Property {
         }
 
         if !property.multiple && values.len() > 1 {
-            Err(PropertyError::ConstraintNotMetError)
+            Err(PropertyError::ConstraintNotMet)
         } else {
             Ok(Property {
                 key: key.to_owned(),
                 path: parent.to_owned(),
+                default_values: values.iter().map(|s| s.to_owned()).collect(),
                 values: RefCell::new(values),
                 constraints: Constraints::from_schema_property(property),
             })
@@ -74,7 +78,7 @@ impl Property {
     pub fn set(&self, value: String, schema: &Schema) -> Result<(), PropertyError> {
         match self.constraints.matches(&value, schema) {
             Ok(()) => (),
-            Err(_e) => return Err(PropertyError::ConstraintNotMetError),
+            Err(_e) => return Err(PropertyError::ConstraintNotMet),
         }
 
         let mut values = self.values.borrow_mut();
@@ -82,6 +86,25 @@ impl Property {
             values.clear();
         }
         values.push(value);
+
+        Ok(())
+    }
+
+    pub fn remove(&self, value: Option<String>) -> Result<(), PropertyError> {
+        if self.values.borrow().is_empty() {
+            return Err(PropertyError::NoValueSet);
+        }
+
+        let mut values = self.values.borrow_mut();
+        if let Some(value) = value {
+            values.retain(|v| *v != value);
+        } else {
+            values.clear();
+        }
+
+        if values.is_empty() && !self.constraints.deletable {
+            *values = self.default_values.clone();
+        }
 
         Ok(())
     }

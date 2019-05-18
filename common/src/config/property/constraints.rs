@@ -6,6 +6,7 @@ use crate::schema::Schema;
 pub struct Constraints {
     pub multiple: bool,
     values: Vec<Value>,
+    pub deletable: bool,
 }
 
 #[derive(Debug)]
@@ -24,6 +25,7 @@ impl Constraints {
         Constraints {
             multiple: property.multiple,
             values: property.values.to_vec(),
+            deletable: property.deletable,
         }
     }
 

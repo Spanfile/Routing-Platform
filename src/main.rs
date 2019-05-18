@@ -38,6 +38,9 @@ fn main() {
     editor
         .set_property_value(String::from("mtu"), String::from("8000"))
         .unwrap();
+    editor
+        .remove_property_value(String::from("mtu"), None)
+        .unwrap();
 
     editor.pretty_print_current_node();
     editor.pretty_print_config();
