@@ -1,5 +1,8 @@
+pub mod range;
+
 use super::query::Query;
 use crate::context::Context;
+use range::Range;
 use serde::{Deserialize, Serialize};
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
@@ -9,15 +12,7 @@ pub enum Value {
     #[serde(rename = "template")]
     Template(String),
     #[serde(rename = "range")]
-    Range { lower: Bound, upper: Bound },
-}
-
-#[derive(Serialize, Deserialize, Debug, Clone)]
-pub enum Bound {
-    #[serde(rename = "inclusive")]
-    Inclusive(f64),
-    #[serde(rename = "exclusive")]
-    Exclusive(f64),
+    Range(Range),
 }
 
 #[derive(Serialize, Deserialize, Debug)]

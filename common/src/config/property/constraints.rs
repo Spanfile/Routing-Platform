@@ -1,5 +1,5 @@
 use crate::schema::property::Property;
-use crate::schema::value::{Bound, Value};
+use crate::schema::value::Value;
 use crate::schema::Schema;
 
 #[derive(Debug)]
@@ -46,36 +46,14 @@ impl Constraints {
                         return Ok(());
                     }
                 }
-                Value::Range { lower, upper } => {
+                Value::Range(range) => {
                     let numeric: f64 = match value.parse() {
                         Ok(v) => v,
                         Err(_e) => continue,
                     };
 
-                    match lower {
-                        Bound::Inclusive(bound) => {
-                            if numeric < *bound {
-                                continue;
-                            }
-                        }
-                        Bound::Exclusive(bound) => {
-                            if numeric <= *bound {
-                                continue;
-                            }
-                        }
-                    }
-
-                    match upper {
-                        Bound::Inclusive(bound) => {
-                            if numeric > *bound {
-                                continue;
-                            }
-                        }
-                        Bound::Exclusive(bound) => {
-                            if numeric >= *bound {
-                                continue;
-                            }
-                        }
+                    if !range.matches(numeric) {
+                        continue;
                     }
 
                     return Ok(());

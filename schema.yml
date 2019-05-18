@@ -14,6 +14,12 @@ templates:
     regex: '(?:[[:xdigit:]]{2}:)(?:[[:xdigit:]]{2}:){4}[[:xdigit:]]{2}'
   ssh-key:
     regex: 'ssh-rsa AAAA[0-9A-Za-z+/]+={0,3}'
+  vid:
+    range:
+      lower:
+        exclusive: 0
+      upper:
+        exclusive: 4095
 nodes:
   interfaces:
     subnodes:
@@ -22,6 +28,18 @@ nodes:
           id: interface
           command:
             ls: /sys/class/net
+        subnodes:
+          vlan:
+            subnodes:
+              <vid>:
+                properties:
+                  description:
+                    values:
+                    - template: string
+                  address:
+                    values:
+                    - literal: dhcp
+                    - template: ipv4-cidr
         properties:
           description:
             values:

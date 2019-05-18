@@ -1,17 +1,18 @@
-use super::{Schema, Validate, ValidationError};
+use super::{Matches, Schema, Validate, ValidationError};
 use regex_automata::{DenseDFA, DFA};
-use serde::{Deserialize, Serialize};
+use serde::de::{self, Visitor};
+use serde::{de::Deserializer, ser::Serializer, Deserialize, Serialize};
 use std::cell::RefCell;
 use std::error::Error;
+use std::fmt;
 
-#[derive(Serialize, Deserialize, Debug)]
-pub struct Template {
-    pub regex: String,
-    #[serde(skip)]
+#[derive(Debug)]
+pub struct RegexTemplate {
+    regex: String,
     compiled_regex: RefCell<Option<DenseDFA<Vec<usize>, usize>>>,
 }
 
-impl Template {
+impl RegexTemplate {
     pub fn serialise_regex(&self) -> Result<Vec<u8>, Box<dyn Error>> {
         self.compile_regex();
         let bytes = self
@@ -45,8 +46,8 @@ impl Template {
     }
 }
 
-impl Template {
-    pub fn matches(&self, value: &String) -> bool {
+impl Matches for RegexTemplate {
+    fn matches(&self, value: &String) -> bool {
         self.compile_regex();
         let regex_option = self.compiled_regex.borrow();
         let regex = regex_option
@@ -56,7 +57,7 @@ impl Template {
     }
 }
 
-impl Validate for Template {
+impl Validate for RegexTemplate {
     fn validate(&self, _schema: &Schema) -> Vec<ValidationError> {
         match DenseDFA::new(&self.regex) {
             Ok(r) => {
@@ -69,5 +70,44 @@ impl Validate for Template {
                 e.description()
             ))],
         }
+    }
+}
+
+// this allows a regex template be deserialised directly from a regex string
+struct RegexTemplateVisitor;
+impl<'de> Visitor<'de> for RegexTemplateVisitor {
+    type Value = RegexTemplate;
+
+    fn expecting(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
+        formatter.write_str("a string")
+    }
+
+    fn visit_str<E>(self, value: &str) -> Result<Self::Value, E>
+    where
+        E: de::Error,
+    {
+        Ok(RegexTemplate {
+            regex: value.to_owned(),
+            compiled_regex: RefCell::new(None),
+        })
+    }
+}
+
+impl<'de> Deserialize<'de> for RegexTemplate {
+    fn deserialize<D>(deserializer: D) -> Result<RegexTemplate, D::Error>
+    where
+        D: Deserializer<'de>,
+    {
+        deserializer.deserialize_str(RegexTemplateVisitor)
+    }
+}
+
+// as the deserialisation was directly from the regex string, serialise directly into it as well
+impl Serialize for RegexTemplate {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        serializer.serialize_str(&*self.regex)
     }
 }

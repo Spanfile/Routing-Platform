@@ -1,4 +1,4 @@
-use super::value::{Bound, DefaultValue, Value};
+use super::value::{DefaultValue, Value};
 use super::{Schema, Validate, ValidationError};
 use serde::{Deserialize, Serialize};
 
@@ -44,52 +44,7 @@ impl Validate for Property {
                         )));
                     }
                 }
-                Value::Range { lower, upper } => match lower {
-                    Bound::Inclusive(lower_v) => match upper {
-                        Bound::Inclusive(upper_v) => {
-                            if upper_v < lower_v {
-                                errors.push(ValidationError::new(format!(
-                                    "Property validation error\nValue: {:?}\nInclusive upper bound {} lower than inclusive lower bound {}",
-                                    value,
-                                    upper_v,
-                                    lower_v
-                                )));
-                            }
-                        }
-                        Bound::Exclusive(upper_v) => {
-                            if upper_v < lower_v {
-                                errors.push(ValidationError::new(format!(
-                                    "Property validation error\nValue: {:?}\nExclusive upper bound {} lower than inclusive lower bound {}",
-                                    value,
-                                    upper_v,
-                                    lower_v
-                                )));
-                            }
-                        }
-                    },
-                    Bound::Exclusive(lower_v) => match upper {
-                        Bound::Inclusive(upper_v) => {
-                            if upper_v <= lower_v {
-                                errors.push(ValidationError::new(format!(
-                                    "Property validation error\nValue: {:?}\nInclusive upper bound {} lower or equal to exclusive lower bound {}",
-                                    value,
-                                    upper_v,
-                                    lower_v
-                                )));
-                            }
-                        }
-                        Bound::Exclusive(upper_v) => {
-                            if upper_v <= lower_v {
-                                errors.push(ValidationError::new(format!(
-                                    "Property validation error\nValue: {:?}\nExclusive upper bound {} lower or equal to exclusive lower bound {}",
-                                    value,
-                                    upper_v,
-                                    lower_v
-                                )));
-                            }
-                        }
-                    },
-                },
+                Value::Range(range) => errors.extend(range.validate(schema)),
                 _ => (),
             };
         }
@@ -124,22 +79,13 @@ impl Validate for Property {
                                         break;
                                     }
                                 }
-                                Value::Range { lower, upper } => {
+                                Value::Range(range) => {
                                     let numeric_default: f64 = match def.parse() {
                                         Ok(v) => v,
                                         Err(_e) => break, // not being an integer means the range isn't valid but another value could still be
                                     };
 
-                                    let matches_from = match lower {
-                                        Bound::Inclusive(bound) => numeric_default >= *bound,
-                                        Bound::Exclusive(bound) => numeric_default > *bound,
-                                    };
-                                    let matches_to = match upper {
-                                        Bound::Inclusive(bound) => numeric_default <= *bound,
-                                        Bound::Exclusive(bound) => numeric_default < *bound,
-                                    };
-
-                                    if matches_from && matches_to {
+                                    if range.matches(numeric_default) {
                                         match_found = true;
                                         break;
                                     }

@@ -93,8 +93,9 @@ impl Schema {
         self.regex_cache = HashMap::new();
 
         for (name, template) in &self.templates {
-            let bytes = template.serialise_regex()?;
-            self.regex_cache.insert(name.clone(), bytes);
+            if let Some(bytes) = template.serialise_regex()? {
+                self.regex_cache.insert(name.clone(), bytes);
+            }
         }
 
         Ok(())
@@ -102,13 +103,7 @@ impl Schema {
 
     pub fn load_regexes_from_cache(&self) -> Result<(), Box<dyn Error>> {
         for (name, template) in &self.templates {
-            match self.regex_cache.get(name) {
-                Some(cache) => template.deserialise_regex(cache),
-                None => {
-                    println!("missing cached regex for template '{}', recompiling", &name);
-                    template.compile_regex();
-                }
-            }
+            template.load_regex_from_cache(self.regex_cache.get(name));
         }
 
         Ok(())
