@@ -1,4 +1,4 @@
-use crate::schema::{Schema, Validate, ValidationError};
+use crate::schema::{Matches, Schema, Validate, ValidationError};
 use serde::{Deserialize, Serialize};
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
@@ -15,15 +15,20 @@ pub enum Bound {
     Exclusive(f64),
 }
 
-impl Range {
-    pub fn matches(&self, value: f64) -> bool {
-        (match self.lower {
-            Bound::Inclusive(bound) => value >= bound,
-            Bound::Exclusive(bound) => value > bound,
-        }) && (match self.upper {
-            Bound::Inclusive(bound) => value <= bound,
-            Bound::Exclusive(bound) => value < bound,
-        })
+impl Matches for Range {
+    fn matches(&self, value: &String) -> bool {
+        match value.parse::<f64>() {
+            Ok(v) => {
+                (match self.lower {
+                    Bound::Inclusive(bound) => v >= bound,
+                    Bound::Exclusive(bound) => v > bound,
+                }) && (match self.upper {
+                    Bound::Inclusive(bound) => v <= bound,
+                    Bound::Exclusive(bound) => v < bound,
+                })
+            }
+            Err(_e) => false,
+        }
     }
 }
 

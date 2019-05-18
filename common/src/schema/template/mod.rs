@@ -1,6 +1,6 @@
 mod regex_template;
 
-use super::{value::range::Range, Schema, Validate, ValidationError};
+use super::{value::range::Range, Matches, Schema, Validate, ValidationError};
 use regex_template::RegexTemplate;
 use serde::{Deserialize, Serialize};
 
@@ -12,18 +12,11 @@ pub enum Template {
     Range(Range),
 }
 
-trait Matches {
-    fn matches(&self, value: &String) -> bool;
-}
-
 impl Template {
     pub fn matches(&self, value: &String) -> bool {
         match self {
             Template::Regex(regex) => regex.matches(value),
-            Template::Range(range) => match value.parse() {
-                Ok(v) => range.matches(v),
-                Err(_e) => false,
-            },
+            Template::Range(range) => range.matches(value),
         }
     }
 

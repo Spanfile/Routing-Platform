@@ -1,4 +1,4 @@
-use super::{Matches, Schema, Validate, ValidationError};
+use crate::schema::{Matches, Schema, Validate, ValidationError};
 use regex_automata::{DenseDFA, DFA};
 use serde::de::{self, Visitor};
 use serde::{de::Deserializer, ser::Serializer, Deserialize, Serialize};

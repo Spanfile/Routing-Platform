@@ -1,5 +1,5 @@
 use super::value::{DefaultValue, Value};
-use super::{Schema, Validate, ValidationError};
+use super::{Matches, Schema, Validate, ValidationError};
 use serde::{Deserialize, Serialize};
 
 #[derive(Serialize, Deserialize, Debug)]
@@ -80,12 +80,7 @@ impl Validate for Property {
                                     }
                                 }
                                 Value::Range(range) => {
-                                    let numeric_default: f64 = match def.parse() {
-                                        Ok(v) => v,
-                                        Err(_e) => break, // not being an integer means the range isn't valid but another value could still be
-                                    };
-
-                                    if range.matches(numeric_default) {
+                                    if range.matches(def) {
                                         match_found = true;
                                         break;
                                     }

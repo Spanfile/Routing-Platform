@@ -32,6 +32,10 @@ trait Validate {
     fn validate(&self, schema: &Schema) -> Vec<ValidationError>;
 }
 
+pub trait Matches {
+    fn matches(&self, value: &String) -> bool;
+}
+
 impl ValidationError {
     pub fn new(message: String) -> ValidationError {
         ValidationError { message }

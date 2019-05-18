@@ -1,6 +1,4 @@
-use crate::schema::property::Property;
-use crate::schema::value::Value;
-use crate::schema::Schema;
+use crate::schema::{property::Property, value::Value, Matches, Schema};
 
 #[derive(Debug)]
 pub struct Constraints {
@@ -47,12 +45,7 @@ impl Constraints {
                     }
                 }
                 Value::Range(range) => {
-                    let numeric: f64 = match value.parse() {
-                        Ok(v) => v,
-                        Err(_e) => continue,
-                    };
-
-                    if !range.matches(numeric) {
+                    if !range.matches(value) {
                         continue;
                     }
 
