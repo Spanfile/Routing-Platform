@@ -2,25 +2,20 @@ use super::value::{DefaultValue, Value};
 use super::{Matches, Schema, Validate, ValidationError};
 use serde::{Deserialize, Serialize};
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Default)]
 pub struct Property {
     #[serde(default)]
     pub multiple: bool,
     #[serde(default)]
     pub default: Vec<DefaultValue>,
     pub values: Vec<Value>,
-    #[serde(default)]
+    #[serde(default = "Property::default_deletable")]
     pub deletable: bool,
 }
 
-impl Default for Property {
-    fn default() -> Property {
-        Property {
-            multiple: false,
-            default: vec![],
-            values: vec![],
-            deletable: true,
-        }
+impl Property {
+    fn default_deletable() -> bool {
+        true
     }
 }
 

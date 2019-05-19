@@ -22,12 +22,8 @@ fn main() {
     let mut editor = ConfigEditor::new(&config, &schema);
     println!("Config loaded in {}ms", start.elapsed().as_millis());
 
-    println!("{:?}", editor.get_available_nodes_and_properties());
     editor.edit_node(String::from("interfaces")).unwrap();
-    println!("{:?}", editor.get_available_nodes_and_properties());
     editor.edit_node(String::from("ethernet eth0")).unwrap();
-    println!("{:?}", editor.get_available_nodes_and_properties());
-    println!("{:?}", editor.get_property_values(None));
     println!(
         "{:?}",
         editor.get_property_values(Some(String::from("description")))
@@ -40,6 +36,20 @@ fn main() {
         .unwrap();
     editor
         .remove_property_value(String::from("mtu"), None)
+        .unwrap();
+
+    editor.go_up().unwrap();
+    editor.go_up().unwrap();
+
+    editor.edit_node(String::from("system")).unwrap();
+    editor.edit_node(String::from("ntp")).unwrap();
+    println!("{:?}", editor.get_available_nodes_and_properties());
+    editor
+        .remove_property_value(String::from("server"), Some(String::from("4.pool.ntp.org")))
+        .unwrap();
+    editor.pretty_print_current_node();
+    editor
+        .remove_property_value(String::from("server"), None)
         .unwrap();
 
     editor.pretty_print_current_node();
