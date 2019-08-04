@@ -46,9 +46,9 @@ impl<'a> ConfigEditor<'a> {
         }
     }
 
-    pub fn get_available_nodes(&self) -> Vec<NodeName> {
+    pub fn get_available_nodes(&self) -> Vec<&String> {
         match self.node_stack.last() {
-            Some(n) => n.get_available_names(),
+            Some(n) => n.subnodes.keys().collect(),
             None => self.config.nodes.keys().collect(),
         }
     }
