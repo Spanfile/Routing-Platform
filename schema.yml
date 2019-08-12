@@ -30,8 +30,9 @@ nodes:
             ls: /sys/class/net
         subnodes:
           vlan:
-            subnodes:
-              <vid>:
+            multinode:
+              template: vid
+              node:
                 properties:
                   description:
                     values:

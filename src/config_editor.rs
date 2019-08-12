@@ -1,12 +1,12 @@
-use common::config::{node::Node, property::Property, Config};
+use common::config::{Config, Node, NodeName, Property};
 use common::schema::Schema;
 use std::collections::HashMap;
 
 #[derive(Debug)]
 pub struct ConfigEditor<'a> {
     schema: &'a Schema,
-    config: &'a Config,
-    node_stack: Vec<&'a Node>,
+    config: &'a Config<'a>,
+    node_stack: Vec<&'a Node<'a>>,
 }
 
 #[derive(Debug)]
@@ -15,6 +15,7 @@ pub enum ConfigEditorError {
     PropertyNotFound(String),
     NoParentNode,
     ValueError { source: Box<dyn std::error::Error> },
+    AmbiguousNodeName(String),
 }
 
 impl std::fmt::Display for ConfigEditorError {
@@ -24,6 +25,9 @@ impl std::fmt::Display for ConfigEditorError {
             ConfigEditorError::PropertyNotFound(_name) => write!(f, "property not found"),
             ConfigEditorError::NoParentNode => write!(f, "no parent node"),
             ConfigEditorError::ValueError { source: _s } => write!(f, "invalid value"),
+            ConfigEditorError::AmbiguousNodeName(_name) => {
+                write!(f, "ambiguous node name (multiple literal node names)")
+            }
         }
     }
 }
@@ -67,17 +71,51 @@ impl<'a> ConfigEditor<'a> {
     }
 
     pub fn edit_node(&mut self, name: String) -> Result<(), ConfigEditorError> {
-        match match self.node_stack.last() {
-            Some(n) => &n.subnodes,
-            None => &self.config.nodes,
-        }
-        .get(&name)
-        {
-            Some(node) => {
-                self.node_stack.push(node);
-                Ok(())
+        // match match self.node_stack.last() {
+        //     Some(n) => &n.subnodes,
+        //     None => &self.config.nodes,
+        // }
+        // .get(&name)
+        // {
+        //     Some(node) => {
+        //         self.node_stack.push(node);
+        //         Ok(())
+        //     }
+        //     None => Err(ConfigEditorError::NodeNotFound(name)),
+        // }
+
+        let mut matching_name: Option<NodeName> = None;
+        for node_name in match self.node_stack.last() {
+            Some(n) => n.get_available_node_names(),
+            None => self.config.get_available_node_names(),
+        } {
+            if node_name.matches(&name) {
+                match &matching_name {
+                    Some(existing_match) => match existing_match {
+                        NodeName::Literal(_n) => {
+                            if let NodeName::Literal(_n) = node_name {
+                                return Err(ConfigEditorError::AmbiguousNodeName(name));
+                            }
+                        }
+                        NodeName::Multiple(_t) => {
+                            if let NodeName::Multiple(_t) = node_name {
+                                return Err(ConfigEditorError::AmbiguousNodeName(name));
+                            }
+                        }
+                    },
+                    _ => matching_name = Some(node_name),
+                }
             }
-            None => Err(ConfigEditorError::NodeNotFound(name)),
+        }
+
+        if let Some(_) = matching_name {
+            self.node_stack.push(match self.node_stack.last() {
+                Some(n) => n.get_node_with_name(&name),
+                None => self.config.get_node_with_name(&name),
+            });
+            Ok(())
+        } else {
+            Err(ConfigEditorError::NodeNotFound(name))
         }
     }
 

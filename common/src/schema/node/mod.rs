@@ -1,6 +1,9 @@
+mod multinode;
+
 use super::property::Property;
 use super::query::Query;
 use super::{Schema, Validate, ValidationError};
+pub use multinode::Multinode;
 use serde::{Deserialize, Serialize};
 use std::collections::{HashMap, HashSet};
 
@@ -8,6 +11,8 @@ use std::collections::{HashMap, HashSet};
 pub struct Node {
     #[serde(default)]
     pub subnodes: HashMap<String, Box<Node>>,
+    #[serde(default)]
+    pub multinode: Option<Box<Multinode>>,
     #[serde(default)]
     pub properties: HashMap<String, Property>,
     #[serde(default)]
@@ -50,6 +55,10 @@ impl Validate for Node {
 
         for node in self.subnodes.values() {
             errors.extend(node.validate(schema));
+        }
+
+        if let Some(multinode) = &self.multinode {
+            errors.extend(multinode.validate(schema));
         }
 
         errors

@@ -1,19 +1,22 @@
-pub mod node;
-pub mod property;
-pub mod query;
-pub mod template;
-pub mod value;
+mod node;
+mod property;
+mod query;
+mod template;
+mod value;
 
 use flate2::read::ZlibDecoder;
 use flate2::write::ZlibEncoder;
 use flate2::Compression;
-use node::Node;
+pub use node::{Node, Multinode};
 use serde::{Deserialize, Serialize};
 use std::collections::{HashMap, HashSet};
 use std::error::Error;
 use std::fs::File;
 use std::io::BufReader;
-use template::Template;
+pub use template::Template;
+pub use query::Query;
+pub use property::Property;
+pub use value::Value;
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct Schema {

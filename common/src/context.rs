@@ -25,6 +25,19 @@ impl std::fmt::Display for FormatError {
 
 impl std::error::Error for FormatError {}
 
+impl<'a> Clone for Context<'a> {
+    fn clone(&self) -> Self {
+        Context {
+            values: self.values.clone(),
+            parent: if let Some(parent) = &self.parent {
+                Some(parent.clone())
+            } else {
+                None
+            }
+        }
+    }
+}
+
 impl<'a> Context<'a> {
     pub fn new(parent: Option<&'a Context>) -> Context<'a> {
         Context {

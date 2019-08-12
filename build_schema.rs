@@ -24,6 +24,10 @@ fn main() {
 
     let mut schema_dest = File::create(dest_path).expect("couldn't create schema binary file");
 
-    schema.build_regex_cache().expect("couldn't build regex cache");
-    schema.to_binary_file(&mut schema_dest).expect("couldn't serialise schema to binary file");
+    schema
+        .build_regex_cache()
+        .expect("couldn't build regex cache");
+    schema
+        .to_binary_file(&mut schema_dest)
+        .expect("couldn't serialise schema to binary file");
 }

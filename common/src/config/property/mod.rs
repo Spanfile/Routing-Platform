@@ -47,7 +47,7 @@ impl Property {
         parent: &String,
         context: &Context,
         key: &String,
-        property: &crate::schema::property::Property,
+        property: &crate::schema::Property,
     ) -> Result<Property, PropertyError> {
         let mut values = Vec::new();
 

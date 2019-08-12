@@ -1,4 +1,4 @@
-use crate::schema::{property::Property, value::Value, Matches, Schema};
+use crate::schema::{Property, Value, Matches, Schema};
 
 #[derive(Debug)]
 pub struct Constraints {
