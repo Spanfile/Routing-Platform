@@ -5,21 +5,21 @@ use crate::schema::Schema;
 use std::collections::HashMap;
 
 #[derive(Debug)]
-pub struct Multinodes<'a, 'b> {
-    nodes: HashMap<String, Box<Node<'a, 'b>>>,
+pub struct Multinodes<'a> {
+    nodes: HashMap<String, Box<Node<'a>>>,
     path: String,
     schema_node: &'a crate::schema::Multinode,
     schema: &'a Schema,
-    context: Context<'b>,
+    context: Context<'a>,
 }
 
-impl<'a, 'b> Multinodes<'a, 'b> {
+impl<'a> Multinodes<'a> {
     pub fn from_schema_node(
         parent: &String,
-        context: &'b Context<'b>,
+        context: &'a Context<'a>,
         schema_node: &'a crate::schema::Multinode,
         schema: &'a Schema,
-    ) -> Result<Multinodes<'a, 'b>, Box<dyn std::error::Error>> {
+    ) -> Result<Multinodes<'a>, Box<dyn std::error::Error>> {
         Ok(Multinodes {
             nodes: HashMap::new(),
             path: parent.to_owned(),
@@ -50,7 +50,7 @@ impl<'a, 'b> Multinodes<'a, 'b> {
     }
 }
 
-impl<'a, 'b> Multinodes<'a, 'b> {
+impl<'a> Multinodes<'a> {
     pub fn pretty_print(&self, indent: usize) {
         for (name, node) in &self.nodes {
             println!("{:indent$}{} {{", "", name, indent = indent * 4);

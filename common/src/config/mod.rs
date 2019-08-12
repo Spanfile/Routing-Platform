@@ -10,12 +10,12 @@ pub use property::Property;
 use std::collections::HashMap;
 
 #[derive(Debug)]
-pub struct Config<'a, 'b> {
+pub struct Config<'a> {
     // it helps a ton down the line if this has the exact same type as a node's subnodes hashmap
-    pub nodes: HashMap<String, Box<Node<'a, 'b>>>,
+    pub nodes: HashMap<String, Box<Node<'a>>>,
 }
 
-impl<'a, 'b> Config<'a, 'b> {
+impl<'a> Config<'a> {
     pub fn from_schema(schema: &Schema) -> Result<Config, Box<dyn std::error::Error>> {
         let mut nodes = HashMap::new();
         let mut context = Context::new(None);
@@ -51,7 +51,7 @@ impl<'a, 'b> Config<'a, 'b> {
     }
 }
 
-impl<'a, 'b> Config<'a, 'b> {
+impl<'a> Config<'a> {
     pub fn pretty_print(&self) {
         for (name, node) in &self.nodes {
             println!("{} {{", name);
