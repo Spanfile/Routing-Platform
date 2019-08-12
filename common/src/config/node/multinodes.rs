@@ -1,38 +1,36 @@
 use super::Node;
 use crate::Context;
 use crate::config::NodeName;
-use crate::schema::{Schema, Template};
+use crate::schema::Schema;
 use std::collections::HashMap;
 
 #[derive(Debug)]
-pub struct Multinodes<'a> {
-    nodes: HashMap<String, Box<Node<'a>>>,
-    template: &'a Template,
+pub struct Multinodes<'a, 'b> {
+    nodes: HashMap<String, Box<Node<'a, 'b>>>,
     path: String,
-    schema_node: &'a crate::schema::Node,
+    schema_node: &'a crate::schema::Multinode,
     schema: &'a Schema,
-    context: Context<'a>,
+    context: Context<'b>,
 }
 
-impl<'a> Multinodes<'a> {
+impl<'a, 'b> Multinodes<'a, 'b> {
     pub fn from_schema_node(
         parent: &String,
-        context: &'a Context<'a>,
+        context: &'b Context<'b>,
         schema_node: &'a crate::schema::Multinode,
         schema: &'a Schema,
-    ) -> Result<Multinodes<'a>, Box<dyn std::error::Error>> {
+    ) -> Result<Multinodes<'a, 'b>, Box<dyn std::error::Error>> {
         Ok(Multinodes {
             nodes: HashMap::new(),
-            template: schema.templates.get(&schema_node.template).unwrap(), // TODO: ew no unwrap
             path: parent.to_owned(),
             schema,
-            schema_node: &schema_node.node,
-            context: context.clone(),
+            schema_node: &schema_node,
+            context: context.flatten(),
         })
     }
 
     pub fn get_available_node_names(&self) -> Vec<NodeName> {
-        let mut names = vec!(NodeName::Multiple(self.template));
+        let mut names = vec!(NodeName::Multiple(self.schema.templates.get(&self.schema_node.template).unwrap()));
 
         for (name, _) in &self.nodes {
             names.push(NodeName::Literal(name.to_owned()));
@@ -45,14 +43,14 @@ impl<'a> Multinodes<'a> {
         match self.nodes.get(name) {
             Some(node) => return node,
             _ => {
-                let new_node = Node::from_schema_node(&self.path, &self.context, name, self.schema_node, self.schema);
+                let _new_node = Node::from_schema_node(&self.path, &self.context, name, &self.schema_node.node, self.schema);
                 panic!();
             }
         }
     }
 }
 
-impl<'a> Multinodes<'a> {
+impl<'a, 'b> Multinodes<'a, 'b> {
     pub fn pretty_print(&self, indent: usize) {
         for (name, node) in &self.nodes {
             println!("{:indent$}{} {{", "", name, indent = indent * 4);
