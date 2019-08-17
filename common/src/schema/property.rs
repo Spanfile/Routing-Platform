@@ -24,9 +24,9 @@ impl Validate for Property {
         let mut errors = Vec::new();
 
         if self.values.is_empty() {
-            errors.push(ValidationError::new(format!(
-                "Property validation error\nNo values defined",
-            )));
+            errors.push(ValidationError::new(
+                "Property validation error\nNo values defined".to_string(),
+            ));
         }
 
         for value in &self.values {
@@ -46,9 +46,7 @@ impl Validate for Property {
 
         if !self.default.is_empty() {
             if !self.multiple && self.default.len() > 1 {
-                errors.push(ValidationError::new(format!(
-                    "Property validation error\nMultiple default values given where multiple values is disallowed",
-                )));
+                errors.push(ValidationError::new("Property validation error\nMultiple default values given where multiple values is disallowed".to_string()));
             }
 
             let mut match_found = false;
@@ -65,10 +63,13 @@ impl Validate for Property {
                                 }
                                 Value::Template(template) => {
                                     // by now it's guaranteed the specified template exists (it has been validated above)
-                                    let templ = schema.templates.get(template).expect(&format!(
-                                        "template {} not found after existence validation",
-                                        template
-                                    ));
+                                    let templ =
+                                        schema.templates.get(template).unwrap_or_else(|| {
+                                            panic!(
+                                                "template {} not found after existence validation",
+                                                template
+                                            )
+                                        });
                                     if templ.matches(def) {
                                         match_found = true;
                                         break;

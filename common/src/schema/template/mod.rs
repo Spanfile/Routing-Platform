@@ -7,13 +7,13 @@ use serde::{Deserialize, Serialize};
 #[derive(Serialize, Deserialize, Debug)]
 pub enum Template {
     #[serde(rename = "regex")]
-    Regex(RegexTemplate),
+    Regex(Box<RegexTemplate>),
     #[serde(rename = "range")]
     Range(Range),
 }
 
 impl Template {
-    pub fn matches(&self, value: &String) -> bool {
+    pub fn matches(&self, value: &str) -> bool {
         match self {
             Template::Regex(regex) => regex.matches(value),
             Template::Range(range) => range.matches(value),
@@ -21,15 +21,14 @@ impl Template {
     }
 
     pub fn load_regex_from_cache(&self, regex_cache: Option<&Vec<u8>>) {
-        match self {
-            Template::Regex(regex) => match regex_cache {
+        if let Template::Regex(regex) = self {
+            match regex_cache {
                 Some(cache) => regex.deserialise_regex(cache),
                 None => {
                     println!("missing cached regex for template, recompiling");
                     regex.compile_regex();
                 }
-            },
-            _ => (),
+            }
         }
     }
 

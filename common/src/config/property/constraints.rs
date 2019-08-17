@@ -1,4 +1,4 @@
-use crate::schema::{Property, Value, Matches, Schema};
+use crate::schema::{Matches, Property, Schema, Value};
 
 #[derive(Debug)]
 pub struct Constraints {
@@ -27,7 +27,7 @@ impl Constraints {
         }
     }
 
-    pub fn matches(&self, value: &String, schema: &Schema) -> Result<(), ConstraintError> {
+    pub fn matches(&self, value: &str, schema: &Schema) -> Result<(), ConstraintError> {
         for v in &self.values {
             match v {
                 Value::Literal(literal) => {

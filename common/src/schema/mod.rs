@@ -7,15 +7,15 @@ mod value;
 use flate2::read::ZlibDecoder;
 use flate2::write::ZlibEncoder;
 use flate2::Compression;
-pub use node::{Node, Multinode, NodeLocator};
+pub use node::{Multinode, Node, NodeLocator};
+pub use property::Property;
+pub use query::Query;
 use serde::{Deserialize, Serialize};
 use std::collections::{HashMap, HashSet};
 use std::error::Error;
 use std::fs::File;
 use std::io::BufReader;
 pub use template::Template;
-pub use query::Query;
-pub use property::Property;
 pub use value::Value;
 
 #[derive(Serialize, Deserialize, Debug)]
@@ -36,7 +36,7 @@ trait Validate {
 }
 
 pub trait Matches {
-    fn matches(&self, value: &String) -> bool;
+    fn matches(&self, value: &str) -> bool;
 }
 
 impl ValidationError {
@@ -46,7 +46,7 @@ impl ValidationError {
 }
 
 impl Schema<'_> {
-    pub fn to_binary_file(self, file: &mut File) -> Result<(), serde_cbor::error::Error> {
+    pub fn to_binary_file(&self, file: &mut File) -> Result<(), serde_cbor::error::Error> {
         let mut encoder = ZlibEncoder::new(file, Compression::best());
         serde_cbor::to_writer(&mut encoder, &self)
     }

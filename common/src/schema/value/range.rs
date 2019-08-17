@@ -16,7 +16,7 @@ pub enum Bound {
 }
 
 impl Matches for Range {
-    fn matches(&self, value: &String) -> bool {
+    fn matches(&self, value: &str) -> bool {
         match value.parse::<f64>() {
             Ok(v) => {
                 (match self.lower {

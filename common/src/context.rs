@@ -48,7 +48,7 @@ impl<'a> Context<'a> {
     }
 
     pub fn set_value(&mut self, id: String, value: String) {
-        &self.values.insert(id, value);
+        self.values.insert(id, value);
     }
 
     pub fn format(&self, text: String) -> Result<String, FormatError> {
@@ -107,10 +107,9 @@ impl<'a> Context<'a> {
             }
             current = con.parent;
         }
-        
         Context {
             values,
-            parent: None
+            parent: None,
         }
     }
 }

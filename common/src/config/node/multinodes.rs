@@ -13,7 +13,7 @@ pub struct Multinodes {
 
 impl Multinodes {
     pub fn from_schema_node(
-        parent: &String,
+        parent: &str,
         // context: &'a Context,
         schema_multinode: & crate::schema::Multinode,
     ) -> Result<Multinodes, Box<dyn std::error::Error>> {
@@ -38,7 +38,7 @@ impl Multinodes {
         // names
     }
 
-    pub fn get_node_with_name(&self, name: &String) -> &Node {
+    pub fn get_node_with_name(&self, name: &str) -> &Node {
         panic!();
         // match self.nodes.get(name) {
         //     Some(node) => return node,

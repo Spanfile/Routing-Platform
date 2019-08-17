@@ -32,7 +32,7 @@ impl RegexTemplate {
         }
     }
 
-    pub fn deserialise_regex(&self, bytes: &Vec<u8>) {
+    pub fn deserialise_regex(&self, bytes: &[u8]) {
         let dfa: DenseDFA<Vec<u16>, u16> = unsafe { DenseDFA::from_bytes(bytes).to_owned() };
         *self.compiled_regex.borrow_mut() =
             Some(dfa.to_sized().expect("couldn't create new usize DFA"));
@@ -47,7 +47,7 @@ impl RegexTemplate {
 }
 
 impl Matches for RegexTemplate {
-    fn matches(&self, value: &String) -> bool {
+    fn matches(&self, value: &str) -> bool {
         self.compile_regex();
         let regex_option = self.compiled_regex.borrow();
         let regex = regex_option

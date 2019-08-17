@@ -24,7 +24,7 @@ pub enum PropertyError {
 impl std::fmt::Display for PropertyError {
     fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
         match &self {
-            PropertyError::DefaultResolvingError { source: _ } => {
+            PropertyError::DefaultResolvingError { .. } => {
                 write!(f, "default value failed to resolve")
             }
             PropertyError::ConstraintNotMet => write!(f, "constraint not met"),
@@ -44,9 +44,9 @@ impl std::error::Error for PropertyError {
 
 impl Property {
     pub fn from_schema_property(
-        parent: &String,
+        parent: &str,
         context: &Context,
-        key: &String,
+        key: &str,
         property: &crate::schema::Property,
     ) -> Result<Property, PropertyError> {
         let mut values = Vec::new();

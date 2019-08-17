@@ -35,16 +35,16 @@ impl Config {
     pub fn get_available_node_names(&self) -> Vec<NodeName> {
         let mut names = Vec::new();
 
-        for (name, _) in &self.nodes {
+        for name in self.nodes.keys() {
             names.push(NodeName::Literal(name.to_owned()));
         }
 
         names
     }
 
-    pub fn get_node_with_name(&self, name: &String) -> &Node {
+    pub fn get_node_with_name(&self, name: &str) -> &Node {
         match self.nodes.get(name) {
-            Some(node) => return &node,
+            Some(node) => &node,
             _ => panic!(),
         }
     }

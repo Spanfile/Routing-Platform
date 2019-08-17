@@ -6,7 +6,7 @@ pub enum NodeName<'a> {
 }
 
 impl<'a> NodeName<'a> {
-    pub fn matches(&self, name: &String) -> bool {
+    pub fn matches(&self, name: &str) -> bool {
         match &self {
             NodeName::Literal(s) => name == s,
             NodeName::Multiple(_t) => {

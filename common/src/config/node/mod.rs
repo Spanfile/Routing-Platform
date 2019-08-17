@@ -17,13 +17,13 @@ pub struct Node {
 
 impl Node {
     pub fn full_path(&self) -> String {
-        String::from([self.path.as_str(), self.name.as_str()].join("."))
+        [self.path.as_str(), self.name.as_str()].join(".")
     }
 
     pub fn from_schema_node(
-        parent: &String,
+        parent: &str,
         context: &Context,
-        name: &String,
+        name: &str,
         node: &crate::schema::Node,
     ) -> Result<Vec<Node>, Box<dyn std::error::Error>> {
         match &node.query {
@@ -43,15 +43,15 @@ impl Node {
     }
 
     fn build_node(
-        parent: &String,
-        context: & Context,
-        name: &String,
-        schema_node: & crate::schema::Node,
+        parent: &str,
+        context: &Context,
+        name: &str,
+        schema_node: &crate::schema::Node,
     ) -> Result<Node, Box<dyn std::error::Error>> {
         let name = context
             .format(name.to_owned())
             .expect("couldn't context format node name");
-        let path = String::from([parent.as_str(), name.as_str()].join("."));
+        let path = [parent.to_owned(), name.to_owned()].join(".");
         let mut subnodes = HashMap::new();
         let mut properties = HashMap::new();
 
@@ -69,7 +69,9 @@ impl Node {
         }
 
         let multinodes = if let Some(multinode) = &schema_node.multinode {
-            Some(Multinodes::from_schema_node(&path, /* context, */ multinode)?)
+            Some(Multinodes::from_schema_node(
+                &path, /* context, */ multinode,
+            )?)
         } else {
             None
         };
@@ -86,7 +88,7 @@ impl Node {
     pub fn get_available_node_names(&self) -> Vec<NodeName> {
         let mut names = Vec::new();
 
-        for (name, _) in &self.subnodes {
+        for name in self.subnodes.keys() {
             names.push(NodeName::Literal(name.to_owned()));
         }
 
@@ -97,15 +99,16 @@ impl Node {
         names
     }
 
-    pub fn get_node_with_name(&self, name: &String) -> &Node {
+    pub fn get_node_with_name(&self, name: &str) -> &Node {
         match self.subnodes.get(name) {
-            Some(node) => return &node,
-            _ => 
+            Some(node) => &node,
+            _ => {
                 if let Some(multinodes) = &self.multinodes {
                     multinodes.get_node_with_name(name)
                 } else {
                     panic!();
                 }
+            }
         }
     }
 }
