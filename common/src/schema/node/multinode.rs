@@ -1,14 +1,19 @@
-use super::Node;
-use super::{Schema, Validate, ValidationError};
+use super::{Schema, Validate, ValidationError, Node, NodeLocator};
 use serde::{Deserialize, Serialize};
 
 #[derive(Serialize, Deserialize, Debug)]
-pub struct Multinode {
+pub struct Multinode<'multinode> {
     pub template: String,
-    pub node: Box<Node>,
+    pub node: Box<Node<'multinode>>,
 }
 
-impl Validate for Multinode {
+impl Multinode<'_> {
+    pub fn get_node_locator(&self) -> NodeLocator {
+        self.node.get_locator()
+    }
+}
+
+impl Validate for Multinode<'_> {
     fn validate(&self, schema: &Schema) -> Vec<ValidationError> {
         let mut errors: Vec<ValidationError> = Vec::new();
         errors.extend(self.node.validate(schema));

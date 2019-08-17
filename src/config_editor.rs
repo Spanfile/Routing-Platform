@@ -4,9 +4,9 @@ use std::collections::HashMap;
 
 #[derive(Debug)]
 pub struct ConfigEditor<'a> {
-    schema: &'a Schema,
-    config: &'a Config<'a>,
-    node_stack: Vec<&'a Node<'a>>,
+    schema: &'a Schema<'a>,
+    config: &'a Config,
+    node_stack: Vec<&'a Node>,
 }
 
 #[derive(Debug)]
@@ -108,7 +108,7 @@ impl<'a> ConfigEditor<'a> {
             }
         }
 
-        if let Some(_) = matching_name {
+        if matching_name.is_some() {
             self.node_stack.push(match self.node_stack.last() {
                 Some(n) => n.get_node_with_name(&name),
                 None => self.config.get_node_with_name(&name),

@@ -7,50 +7,47 @@ use multinodes::Multinodes;
 use std::collections::HashMap;
 
 #[derive(Debug)]
-pub struct Node<'a> {
+pub struct Node {
     pub name: String,
     pub path: String,
-    pub subnodes: HashMap<String, Box<Node<'a>>>,
-    pub multinodes: Option<Multinodes<'a>>,
+    pub subnodes: HashMap<String, Box<Node>>,
+    pub multinodes: Option<Multinodes>,
     pub properties: HashMap<String, Property>,
 }
 
-impl<'a> Node<'a> {
+impl Node {
     pub fn full_path(&self) -> String {
         String::from([self.path.as_str(), self.name.as_str()].join("."))
     }
 
     pub fn from_schema_node(
         parent: &String,
-        context: &'a Context<'a>,
+        context: &Context,
         name: &String,
-        node: &'a crate::schema::Node,
-        schema: &'a crate::schema::Schema,
-    ) -> Result<Vec<Node<'a>>, Box<dyn std::error::Error>> {
+        node: &crate::schema::Node,
+    ) -> Result<Vec<Node>, Box<dyn std::error::Error>> {
         match &node.query {
             Some(query) => {
-                let results = query.run(context)?;
                 let mut nodes = Vec::new();
 
-                for result in &results {
+                for result in &query.run(context)? {
                     let mut result_context = Context::new(Some(context));
                     result_context.set_value(query.id.to_owned(), result.to_owned());
-                    nodes.push(Node::build_node(parent, &result_context, name, node, schema)?);
+                    nodes.push(Node::build_node(parent, &result_context, name, node)?);
                 }
 
                 Ok(nodes)
             }
-            None => Ok(vec![Node::build_node(parent, &context, name, node, schema)?]),
+            None => Ok(vec![Node::build_node(parent, &context, name, node)?]),
         }
     }
 
     fn build_node(
         parent: &String,
-        context: &'a Context<'a>,
+        context: & Context,
         name: &String,
-        schema_node: &'a crate::schema::Node,
-        schema: &'a crate::schema::Schema,
-    ) -> Result<Node<'a>, Box<dyn std::error::Error>> {
+        schema_node: & crate::schema::Node,
+    ) -> Result<Node, Box<dyn std::error::Error>> {
         let name = context
             .format(name.to_owned())
             .expect("couldn't context format node name");
@@ -60,7 +57,7 @@ impl<'a> Node<'a> {
 
         for (subname, subnode) in &schema_node.subnodes {
             subnodes.extend(
-                Node::from_schema_node(&path, context, &subname, subnode, schema)?
+                Node::from_schema_node(&path, context, &subname, subnode)?
                     .into_iter()
                     .map(|n| (n.name.to_owned(), Box::new(n))),
             );
@@ -71,9 +68,10 @@ impl<'a> Node<'a> {
             properties.insert(key.to_owned(), prop);
         }
 
-        let multinodes = match &schema_node.multinode {
-            Some(multinode) => Some(Multinodes::from_schema_node(&path, context, multinode, schema)?),
-            _ => None,
+        let multinodes = if let Some(multinode) = &schema_node.multinode {
+            Some(Multinodes::from_schema_node(&path, /* context, */ multinode)?)
+        } else {
+            None
         };
 
         Ok(Node {
@@ -112,7 +110,7 @@ impl<'a> Node<'a> {
     }
 }
 
-impl<'a> Node<'a> {
+impl Node {
     pub fn pretty_print(&self, indent: usize) {
         for (name, node) in &self.subnodes {
             println!("{:indent$}{} {{", "", name, indent = indent * 4);
