@@ -1,28 +1,29 @@
 use super::Node;
 use crate::config::NodeName;
 use crate::schema::NodeLocator;
+use crate::Context;
 use std::collections::HashMap;
+use std::rc::Rc;
 
 #[derive(Debug)]
 pub struct Multinodes {
     nodes: HashMap<String, Box<Node>>,
     path: String,
-    node_locator: NodeLocator,
+    // node_locator: NodeLocator,
+    context: Rc<Context>,
 }
 
 impl Multinodes {
     pub fn from_schema_node(
         parent: &str,
-        // context: &'a Context,
+        context: Rc<Context>,
         schema_multinode: &crate::schema::Multinode,
     ) -> Result<Multinodes, Box<dyn std::error::Error>> {
         Ok(Multinodes {
             nodes: HashMap::new(),
             path: parent.to_owned(),
-            // schema,
-            // schema_node,
-            // context: context.flatten(),
-            node_locator: schema_multinode.get_node_locator(),
+            context: Rc::clone(&context),
+            // node_locator: schema_multinode.get_node_locator(),
         })
     }
 

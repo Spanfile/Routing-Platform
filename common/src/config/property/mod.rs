@@ -4,6 +4,7 @@ use crate::context::Context;
 use crate::schema::Schema;
 use constraints::Constraints;
 use std::cell::RefCell;
+use std::rc::Rc;
 
 #[derive(Debug)]
 pub struct Property {
@@ -45,14 +46,14 @@ impl std::error::Error for PropertyError {
 impl Property {
     pub fn from_schema_property(
         parent: &str,
-        context: &Context,
+        context: Rc<Context>,
         key: &str,
         property: &crate::schema::Property,
     ) -> Result<Property, PropertyError> {
         let mut values = Vec::new();
 
         for default in &property.default {
-            values.extend(match default.resolve(context) {
+            values.extend(match default.resolve(&context) {
                 Ok(v) => v,
                 Err(e) => return Err(PropertyError::DefaultResolvingError { source: e }),
             });

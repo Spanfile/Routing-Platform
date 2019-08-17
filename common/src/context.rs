@@ -1,11 +1,12 @@
 use lazy_static::lazy_static;
 use regex_automata::Regex;
 use std::collections::HashMap;
+use std::rc::Rc;
 
 #[derive(Debug)]
-pub struct Context<'a> {
+pub struct Context {
     values: HashMap<String, String>,
-    parent: Option<&'a Context<'a>>,
+    parent: Option<Rc<Context>>,
 }
 
 #[derive(Debug)]
@@ -25,22 +26,18 @@ impl std::fmt::Display for FormatError {
 
 impl std::error::Error for FormatError {}
 
-impl<'a> Context<'a> {
-    pub fn new(parent: Option<&'a Context>) -> Context<'a> {
+impl Context {
+    pub fn new(parent: Option<Rc<Context>>) -> Context {
         Context {
             values: HashMap::new(),
-            parent,
+            parent: parent.map(|p| Rc::clone(&p)),
         }
-    }
-
-    pub fn inherit(&mut self, parent: &'a Context) {
-        self.parent = Some(parent);
     }
 
     pub fn get_value(&self, id: &str) -> Option<String> {
         match &self.values.get(id) {
             Some(value) => Some(value.to_string()),
-            None => match self.parent {
+            None => match &self.parent {
                 Some(p) => p.get_value(id),
                 None => None,
             },
@@ -96,20 +93,5 @@ impl<'a> Context<'a> {
         }
 
         Ok(text)
-    }
-
-    pub fn flatten(&self) -> Self {
-        let mut values = HashMap::new();
-        let mut current = Some(self);
-        while let Some(con) = current {
-            for (key, value) in &con.values {
-                values.insert(key.to_owned(), value.to_owned());
-            }
-            current = con.parent;
-        }
-        Context {
-            values,
-            parent: None,
-        }
     }
 }

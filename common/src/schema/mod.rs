@@ -19,9 +19,9 @@ pub use template::Template;
 pub use value::Value;
 
 #[derive(Serialize, Deserialize, Debug)]
-pub struct Schema<'schema> {
+pub struct Schema<'a> {
     pub templates: HashMap<String, Template>,
-    pub nodes: HashMap<String, Node<'schema>>,
+    pub nodes: HashMap<String, Node<'a>>,
     #[serde(default)]
     regex_cache: HashMap<String, Vec<u8>>,
 }

@@ -5,6 +5,7 @@ use super::NodeName;
 use crate::Context;
 use multinodes::Multinodes;
 use std::collections::HashMap;
+use std::rc::Rc;
 
 #[derive(Debug)]
 pub struct Node {
@@ -22,29 +23,29 @@ impl Node {
 
     pub fn from_schema_node(
         parent: &str,
-        context: &Context,
+        context: Rc<Context>,
         name: &str,
-        node: &crate::schema::Node,
+        schema_node: &crate::schema::Node,
     ) -> Result<Vec<Node>, Box<dyn std::error::Error>> {
-        match &node.query {
+        match &schema_node.query {
             Some(query) => {
                 let mut nodes = Vec::new();
 
-                for result in &query.run(context)? {
-                    let mut result_context = Context::new(Some(context));
+                for result in &query.run(&context)? {
+                    let mut result_context = Context::new(Some(Rc::clone(&context)));
                     result_context.set_value(query.id.to_owned(), result.to_owned());
-                    nodes.push(Node::build_node(parent, &result_context, name, node)?);
+                    nodes.push(Node::build_node(parent, Rc::new(result_context), name, schema_node)?);
                 }
 
                 Ok(nodes)
             }
-            None => Ok(vec![Node::build_node(parent, &context, name, node)?]),
+            None => Ok(vec![Node::build_node(parent, context, name, schema_node)?]),
         }
     }
 
     fn build_node(
         parent: &str,
-        context: &Context,
+        context: Rc<Context>,
         name: &str,
         schema_node: &crate::schema::Node,
     ) -> Result<Node, Box<dyn std::error::Error>> {
@@ -57,20 +58,20 @@ impl Node {
 
         for (subname, subnode) in &schema_node.subnodes {
             subnodes.extend(
-                Node::from_schema_node(&path, context, &subname, subnode)?
+                Node::from_schema_node(&path, Rc::clone(&context), &subname, subnode)?
                     .into_iter()
                     .map(|n| (n.name.to_owned(), Box::new(n))),
             );
         }
 
         for (key, property) in &schema_node.properties {
-            let prop = Property::from_schema_property(&path, context, &key, property)?;
+            let prop = Property::from_schema_property(&path, Rc::clone(&context), &key, property)?;
             properties.insert(key.to_owned(), prop);
         }
 
         let multinodes = if let Some(multinode) = &schema_node.multinode {
             Some(Multinodes::from_schema_node(
-                &path, /* context, */ multinode,
+                &path, context, multinode,
             )?)
         } else {
             None

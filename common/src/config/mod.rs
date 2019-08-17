@@ -8,6 +8,7 @@ pub use node::Node;
 pub use node_name::NodeName;
 pub use property::Property;
 use std::collections::HashMap;
+use std::rc::Rc;
 
 #[derive(Debug)]
 pub struct Config {
@@ -20,10 +21,11 @@ impl Config {
         let mut nodes = HashMap::new();
         let mut context = Context::new(None);
         context.set_value(String::from("mock"), String::from("mock"));
+        let context_rc = Rc::new(context);
 
         for (name, node) in &schema.nodes {
             nodes.extend(
-                Node::from_schema_node(&String::from("config"), &context, name, node)?
+                Node::from_schema_node(&String::from("config"), Rc::clone(&context_rc), name, node)?
                     .into_iter()
                     .map(|n| (n.name.to_owned(), Box::new(n))),
             );
