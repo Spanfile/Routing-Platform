@@ -1,7 +1,6 @@
 use super::Node;
-use crate::Context;
 use crate::config::NodeName;
-use crate::schema::{Schema, NodeLocator};
+use crate::schema::NodeLocator;
 use std::collections::HashMap;
 
 #[derive(Debug)]
@@ -15,7 +14,7 @@ impl Multinodes {
     pub fn from_schema_node(
         parent: &str,
         // context: &'a Context,
-        schema_multinode: & crate::schema::Multinode,
+        schema_multinode: &crate::schema::Multinode,
     ) -> Result<Multinodes, Box<dyn std::error::Error>> {
         Ok(Multinodes {
             nodes: HashMap::new(),
@@ -38,7 +37,7 @@ impl Multinodes {
         // names
     }
 
-    pub fn get_node_with_name(&self, name: &str) -> &Node {
+    pub fn get_node_with_name(&self, _name: &str) -> &Node {
         panic!();
         // match self.nodes.get(name) {
         //     Some(node) => return node,

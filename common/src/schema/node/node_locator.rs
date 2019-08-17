@@ -1,4 +1,2 @@
 #[derive(Debug)]
-pub struct NodeLocator {
-
-}
+pub struct NodeLocator {}

@@ -1,4 +1,4 @@
-use super::{Schema, Validate, ValidationError, Node, NodeLocator};
+use super::{Node, NodeLocator, Schema, Validate, ValidationError};
 use serde::{Deserialize, Serialize};
 
 #[derive(Serialize, Deserialize, Debug)]
