@@ -4,7 +4,7 @@ use std::collections::HashMap;
 
 #[derive(Debug)]
 pub struct ConfigEditor<'a> {
-    schema: &'a Schema<'a>,
+    schema: &'a Schema,
     config: &'a Config,
     node_stack: Vec<&'a Node>,
 }

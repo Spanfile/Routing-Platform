@@ -9,7 +9,7 @@ use std::rc::Rc;
 pub struct Multinodes {
     nodes: HashMap<String, Box<Node>>,
     path: String,
-    // node_locator: NodeLocator,
+    node_locator: NodeLocator,
     context: Rc<Context>,
 }
 
@@ -23,7 +23,7 @@ impl Multinodes {
             nodes: HashMap::new(),
             path: parent.to_owned(),
             context: Rc::clone(&context),
-            // node_locator: schema_multinode.get_node_locator(),
+            node_locator: schema_multinode.get_node_locator(),
         })
     }
 

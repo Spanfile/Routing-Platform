@@ -19,9 +19,9 @@ pub use template::Template;
 pub use value::Value;
 
 #[derive(Serialize, Deserialize, Debug)]
-pub struct Schema<'a> {
+pub struct Schema {
     pub templates: HashMap<String, Template>,
-    pub nodes: HashMap<String, Node<'a>>,
+    pub nodes: HashMap<String, Node>,
     #[serde(default)]
     regex_cache: HashMap<String, Vec<u8>>,
 }
@@ -45,7 +45,7 @@ impl ValidationError {
     }
 }
 
-impl Schema<'_> {
+impl Schema {
     pub fn to_binary_file(&self, file: &mut File) -> Result<(), serde_cbor::error::Error> {
         let mut encoder = ZlibEncoder::new(file, Compression::best());
         serde_cbor::to_writer(&mut encoder, &self)
@@ -62,7 +62,7 @@ impl Schema<'_> {
     }
 }
 
-impl Schema<'_> {
+impl Schema {
     pub fn validate(&mut self) -> Vec<ValidationError> {
         let mut errors = self.validate_templates();
         errors.extend(self.validate_nodes());
@@ -95,7 +95,7 @@ impl Schema<'_> {
     }
 }
 
-impl Schema<'_> {
+impl Schema {
     pub fn build_regex_cache(&mut self) -> Result<(), Box<dyn Error>> {
         self.regex_cache = HashMap::new();
 
@@ -117,7 +117,7 @@ impl Schema<'_> {
     }
 }
 
-impl Schema<'_> {
+impl Schema {
     pub fn print_debug_info(&self) {
         println!(
             "Schema {{\n\tTemplates: {}\n\tNodes: {}\n\tProperties: {}\n\tRegex cache DFA size: {}\n}}",

@@ -8,22 +8,23 @@ pub use multinode::Multinode;
 pub use node_locator::NodeLocator;
 use serde::{Deserialize, Serialize};
 use std::collections::{HashMap, HashSet};
+use std::rc::Weak;
 
 #[derive(Serialize, Deserialize, Debug, Default)]
-pub struct Node<'node> {
+pub struct Node {
     #[serde(default)]
-    pub subnodes: HashMap<String, Box<Node<'node>>>,
+    pub subnodes: HashMap<String, Box<Node>>,
     #[serde(default)]
-    pub multinode: Option<Box<Multinode<'node>>>,
+    pub multinode: Option<Box<Multinode>>,
     #[serde(default)]
     pub properties: HashMap<String, Property>,
     #[serde(default)]
     pub query: Option<Query>,
     #[serde(skip)]
-    parent: Option<&'node Node<'node>>,
+    parent: Option<Weak<Node>>,
 }
 
-impl Node<'_> {
+impl Node {
     pub fn node_count(&self) -> usize {
         let mut sum = 1;
         for node in self.subnodes.values() {
@@ -45,7 +46,7 @@ impl Node<'_> {
     }
 }
 
-impl Validate for Node<'_> {
+impl Validate for Node {
     fn validate(&self, schema: &Schema) -> Vec<ValidationError> {
         let mut errors: Vec<ValidationError> = Vec::new();
         let mut prop_keys = HashSet::new();
