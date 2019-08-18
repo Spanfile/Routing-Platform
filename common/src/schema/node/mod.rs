@@ -8,12 +8,13 @@ pub use multinode::Multinode;
 pub use node_locator::NodeLocator;
 use serde::{Deserialize, Serialize};
 use std::collections::{HashMap, HashSet};
-use std::rc::Weak;
+use std::rc::{Rc, Weak};
+use std::cell::RefCell;
 
 #[derive(Serialize, Deserialize, Debug, Default)]
 pub struct Node {
     #[serde(default)]
-    pub subnodes: HashMap<String, Box<Node>>,
+    pub subnodes: HashMap<String, Rc<RefCell<Node>>>,
     #[serde(default)]
     pub multinode: Option<Box<Multinode>>,
     #[serde(default)]
@@ -21,28 +22,28 @@ pub struct Node {
     #[serde(default)]
     pub query: Option<Query>,
     #[serde(skip)]
-    parent: Option<Weak<Node>>,
+    pub parent: Option<Weak<RefCell<Node>>>,
 }
 
 impl Node {
     pub fn node_count(&self) -> usize {
         let mut sum = 1;
-        for node in self.subnodes.values() {
-            sum += node.node_count();
+        for node_rc in self.subnodes.values() {
+            sum += node_rc.borrow().node_count();
         }
         sum
     }
 
     pub fn property_count(&self) -> usize {
         let mut sum = self.properties.len();
-        for node in self.subnodes.values() {
-            sum += node.property_count();
+        for node_rc in self.subnodes.values() {
+            sum += node_rc.borrow().property_count();
         }
         sum
     }
 
     pub fn get_locator(&self) -> NodeLocator {
-        panic!();
+        unimplemented!();
     }
 }
 
@@ -62,8 +63,8 @@ impl Validate for Node {
             errors.extend(property.validate(schema));
         }
 
-        for node in self.subnodes.values() {
-            errors.extend(node.validate(schema));
+        for node_rc in self.subnodes.values() {
+            errors.extend(node_rc.borrow().validate(schema));
         }
 
         if let Some(multinode) = &self.multinode {

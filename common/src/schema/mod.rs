@@ -17,11 +17,13 @@ use std::fs::File;
 use std::io::BufReader;
 pub use template::Template;
 pub use value::Value;
+use std::rc::Rc;
+use std::cell::RefCell;
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct Schema {
     pub templates: HashMap<String, Template>,
-    pub nodes: HashMap<String, Node>,
+    pub nodes: HashMap<String, Rc<RefCell<Node>>>,
     #[serde(default)]
     regex_cache: HashMap<String, Vec<u8>>,
 }
@@ -58,7 +60,10 @@ impl Schema {
 
     pub fn from_binary(binary: &[u8]) -> Result<Schema, Box<Error>> {
         let decoder = ZlibDecoder::new(binary);
-        Ok(serde_cbor::from_reader(decoder)?)
+        let mut schema: Schema = serde_cbor::from_reader(decoder)?;
+        schema.load_regexes_from_cache()?;
+        schema.populate_node_parents();
+        Ok(schema)
     }
 }
 
@@ -81,14 +86,14 @@ impl Schema {
         let mut errors: Vec<ValidationError> = Vec::new();
         let mut node_names = HashSet::new();
 
-        for (name, node) in &self.nodes {
+        for (name, node_rc) in &self.nodes {
             if !node_names.insert(name) {
                 errors.push(ValidationError::new(format!(
                     "Node validation error\nName: {}\nDuplicate node name",
                     &name
                 )));
             }
-            errors.extend(node.validate(self));
+            errors.extend(node_rc.borrow().validate(self));
         }
 
         errors
@@ -108,7 +113,19 @@ impl Schema {
         Ok(())
     }
 
-    pub fn load_regexes_from_cache(&self) -> Result<(), Box<dyn Error>> {
+    fn populate_node_parents(&mut self) {
+        fn populate(node: Rc<RefCell<Node>>) {
+            for subnode in node.borrow_mut().subnodes.values_mut() {
+                subnode.borrow_mut().parent = Some(Rc::downgrade(&node));
+            }
+        }
+
+        for node in self.nodes.values() {
+            populate(Rc::clone(node));
+        }
+    }
+
+    fn load_regexes_from_cache(&self) -> Result<(), Box<dyn Error>> {
         for (name, template) in &self.templates {
             template.load_regex_from_cache(self.regex_cache.get(name));
         }
@@ -138,16 +155,16 @@ impl Schema {
 
     fn node_count(&self) -> usize {
         let mut sum = 0;
-        for node in self.nodes.values() {
-            sum += node.node_count();
+        for node_rc in self.nodes.values() {
+            sum += node_rc.borrow().node_count();
         }
         sum
     }
 
     fn property_count(&self) -> usize {
         let mut sum = 0;
-        for node in self.nodes.values() {
-            sum += node.property_count();
+        for node_rc in self.nodes.values() {
+            sum += node_rc.borrow().property_count();
         }
         sum
     }

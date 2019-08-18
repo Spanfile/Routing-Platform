@@ -10,9 +10,6 @@ fn main() {
 
     let start = Instant::now();
     let schema = Schema::from_binary(binary).expect("couldn't load schema from binary");
-    schema
-        .load_regexes_from_cache()
-        .expect("couldn't load regexes from cache");
     println!("Schema loaded in {}ms", start.elapsed().as_millis());
 
     schema.print_debug_info();

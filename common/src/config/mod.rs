@@ -23,9 +23,9 @@ impl Config {
         context.set_value(String::from("mock"), String::from("mock"));
         let context_rc = Rc::new(context);
 
-        for (name, node) in &schema.nodes {
+        for (name, node_rc) in &schema.nodes {
             nodes.extend(
-                Node::from_schema_node(&String::from("config"), Rc::clone(&context_rc), name, node)?
+                Node::from_schema_node(&String::from("config"), Rc::clone(&context_rc), name, &node_rc.borrow())?
                     .into_iter()
                     .map(|n| (n.name.to_owned(), Box::new(n))),
             );

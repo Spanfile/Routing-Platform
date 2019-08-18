@@ -58,7 +58,7 @@ impl Node {
 
         for (subname, subnode) in &schema_node.subnodes {
             subnodes.extend(
-                Node::from_schema_node(&path, Rc::clone(&context), &subname, subnode)?
+                Node::from_schema_node(&path, Rc::clone(&context), &subname, &subnode.borrow())?
                     .into_iter()
                     .map(|n| (n.name.to_owned(), Box::new(n))),
             );
