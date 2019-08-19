@@ -23,6 +23,8 @@ pub struct Node {
     pub query: Option<Query>,
     #[serde(skip)]
     pub parent: Option<Weak<RefCell<Node>>>,
+    #[serde(skip)]
+    pub name: String, // TODO: maybe share ownership with the parent?
 }
 
 impl Node {
@@ -43,7 +45,15 @@ impl Node {
     }
 
     pub fn get_locator(&self) -> NodeLocator {
-        unimplemented!();
+        if let Some(parent) = &self.parent {
+            if let Some(parent) = parent.upgrade() {
+                NodeLocator::new(self.name.to_string(), Some(parent.borrow().get_locator()))
+            } else {
+                panic!("parent node dropped");
+            }
+        } else {
+            NodeLocator::new(self.name.to_string(), None)
+        }
     }
 }
 

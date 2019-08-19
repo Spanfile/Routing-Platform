@@ -62,7 +62,7 @@ impl Schema {
         let decoder = ZlibDecoder::new(binary);
         let mut schema: Schema = serde_cbor::from_reader(decoder)?;
         schema.load_regexes_from_cache()?;
-        schema.populate_node_parents();
+        schema.populate_node_metadata();
         Ok(schema)
     }
 }
@@ -113,14 +113,17 @@ impl Schema {
         Ok(())
     }
 
-    fn populate_node_parents(&mut self) {
+    fn populate_node_metadata(&mut self) {
         fn populate(node: Rc<RefCell<Node>>) {
-            for subnode in node.borrow_mut().subnodes.values_mut() {
-                subnode.borrow_mut().parent = Some(Rc::downgrade(&node));
+            for (name, subnode) in node.borrow_mut().subnodes.iter_mut() {
+                let mut subnode_mut = subnode.borrow_mut();
+                subnode_mut.parent = Some(Rc::downgrade(&node));
+                subnode_mut.name = name.to_string();
             }
         }
 
-        for node in self.nodes.values() {
+        for (name, node) in self.nodes.iter_mut() {
+            node.borrow_mut().name = name.to_string();
             populate(Rc::clone(node));
         }
     }

@@ -28,14 +28,13 @@ impl Multinodes {
     }
 
     pub fn get_available_node_names(&self) -> Vec<NodeName> {
-        panic!();
-        // let mut names = vec!(NodeName::Multiple(self.schema.templates.get(&self.schema_node.template).unwrap()));
+        let mut names = vec!(NodeName::Multiple(self.schema.templates.get(&self.schema_node.template).unwrap()));
 
-        // for (name, _) in &self.nodes {
-        //     names.push(NodeName::Literal(name.to_owned()));
-        // }
+        for (name, _) in &self.nodes {
+            names.push(NodeName::Literal(name.to_owned()));
+        }
 
-        // names
+        names
     }
 
     pub fn get_node_with_name(&self, _name: &str) -> &Node {

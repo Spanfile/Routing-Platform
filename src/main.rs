@@ -19,13 +19,14 @@ fn main() {
     let mut editor = ConfigEditor::new(&config, &schema);
     println!("Config loaded in {}ms", start.elapsed().as_millis());
 
-    // editor.edit_node(String::from("interfaces")).unwrap();
-    // editor.edit_node(String::from("ethernet eth0")).unwrap();
-    // editor.edit_node(String::from("vlan")).unwrap();
-    // editor.edit_node(String::from("10")).unwrap();
-
     editor.edit_node(String::from("interfaces")).unwrap();
     editor.edit_node(String::from("ethernet eth0")).unwrap();
+    editor.edit_node(String::from("vlan")).unwrap();
+    editor.edit_node(String::from("10")).unwrap();
+
+    editor.go_up().unwrap();
+    editor.go_up().unwrap();
+
     println!(
         "{:?}",
         editor.get_property_values(Some(String::from("description")))
