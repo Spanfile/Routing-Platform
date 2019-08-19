@@ -7,9 +7,9 @@ use super::{Schema, Validate, ValidationError};
 pub use multinode::Multinode;
 pub use node_locator::NodeLocator;
 use serde::{Deserialize, Serialize};
+use std::cell::RefCell;
 use std::collections::{HashMap, HashSet};
 use std::rc::{Rc, Weak};
-use std::cell::RefCell;
 
 #[derive(Serialize, Deserialize, Debug, Default)]
 pub struct Node {

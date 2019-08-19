@@ -34,7 +34,12 @@ impl Node {
                 for result in &query.run(&context)? {
                     let mut result_context = Context::new(Some(Rc::clone(&context)));
                     result_context.set_value(query.id.to_owned(), result.to_owned());
-                    nodes.push(Node::build_node(parent, Rc::new(result_context), name, schema_node)?);
+                    nodes.push(Node::build_node(
+                        parent,
+                        Rc::new(result_context),
+                        name,
+                        schema_node,
+                    )?);
                 }
 
                 Ok(nodes)
@@ -70,9 +75,7 @@ impl Node {
         }
 
         let multinodes = if let Some(multinode) = &schema_node.multinode {
-            Some(Multinodes::from_schema_node(
-                &path, context, multinode,
-            )?)
+            Some(Multinodes::from_schema_node(&path, context, multinode)?)
         } else {
             None
         };

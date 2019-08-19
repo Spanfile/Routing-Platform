@@ -25,9 +25,14 @@ impl Config {
 
         for (name, node_rc) in &schema.nodes {
             nodes.extend(
-                Node::from_schema_node(&String::from("config"), Rc::clone(&context_rc), name, &node_rc.borrow())?
-                    .into_iter()
-                    .map(|n| (n.name.to_owned(), Box::new(n))),
+                Node::from_schema_node(
+                    &String::from("config"),
+                    Rc::clone(&context_rc),
+                    name,
+                    &node_rc.borrow(),
+                )?
+                .into_iter()
+                .map(|n| (n.name.to_owned(), Box::new(n))),
             );
         }
 

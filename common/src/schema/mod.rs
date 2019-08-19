@@ -11,14 +11,14 @@ pub use node::{Multinode, Node, NodeLocator};
 pub use property::Property;
 pub use query::Query;
 use serde::{Deserialize, Serialize};
+use std::cell::RefCell;
 use std::collections::{HashMap, HashSet};
 use std::error::Error;
 use std::fs::File;
 use std::io::BufReader;
+use std::rc::Rc;
 pub use template::Template;
 pub use value::Value;
-use std::rc::Rc;
-use std::cell::RefCell;
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct Schema {
