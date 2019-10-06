@@ -1,5 +1,5 @@
 use common::{
-    config::{Config, ConfigNode, NodeName, Property},
+    config::{Config, ConfigNode, Node, NodeName, Property},
     schema::Schema,
 };
 use std::collections::HashMap;
