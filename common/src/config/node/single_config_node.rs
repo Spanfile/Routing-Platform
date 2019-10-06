@@ -12,7 +12,7 @@ use std::{
 #[derive(Debug)]
 pub struct SingleConfigNode {
     name: String,
-    path: String,
+    parent: Option<Weak<ConfigNode>>,
     subnodes: HashMap<String, Box<ConfigNode>>,
     properties: HashMap<String, Property>,
 }
@@ -23,7 +23,15 @@ impl Node for SingleConfigNode {
     }
 
     fn full_path(&self) -> String {
-        [self.path.as_str(), self.name.as_str()].join(".")
+        [
+            if let Some(parent) = &self.parent {
+                parent.upgrade().expect("parent dropped").full_path()
+            } else {
+                String::from("")
+            },
+            self.name.to_owned(),
+        ]
+        .join(".")
     }
 
     fn get_available_node_names(&self) -> Vec<NodeName> {
@@ -101,12 +109,12 @@ impl Node for SingleConfigNode {
 
 impl FromSchemaNode<SingleSchemaNode> for SingleConfigNode {
     fn from_schema_node(
-        parent: &str,
+        parent: Option<Weak<ConfigNode>>,
         context: Rc<Context>,
         name: &str,
         schema: Weak<Schema>,
         schema_node: &SingleSchemaNode,
-    ) -> Result<Vec<SingleConfigNode>, Box<dyn std::error::Error>> {
+    ) -> Result<Vec<ConfigNode>, Box<dyn std::error::Error>> {
         match &schema_node.query {
             Some(query) => {
                 let mut nodes = Vec::new();
@@ -115,7 +123,7 @@ impl FromSchemaNode<SingleSchemaNode> for SingleConfigNode {
                     let mut result_context = Context::new(Some(Rc::clone(&context)));
                     result_context.set_value(query.id.to_owned(), result.to_owned());
                     nodes.push(SingleConfigNode::build_node(
-                        parent,
+                        parent.clone(),
                         Rc::new(result_context),
                         name,
                         Weak::clone(&schema),
@@ -138,23 +146,28 @@ impl FromSchemaNode<SingleSchemaNode> for SingleConfigNode {
 
 impl SingleConfigNode {
     fn build_node(
-        parent: &str,
+        parent: Option<Weak<ConfigNode>>,
         context: Rc<Context>,
         name: &str,
         schema: Weak<Schema>,
         schema_node: &SingleSchemaNode,
-    ) -> Result<SingleConfigNode, Box<dyn std::error::Error>> {
+    ) -> Result<ConfigNode, Box<dyn std::error::Error>> {
         let name = context
             .format(name.to_owned())
             .expect("couldn't context format node name");
-        let path = [parent.to_owned(), name.to_owned()].join(".");
-        let mut subnodes = HashMap::new();
-        let mut properties = HashMap::new();
+
+        let node_rc = Rc::new(SingleConfigNode {
+            name,
+            parent,
+            subnodes: HashMap::new(),
+            properties: HashMap::new(),
+            // multinodes,
+        });
 
         for (subname, subnode) in &schema_node.subnodes {
-            subnodes.extend(
+            node_rc.subnodes.extend(
                 ConfigNode::from_schema_node(
-                    &path,
+                    Some(Rc::downgrade(&node_rc)),
                     Rc::clone(&context),
                     &subname,
                     Weak::clone(&schema),
@@ -166,8 +179,13 @@ impl SingleConfigNode {
         }
 
         for (key, property) in &schema_node.properties {
-            let prop = Property::from_schema_property(&path, Rc::clone(&context), &key, property)?;
-            properties.insert(key.to_owned(), prop);
+            let prop = Property::from_schema_property(
+                Rc::downgrade(&node_rc),
+                Rc::clone(&context),
+                &key,
+                property,
+            )?;
+            node_rc.properties.insert(key.to_owned(), prop);
         }
 
         // let multinodes = if let Some(multinode) = &schema_node.multinode {
@@ -176,12 +194,6 @@ impl SingleConfigNode {
         //     None
         // };
 
-        Ok(SingleConfigNode {
-            name,
-            path: parent.to_owned(),
-            subnodes,
-            properties,
-            // multinodes,
-        })
+        Ok(node_rc)
     }
 }

@@ -1,6 +1,6 @@
 use super::{
     super::{property::Property, query::Query},
-    NodeLocator, Schema, SchemaNode, Validate, ValidationError,
+    NodeLocator, Schema, SchemaNode, SchemaNodeTrait, Validate, ValidationError,
 };
 use serde::{Deserialize, Serialize};
 use std::collections::{HashMap, HashSet};
@@ -17,8 +17,8 @@ pub struct SingleSchemaNode {
     pub name: String,
 }
 
-impl SingleSchemaNode {
-    pub fn node_count(&self) -> usize {
+impl SchemaNodeTrait for SingleSchemaNode {
+    fn node_count(&self) -> usize {
         let mut sum = 1;
         for node in self.subnodes.values() {
             sum += node.node_count();
@@ -26,7 +26,7 @@ impl SingleSchemaNode {
         sum
     }
 
-    pub fn property_count(&self) -> usize {
+    fn property_count(&self) -> usize {
         let mut sum = self.properties.len();
         for node in self.subnodes.values() {
             sum += node.property_count();
@@ -34,7 +34,7 @@ impl SingleSchemaNode {
         sum
     }
 
-    pub fn get_locator(&self) -> NodeLocator {
+    fn get_locator(&self) -> NodeLocator {
         NodeLocator::new(self.name.to_string(), None)
         // if let Some(parent) = &self.parent {
         //     if let Some(parent) = parent.upgrade() {

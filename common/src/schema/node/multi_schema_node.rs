@@ -1,4 +1,4 @@
-use super::{NodeLocator, Schema, SingleSchemaNode, Validate, ValidationError};
+use super::{NodeLocator, Schema, SchemaNodeTrait, SingleSchemaNode, Validate, ValidationError};
 use serde::{Deserialize, Serialize};
 
 #[derive(Serialize, Deserialize, Debug)]
@@ -7,16 +7,16 @@ pub struct MultiSchemaNode {
     pub node: SingleSchemaNode,
 }
 
-impl MultiSchemaNode {
-    pub fn node_count(&self) -> usize {
+impl SchemaNodeTrait for MultiSchemaNode {
+    fn node_count(&self) -> usize {
         1
     }
 
-    pub fn property_count(&self) -> usize {
+    fn property_count(&self) -> usize {
         0
     }
 
-    pub fn get_locator(&self) -> NodeLocator {
+    fn get_locator(&self) -> NodeLocator {
         self.node.get_locator()
     }
 }

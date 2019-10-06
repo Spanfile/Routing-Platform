@@ -31,12 +31,12 @@ where
     Self: std::marker::Sized,
 {
     fn from_schema_node(
-        parent: &str,
+        parent: Option<Weak<ConfigNode>>,
         context: Rc<Context>,
         name: &str,
         schema: Weak<Schema>,
         schema_node: &TBuiltFrom,
-    ) -> Result<Vec<Self>, Box<dyn std::error::Error>>;
+    ) -> Result<Vec<ConfigNode>, Box<dyn std::error::Error>>;
 }
 
 #[enum_dispatch(Node)]
@@ -48,29 +48,21 @@ pub enum ConfigNode {
 
 impl FromSchemaNode<SchemaNode> for ConfigNode {
     fn from_schema_node(
-        parent: &str,
+        parent: Option<Weak<ConfigNode>>,
         context: Rc<Context>,
         name: &str,
         schema: Weak<Schema>,
         schema_node: &SchemaNode,
     ) -> Result<Vec<ConfigNode>, Box<dyn std::error::Error>> {
         match schema_node {
-            SchemaNode::Single(single_schema_node) => Ok(SingleConfigNode::from_schema_node(
-                parent,
-                context,
-                name,
-                schema,
-                single_schema_node,
+            SchemaNode::SingleSchemaNode(node) => Ok(SingleConfigNode::from_schema_node(
+                parent, context, name, schema, node,
             )?
             .into_iter()
             .map(|n| n.into())
             .collect()),
-            SchemaNode::Multi(multi_schema_node) => Ok(MultiConfigNode::from_schema_node(
-                parent,
-                context,
-                name,
-                schema,
-                multi_schema_node,
+            SchemaNode::MultiSchemaNode(node) => Ok(MultiConfigNode::from_schema_node(
+                parent, context, name, schema, node,
             )?
             .into_iter()
             .map(|n| n.into())

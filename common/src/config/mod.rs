@@ -28,7 +28,7 @@ impl Config {
             for (name, node) in &s.nodes {
                 nodes.extend(
                     ConfigNode::from_schema_node(
-                        &String::from("config"),
+                        None,
                         Rc::clone(&context_rc),
                         &name,
                         Weak::clone(&schema),

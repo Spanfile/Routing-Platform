@@ -1,7 +1,7 @@
 use super::{ConfigNode, FromSchemaNode, Node, NodeName};
 use crate::{
     config::Property,
-    schema::{MultiSchemaNode, NodeLocator, Schema},
+    schema::{MultiSchemaNode, NodeLocator, Schema, SchemaNodeTrait},
     Context,
 };
 use std::{
@@ -13,7 +13,7 @@ use std::{
 pub struct MultiConfigNode {
     nodes: HashMap<String, Box<ConfigNode>>,
     name: String,
-    path: String,
+    parent: Option<Weak<ConfigNode>>,
     template: String,
     node_locator: NodeLocator,
     context: Rc<Context>,
@@ -26,7 +26,15 @@ impl Node for MultiConfigNode {
     }
 
     fn full_path(&self) -> String {
-        [self.path.as_str(), self.name.as_str()].join(".")
+        [
+            if let Some(parent) = &self.parent {
+                parent.upgrade().expect("parent dropped").full_path()
+            } else {
+                String::from("")
+            },
+            self.name.to_owned(),
+        ]
+        .join(".")
     }
 
     fn get_available_node_names(&self) -> Vec<NodeName> {
@@ -66,11 +74,11 @@ impl Node for MultiConfigNode {
         }
     }
 
-    fn get_property(&self, property: &str) -> Option<&Property> {
+    fn get_property(&self, _property: &str) -> Option<&Property> {
         None
     }
 
-    fn get_property_values(&self, of_property: Option<String>) -> HashMap<String, Vec<String>> {
+    fn get_property_values(&self, _of_property: Option<String>) -> HashMap<String, Vec<String>> {
         HashMap::new()
     }
 
@@ -85,20 +93,21 @@ impl Node for MultiConfigNode {
 
 impl FromSchemaNode<MultiSchemaNode> for MultiConfigNode {
     fn from_schema_node(
-        parent: &str,
+        parent: Option<Weak<ConfigNode>>,
         context: Rc<Context>,
         name: &str,
         schema: Weak<Schema>,
         schema_node: &MultiSchemaNode,
-    ) -> Result<Vec<MultiConfigNode>, Box<dyn std::error::Error>> {
+    ) -> Result<Vec<ConfigNode>, Box<dyn std::error::Error>> {
         Ok(vec![MultiConfigNode {
             nodes: HashMap::new(),
             name: name.to_string(),
-            path: parent.to_owned(),
+            parent,
             template: schema_node.template.to_string(),
             context: Rc::clone(&context),
             node_locator: schema_node.get_locator(),
             schema,
-        }])
+        }
+        .into()])
     }
 }

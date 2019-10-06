@@ -2,10 +2,11 @@ mod node;
 mod property;
 mod query;
 mod template;
+mod validate;
 mod value;
 
 use flate2::{read::ZlibDecoder, write::ZlibEncoder, Compression};
-pub use node::{MultiSchemaNode, NodeLocator, SchemaNode, SingleSchemaNode};
+pub use node::{MultiSchemaNode, NodeLocator, SchemaNode, SchemaNodeTrait, SingleSchemaNode};
 pub use property::Property;
 pub use query::Query;
 use serde::{Deserialize, Serialize};
@@ -17,6 +18,7 @@ use std::{
     rc::Rc,
 };
 pub use template::Template;
+pub use validate::{Validate, ValidationError};
 pub use value::Value;
 
 #[derive(Serialize, Deserialize, Debug)]
@@ -27,23 +29,8 @@ pub struct Schema {
     regex_cache: HashMap<String, Vec<u8>>,
 }
 
-#[derive(Debug)]
-pub struct ValidationError {
-    pub message: String,
-}
-
-trait Validate {
-    fn validate(&self, schema: &Schema) -> Vec<ValidationError>;
-}
-
 pub trait Matches {
     fn matches(&self, value: &str) -> bool;
-}
-
-impl ValidationError {
-    pub fn new(message: String) -> ValidationError {
-        ValidationError { message }
-    }
 }
 
 impl Schema {
@@ -85,14 +72,14 @@ impl Schema {
         let mut errors: Vec<ValidationError> = Vec::new();
         let mut node_names = HashSet::new();
 
-        for (name, node_rc) in &self.nodes {
+        for (name, node) in &self.nodes {
             if !node_names.insert(name) {
                 errors.push(ValidationError::new(format!(
                     "Node validation error\nName: {}\nDuplicate node name",
                     &name
                 )));
             }
-            errors.extend(node_rc.validate(self));
+            errors.extend(node.validate(self));
         }
 
         errors
