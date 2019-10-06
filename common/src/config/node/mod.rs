@@ -2,11 +2,17 @@ mod multi_config_node;
 mod single_config_node;
 
 use super::{NodeName, Property};
-use crate::{schema::SchemaNode, Context};
+use crate::{
+    schema::{Schema, SchemaNode},
+    Context,
+};
 use enum_dispatch::enum_dispatch;
 use multi_config_node::MultiConfigNode;
 use single_config_node::SingleConfigNode;
-use std::{collections::HashMap, rc::Rc};
+use std::{
+    collections::HashMap,
+    rc::{Rc, Weak},
+};
 
 #[enum_dispatch]
 pub trait Node {
@@ -20,7 +26,7 @@ pub trait Node {
     fn pretty_print(&self, indent: usize);
 }
 
-trait FromSchemaNode<TBuiltFrom>
+pub trait FromSchemaNode<TBuiltFrom>
 where
     Self: std::marker::Sized,
 {
@@ -28,6 +34,7 @@ where
         parent: &str,
         context: Rc<Context>,
         name: &str,
+        schema: Weak<Schema>,
         schema_node: &TBuiltFrom,
     ) -> Result<Vec<Self>, Box<dyn std::error::Error>>;
 }
@@ -39,23 +46,35 @@ pub enum ConfigNode {
     MultiConfigNode,
 }
 
-impl ConfigNode {
-    pub fn from_schema_node(
+impl FromSchemaNode<SchemaNode> for ConfigNode {
+    fn from_schema_node(
         parent: &str,
         context: Rc<Context>,
         name: &str,
+        schema: Weak<Schema>,
         schema_node: &SchemaNode,
     ) -> Result<Vec<ConfigNode>, Box<dyn std::error::Error>> {
         match schema_node {
-            SchemaNode::Single(single_schema_node) => {
-                Ok(
-                    SingleConfigNode::from_schema_node(parent, context, name, single_schema_node)?
-                        .into_iter()
-                        .map(|n| n.into())
-                        .collect(),
-                )
-            }
-            SchemaNode::Multi { .. } => unimplemented!(),
+            SchemaNode::Single(single_schema_node) => Ok(SingleConfigNode::from_schema_node(
+                parent,
+                context,
+                name,
+                schema,
+                single_schema_node,
+            )?
+            .into_iter()
+            .map(|n| n.into())
+            .collect()),
+            SchemaNode::Multi(multi_schema_node) => Ok(MultiConfigNode::from_schema_node(
+                parent,
+                context,
+                name,
+                schema,
+                multi_schema_node,
+            )?
+            .into_iter()
+            .map(|n| n.into())
+            .collect()),
         }
     }
 }

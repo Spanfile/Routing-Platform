@@ -1,6 +1,13 @@
 use super::{ConfigNode, FromSchemaNode, Node, NodeName};
-use crate::{config::Property, schema::SingleSchemaNode, Context};
-use std::{collections::HashMap, rc::Rc};
+use crate::{
+    config::Property,
+    schema::{Schema, SingleSchemaNode},
+    Context,
+};
+use std::{
+    collections::HashMap,
+    rc::{Rc, Weak},
+};
 
 #[derive(Debug)]
 pub struct SingleConfigNode {
@@ -78,7 +85,7 @@ impl Node for SingleConfigNode {
     fn pretty_print(&self, indent: usize) {
         for (name, node) in &self.subnodes {
             println!("{:indent$}{} {{", "", name, indent = indent * 4);
-            // node.pretty_print(indent + 1);
+            node.pretty_print(indent + 1);
             println!("{:indent$}}}", "", indent = indent * 4);
         }
 
@@ -97,6 +104,7 @@ impl FromSchemaNode<SingleSchemaNode> for SingleConfigNode {
         parent: &str,
         context: Rc<Context>,
         name: &str,
+        schema: Weak<Schema>,
         schema_node: &SingleSchemaNode,
     ) -> Result<Vec<SingleConfigNode>, Box<dyn std::error::Error>> {
         match &schema_node.query {
@@ -110,6 +118,7 @@ impl FromSchemaNode<SingleSchemaNode> for SingleConfigNode {
                         parent,
                         Rc::new(result_context),
                         name,
+                        Weak::clone(&schema),
                         schema_node,
                     )?);
                 }
@@ -120,6 +129,7 @@ impl FromSchemaNode<SingleSchemaNode> for SingleConfigNode {
                 parent,
                 context,
                 name,
+                schema,
                 schema_node,
             )?]),
         }
@@ -131,6 +141,7 @@ impl SingleConfigNode {
         parent: &str,
         context: Rc<Context>,
         name: &str,
+        schema: Weak<Schema>,
         schema_node: &SingleSchemaNode,
     ) -> Result<SingleConfigNode, Box<dyn std::error::Error>> {
         let name = context
@@ -142,9 +153,15 @@ impl SingleConfigNode {
 
         for (subname, subnode) in &schema_node.subnodes {
             subnodes.extend(
-                ConfigNode::from_schema_node(&path, Rc::clone(&context), &subname, &subnode)?
-                    .into_iter()
-                    .map(|n| (n.name().to_owned(), Box::new(n))),
+                ConfigNode::from_schema_node(
+                    &path,
+                    Rc::clone(&context),
+                    &subname,
+                    Weak::clone(&schema),
+                    &subnode,
+                )?
+                .into_iter()
+                .map(|n| (n.name().to_owned(), Box::new(n))),
             );
         }
 

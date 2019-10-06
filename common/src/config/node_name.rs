@@ -1,11 +1,12 @@
 use crate::schema::Template;
+use std::rc::Weak;
 
-pub enum NodeName<'a> {
+pub enum NodeName {
     Literal(String),
-    Multiple(&'a Template),
+    Multiple(Weak<Template>),
 }
 
-impl<'a> NodeName<'a> {
+impl NodeName {
     pub fn matches(&self, name: &str) -> bool {
         match &self {
             NodeName::Literal(s) => name == s,
@@ -17,11 +18,13 @@ impl<'a> NodeName<'a> {
     }
 }
 
-impl std::fmt::Display for NodeName<'_> {
+impl std::fmt::Display for NodeName {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
             NodeName::Literal(s) => write!(f, "{}", s),
-            NodeName::Multiple(templ) => write!(f, "{}", templ),
+            NodeName::Multiple(templ) => {
+                write!(f, "{}", templ.upgrade().expect("template dropped"))
+            }
         }
     }
 }

@@ -3,10 +3,13 @@ mod node_name;
 mod property;
 
 use super::{context::Context, schema::Schema};
-pub use node::{ConfigNode, Node};
+pub use node::{ConfigNode, FromSchemaNode, Node};
 pub use node_name::NodeName;
 pub use property::Property;
-use std::{collections::HashMap, rc::Rc};
+use std::{
+    collections::HashMap,
+    rc::{Rc, Weak},
+};
 
 #[derive(Debug)]
 pub struct Config {
@@ -15,23 +18,26 @@ pub struct Config {
 }
 
 impl Config {
-    pub fn from_schema(schema: &Schema) -> Result<Config, Box<dyn std::error::Error>> {
+    pub fn from_schema(schema: Weak<Schema>) -> Result<Config, Box<dyn std::error::Error>> {
         let mut nodes = HashMap::new();
         let mut context = Context::new(None);
         context.set_value(String::from("mock"), String::from("mock"));
         let context_rc = Rc::new(context);
 
-        for (name, node) in &schema.nodes {
-            nodes.extend(
-                ConfigNode::from_schema_node(
-                    &String::from("config"),
-                    Rc::clone(&context_rc),
-                    name,
-                    &node,
-                )?
-                .into_iter()
-                .map(|n| (n.name().to_owned(), Box::new(n))),
-            );
+        if let Some(s) = schema.upgrade() {
+            for (name, node) in &s.nodes {
+                nodes.extend(
+                    ConfigNode::from_schema_node(
+                        &String::from("config"),
+                        Rc::clone(&context_rc),
+                        &name,
+                        Weak::clone(&schema),
+                        &node,
+                    )?
+                    .into_iter()
+                    .map(|n| (n.name().to_owned(), Box::new(n))),
+                );
+            }
         }
 
         Ok(Config { nodes })

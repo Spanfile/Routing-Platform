@@ -14,13 +14,14 @@ use std::{
     error::Error,
     fs::File,
     io::BufReader,
+    rc::Rc,
 };
 pub use template::Template;
 pub use value::Value;
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct Schema {
-    pub templates: HashMap<String, Template>,
+    pub templates: HashMap<String, Rc<Template>>,
     pub nodes: HashMap<String, SchemaNode>,
     #[serde(default)]
     regex_cache: HashMap<String, Vec<u8>>,

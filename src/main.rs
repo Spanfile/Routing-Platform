@@ -2,21 +2,25 @@ mod config_editor;
 
 use common::{config::Config, schema::Schema};
 use config_editor::ConfigEditor;
-use std::time::Instant;
+use std::{rc::Rc, time::Instant};
 
 fn main() {
     let binary = include_bytes!(concat!(env!("OUT_DIR"), "/schema"));
 
     let start = Instant::now();
-    let schema = Schema::from_binary(binary).expect("couldn't load schema from binary");
+    let schema = Rc::new(Schema::from_binary(binary).expect("couldn't load schema from binary"));
     println!("Schema loaded in {}ms", start.elapsed().as_millis());
 
     schema.print_debug_info();
+    // println!("{:#?}", schema);
 
     let start = Instant::now();
-    let config = Config::from_schema(&schema).expect("couldn't build config from schema");
+    let config =
+        Config::from_schema(Rc::downgrade(&schema)).expect("couldn't build config from schema");
     let mut editor = ConfigEditor::new(&config, &schema);
     println!("Config loaded in {}ms", start.elapsed().as_millis());
+
+    editor.pretty_print_config();
 
     editor.edit_node(String::from("interfaces")).unwrap();
     editor.edit_node(String::from("ethernet eth0")).unwrap();
