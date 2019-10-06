@@ -1,7 +1,5 @@
 use common::schema::Schema;
-use std::env;
-use std::fs::File;
-use std::path::Path;
+use std::{env, fs::File, path::Path};
 
 fn main() {
     let out_dir = env::var("OUT_DIR").expect("couldn't get OUT_DIR from environment");
@@ -12,6 +10,8 @@ fn main() {
 
     let schema_file = File::open(&schema_path).expect("couldn't open YAML schema file");
     let mut schema = Schema::from_yaml_file(&schema_file).expect("couldn't read schema from YAML");
+
+    println!("{:#?}", schema);
 
     let validation_errors = schema.validate();
     if !validation_errors.is_empty() {

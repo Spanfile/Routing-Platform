@@ -80,3 +80,16 @@ impl Validate for Range {
         errors
     }
 }
+
+impl std::fmt::Display for Range {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self.lower {
+            Bound::Inclusive(v) => write!(f, "[{}, ", v)?,
+            Bound::Exclusive(v) => write!(f, "]{}, ", v)?,
+        };
+        match self.upper {
+            Bound::Inclusive(v) => write!(f, "{}]", v),
+            Bound::Exclusive(v) => write!(f, "{}[", v),
+        }
+    }
+}

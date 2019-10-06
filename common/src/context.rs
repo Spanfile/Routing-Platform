@@ -1,7 +1,6 @@
 use lazy_static::lazy_static;
 use regex_automata::Regex;
-use std::collections::HashMap;
-use std::rc::Rc;
+use std::{collections::HashMap, rc::Rc};
 
 #[derive(Debug)]
 pub struct Context {
@@ -57,7 +56,8 @@ impl Context {
         let mut replacements: Vec<(usize, usize, String)> = Vec::new();
 
         for mat in FORMAT_MATCHER.find_iter(&text.as_bytes()) {
-            // right bound being one character away from the left bound means the format string is empty
+            // right bound being one character away from the left bound means the format
+            // string is empty
             if mat.0 == mat.1 - 1 {
                 return Err(FormatError::FormatStringEmpty);
             } else {

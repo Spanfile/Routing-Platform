@@ -16,3 +16,12 @@ impl<'a> NodeName<'a> {
         }
     }
 }
+
+impl std::fmt::Display for NodeName<'_> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            NodeName::Literal(s) => write!(f, "{}", s),
+            NodeName::Multiple(templ) => write!(f, "{}", templ),
+        }
+    }
+}

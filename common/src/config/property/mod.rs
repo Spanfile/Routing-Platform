@@ -1,10 +1,8 @@
 mod constraints;
 
-use crate::context::Context;
-use crate::schema::Schema;
+use crate::{context::Context, schema::Schema};
 use constraints::Constraints;
-use std::cell::RefCell;
-use std::rc::Rc;
+use std::{cell::RefCell, rc::Rc};
 
 #[derive(Debug)]
 pub struct Property {

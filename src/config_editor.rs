@@ -1,12 +1,14 @@
-use common::config::{Config, Node, NodeName, Property};
-use common::schema::Schema;
+use common::{
+    config::{Config, ConfigNode, NodeName, Property},
+    schema::Schema,
+};
 use std::collections::HashMap;
 
 #[derive(Debug)]
 pub struct ConfigEditor<'a> {
     schema: &'a Schema,
     config: &'a Config,
-    node_stack: Vec<&'a Node>,
+    node_stack: Vec<&'a ConfigNode>,
 }
 
 #[derive(Debug)]
@@ -50,21 +52,25 @@ impl<'a> ConfigEditor<'a> {
         }
     }
 
-    pub fn get_available_nodes(&self) -> Vec<&String> {
+    pub fn get_available_nodes(&self) -> Vec<String> {
         match self.node_stack.last() {
-            Some(n) => n.subnodes.keys().collect(),
-            None => self.config.nodes.keys().collect(),
+            Some(n) => n
+                .get_available_node_names()
+                .into_iter()
+                .map(|name| format!("{}", name))
+                .collect(),
+            None => self.config.nodes.keys().map(|key| key.to_owned()).collect(),
         }
     }
 
-    pub fn get_available_properties(&self) -> Vec<&String> {
+    pub fn get_available_properties(&self) -> Vec<String> {
         match self.node_stack.last() {
-            Some(n) => n.properties.keys().collect(),
+            Some(n) => n.get_available_property_names(),
             None => vec![],
         }
     }
 
-    pub fn get_available_nodes_and_properties(&self) -> Vec<&String> {
+    pub fn get_available_nodes_and_properties(&self) -> Vec<String> {
         let mut names = self.get_available_nodes();
         names.extend(self.get_available_properties());
         names
@@ -129,29 +135,18 @@ impl<'a> ConfigEditor<'a> {
         }
     }
 
-    pub fn get_property_values(
-        &self,
-        of_property: Option<String>,
-    ) -> HashMap<&String, Vec<String>> {
+    fn get_property(&self, property: String) -> Result<&Property, ConfigEditorError> {
         match self.node_stack.last() {
             Some(n) => n
-                .properties
-                .iter()
-                .filter(|(key, _p)| match &of_property {
-                    Some(prop) => *key == prop,
-                    None => true,
-                })
-                .map(|(key, property)| {
-                    (
-                        key,
-                        property
-                            .values()
-                            .iter()
-                            .map(|v| v.to_owned()) // maybe not the greatest idea to clone the values?
-                            .collect(),
-                    )
-                })
-                .collect(),
+                .get_property(&property)
+                .ok_or(ConfigEditorError::PropertyNotFound(property)),
+            None => Err(ConfigEditorError::PropertyNotFound(property)),
+        }
+    }
+
+    pub fn get_property_values(&self, of_property: Option<String>) -> HashMap<String, Vec<String>> {
+        match self.node_stack.last() {
+            Some(n) => n.get_property_values(of_property),
             None => HashMap::new(),
         }
     }
@@ -183,16 +178,6 @@ impl<'a> ConfigEditor<'a> {
             Err(e) => Err(ConfigEditorError::ValueError {
                 source: Box::new(e),
             }),
-        }
-    }
-
-    fn get_property(&self, property: String) -> Result<&Property, ConfigEditorError> {
-        match self.node_stack.last() {
-            Some(n) => match n.properties.get(&property) {
-                Some(p) => Ok(p),
-                None => Err(ConfigEditorError::PropertyNotFound(property)),
-            },
-            None => Err(ConfigEditorError::PropertyNotFound(property)),
         }
     }
 }

@@ -4,26 +4,24 @@ mod query;
 mod template;
 mod value;
 
-use flate2::read::ZlibDecoder;
-use flate2::write::ZlibEncoder;
-use flate2::Compression;
-pub use node::{Multinode, Node, NodeLocator};
+use flate2::{read::ZlibDecoder, write::ZlibEncoder, Compression};
+pub use node::{NodeLocator, SchemaNode, SingleSchemaNode};
 pub use property::Property;
 pub use query::Query;
 use serde::{Deserialize, Serialize};
-use std::cell::RefCell;
-use std::collections::{HashMap, HashSet};
-use std::error::Error;
-use std::fs::File;
-use std::io::BufReader;
-use std::rc::Rc;
+use std::{
+    collections::{HashMap, HashSet},
+    error::Error,
+    fs::File,
+    io::BufReader,
+};
 pub use template::Template;
 pub use value::Value;
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct Schema {
     pub templates: HashMap<String, Template>,
-    pub nodes: HashMap<String, Rc<RefCell<Node>>>,
+    pub nodes: HashMap<String, SchemaNode>,
     #[serde(default)]
     regex_cache: HashMap<String, Vec<u8>>,
 }
@@ -48,21 +46,21 @@ impl ValidationError {
 }
 
 impl Schema {
-    pub fn to_binary_file(&self, file: &mut File) -> Result<(), serde_cbor::error::Error> {
-        let mut encoder = ZlibEncoder::new(file, Compression::best());
-        serde_cbor::to_writer(&mut encoder, &self)
+    pub fn to_binary_file(&self, file: &mut File) -> Result<(), serde_json::error::Error> {
+        let encoder = ZlibEncoder::new(file, Compression::best());
+        serde_json::to_writer(encoder, &self)
     }
 
-    pub fn from_yaml_file(file: &File) -> Result<Schema, Box<Error>> {
+    pub fn from_yaml_file(file: &File) -> Result<Schema, Box<dyn Error>> {
         let reader = BufReader::new(file);
         Ok(serde_yaml::from_reader(reader)?)
     }
 
-    pub fn from_binary(binary: &[u8]) -> Result<Schema, Box<Error>> {
+    pub fn from_binary(binary: &[u8]) -> Result<Schema, Box<dyn Error>> {
         let decoder = ZlibDecoder::new(binary);
-        let mut schema: Schema = serde_cbor::from_reader(decoder)?;
+        let schema: Schema = serde_json::from_reader(decoder)?;
         schema.load_regexes_from_cache()?;
-        schema.populate_node_metadata();
+        // schema.populate_node_metadata();
         Ok(schema)
     }
 }
@@ -93,7 +91,7 @@ impl Schema {
                     &name
                 )));
             }
-            errors.extend(node_rc.borrow().validate(self));
+            errors.extend(node_rc.validate(self));
         }
 
         errors
@@ -114,18 +112,19 @@ impl Schema {
     }
 
     fn populate_node_metadata(&mut self) {
-        fn populate(node: Rc<RefCell<Node>>) {
-            for (name, subnode) in node.borrow_mut().subnodes.iter_mut() {
-                let mut subnode_mut = subnode.borrow_mut();
-                subnode_mut.parent = Some(Rc::downgrade(&node));
-                subnode_mut.name = name.to_string();
-            }
-        }
+        unimplemented!();
+        // fn populate(node: Rc<RefCell<SchemaNode>>) {
+        //     for (name, subnode) in node.borrow_mut().subnodes.iter_mut() {
+        //         let mut subnode_mut = subnode.borrow_mut();
+        //         subnode_mut.parent = Some(Rc::downgrade(&node));
+        //         subnode_mut.name = name.to_string();
+        //     }
+        // }
 
-        for (name, node) in self.nodes.iter_mut() {
-            node.borrow_mut().name = name.to_string();
-            populate(Rc::clone(node));
-        }
+        // for (name, node) in self.nodes.iter_mut() {
+        //     node.borrow_mut().name = name.to_string();
+        //     populate(Rc::clone(node));
+        // }
     }
 
     fn load_regexes_from_cache(&self) -> Result<(), Box<dyn Error>> {
@@ -158,16 +157,16 @@ impl Schema {
 
     fn node_count(&self) -> usize {
         let mut sum = 0;
-        for node_rc in self.nodes.values() {
-            sum += node_rc.borrow().node_count();
+        for node in self.nodes.values() {
+            sum += node.node_count();
         }
         sum
     }
 
     fn property_count(&self) -> usize {
         let mut sum = 0;
-        for node_rc in self.nodes.values() {
-            sum += node_rc.borrow().property_count();
+        for node in self.nodes.values() {
+            sum += node.property_count();
         }
         sum
     }

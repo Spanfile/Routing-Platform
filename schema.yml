@@ -1,7 +1,7 @@
 ---
 templates:
   "string":
-    regex: '.*'
+    regex: ".*"
   "hostname":
     regex: '[a-zA-Z0-9][a-zA-Z0-9\-]{0,63}'
   "ipv4-cidr":
@@ -11,9 +11,9 @@ templates:
   "fqdn":
     regex: '(?:[a-zA-Z0-9][a-zA-Z0-9\-]{0,63}\.?)+'
   "mac":
-    regex: '(?:[[:xdigit:]]{2}:)(?:[[:xdigit:]]{2}:){4}[[:xdigit:]]{2}'
+    regex: "(?:[[:xdigit:]]{2}:)(?:[[:xdigit:]]{2}:){4}[[:xdigit:]]{2}"
   "ssh-key":
-    regex: 'ssh-rsa AAAA[0-9A-Za-z+/]+={0,3}'
+    regex: "ssh-rsa AAAA[0-9A-Za-z+/]+={0,3}"
   "vid":
     range:
       lower:
@@ -30,90 +30,89 @@ nodes:
             ls: /sys/class/net
         subnodes:
           "vlan":
-            multinode:
-              template: vid
-              node:
-                properties:
-                  "description":
-                    values:
+            template: vid
+            node:
+              properties:
+                "description":
+                  values:
                     - template: string
-                  "address":
-                    values:
+                "address":
+                  values:
                     - literal: dhcp
                     - template: ipv4-cidr
         properties:
           "description":
             values:
-            - template: string
+              - template: string
           "address":
             values:
-            - literal: dhcp
-            - template: ipv4-cidr
+              - literal: dhcp
+              - template: ipv4-cidr
           "hardware":
             default:
-            - query:
-                id: mac
-                command:
-                  cat: /sys/class/net/{interface}/address
+              - query:
+                  id: mac
+                  command:
+                    cat: /sys/class/net/{interface}/address
             deletable: false
             values:
-            - template: mac
+              - template: mac
           "mtu":
             default:
-            - query:
-                id: mtu
-                command:
-                  cat: /sys/class/net/{interface}/mtu
+              - query:
+                  id: mtu
+                  command:
+                    cat: /sys/class/net/{interface}/mtu
             deletable: false
             values:
-            - range:
-                lower:
-                  inclusive: 1
-                upper:
-                  inclusive: 9000
+              - range:
+                  lower:
+                    inclusive: 1
+                  upper:
+                    inclusive: 9000
   "system":
     properties:
       "hostname":
         default:
-        - literal: router
+          - literal: router
         deletable: false
         values:
-        - template: hostname
+          - template: hostname
     subnodes:
       "dns":
         properties:
-          domain:
+          "domain":
             values:
-            - template: fqdn
-          nameserver:
+              - template: fqdn
+          "nameserver":
             multiple: true
             default:
-            - literal: '1.1.1.1'
-            - literal: '1.0.0.1'
+              - literal: "1.1.1.1"
+              - literal: "1.0.0.1"
             values:
-            - template: fqdn
+              - template: fqdn
       "ntp":
         properties:
           "server":
             multiple: true
             default:
-            - literal: 1.pool.ntp.org
-            - literal: 2.pool.ntp.org
-            - literal: 3.pool.ntp.org
-            - literal: 4.pool.ntp.org
+              - literal: 1.pool.ntp.org
+              - literal: 2.pool.ntp.org
+              - literal: 3.pool.ntp.org
+              - literal: 4.pool.ntp.org
             values:
-            - template: fqdn
+              - template: fqdn
       "users":
         subnodes:
           "user":
             properties:
               "password":
                 values:
-                - template: string
+                  - template: string
             subnodes:
               "ssh-keys":
                 properties:
                   "key":
                     multiple: true
                     values:
-                    - template: ssh-key
+                      - template: ssh-key

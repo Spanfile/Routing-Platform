@@ -1,5 +1,7 @@
-use super::value::{DefaultValue, Value};
-use super::{Matches, Schema, Validate, ValidationError};
+use super::{
+    value::{DefaultValue, Value},
+    Matches, Schema, Validate, ValidationError,
+};
 use serde::{Deserialize, Serialize};
 
 #[derive(Serialize, Deserialize, Debug, Default)]
@@ -62,7 +64,8 @@ impl Validate for Property {
                                     }
                                 }
                                 Value::Template(template) => {
-                                    // by now it's guaranteed the specified template exists (it has been validated above)
+                                    // by now it's guaranteed the specified template exists (it has
+                                    // been validated above)
                                     let templ =
                                         schema.templates.get(template).unwrap_or_else(|| {
                                             panic!(

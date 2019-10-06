@@ -1,7 +1,6 @@
 mod config_editor;
 
-use common::config::Config;
-use common::schema::Schema;
+use common::{config::Config, schema::Schema};
 use config_editor::ConfigEditor;
 use std::time::Instant;
 

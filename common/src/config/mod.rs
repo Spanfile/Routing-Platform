@@ -2,18 +2,16 @@ mod node;
 mod node_name;
 mod property;
 
-use super::context::Context;
-use super::schema::Schema;
-pub use node::Node;
+use super::{context::Context, schema::Schema};
+pub use node::ConfigNode;
 pub use node_name::NodeName;
 pub use property::Property;
-use std::collections::HashMap;
-use std::rc::Rc;
+use std::{collections::HashMap, rc::Rc};
 
 #[derive(Debug)]
 pub struct Config {
     // it helps a ton down the line if this has the exact same type as a node's subnodes hashmap
-    pub nodes: HashMap<String, Box<Node>>,
+    pub nodes: HashMap<String, Box<ConfigNode>>,
 }
 
 impl Config {
@@ -23,16 +21,16 @@ impl Config {
         context.set_value(String::from("mock"), String::from("mock"));
         let context_rc = Rc::new(context);
 
-        for (name, node_rc) in &schema.nodes {
+        for (name, node) in &schema.nodes {
             nodes.extend(
-                Node::from_schema_node(
+                ConfigNode::from_schema_node(
                     &String::from("config"),
                     Rc::clone(&context_rc),
                     name,
-                    &node_rc.borrow(),
+                    &node,
                 )?
                 .into_iter()
-                .map(|n| (n.name.to_owned(), Box::new(n))),
+                .map(|n| (n.name().to_owned(), Box::new(n))),
             );
         }
 
@@ -49,7 +47,7 @@ impl Config {
         names
     }
 
-    pub fn get_node_with_name(&self, name: &str) -> &Node {
+    pub fn get_node_with_name(&self, name: &str) -> &ConfigNode {
         match self.nodes.get(name) {
             Some(node) => &node,
             _ => panic!(),

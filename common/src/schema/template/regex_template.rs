@@ -1,10 +1,11 @@
 use crate::schema::{Matches, Schema, Validate, ValidationError};
 use regex_automata::{DenseDFA, DFA};
-use serde::de::{self, Visitor};
-use serde::{de::Deserializer, ser::Serializer, Deserialize, Serialize};
-use std::cell::RefCell;
-use std::error::Error;
-use std::fmt;
+use serde::{
+    de::{self, Deserializer, Visitor},
+    ser::Serializer,
+    Deserialize, Serialize,
+};
+use std::{cell::RefCell, error::Error, fmt};
 
 #[derive(Debug)]
 pub struct RegexTemplate {
@@ -102,12 +103,19 @@ impl<'de> Deserialize<'de> for RegexTemplate {
     }
 }
 
-// as the deserialisation was directly from the regex string, serialise directly into it as well
+// as the deserialisation was directly from the regex string, serialise directly
+// into it as well
 impl Serialize for RegexTemplate {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
     where
         S: Serializer,
     {
         serializer.serialize_str(&*self.regex)
+    }
+}
+
+impl std::fmt::Display for RegexTemplate {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}", self.regex)
     }
 }
