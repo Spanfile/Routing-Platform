@@ -5,7 +5,7 @@ mod template;
 mod value;
 
 use flate2::{read::ZlibDecoder, write::ZlibEncoder, Compression};
-pub use node::{NodeLocator, SchemaNode, SingleSchemaNode};
+pub use node::{MultiSchemaNode, NodeLocator, SchemaNode, SingleSchemaNode};
 pub use property::Property;
 pub use query::Query;
 use serde::{Deserialize, Serialize};

@@ -3,7 +3,7 @@ mod node_name;
 mod property;
 
 use super::{context::Context, schema::Schema};
-pub use node::ConfigNode;
+pub use node::{ConfigNode, Node};
 pub use node_name::NodeName;
 pub use property::Property;
 use std::{collections::HashMap, rc::Rc};
