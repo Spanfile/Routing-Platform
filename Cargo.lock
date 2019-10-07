@@ -142,6 +142,7 @@ name = "routing-platform"
 version = "0.1.0"
 dependencies = [
  "common 0.1.0",
+ "enum_dispatch 0.1.4 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
 
 [[package]]
