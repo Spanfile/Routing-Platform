@@ -1,12 +1,8 @@
 mod constraints;
 
-use super::ConfigNode;
 use crate::{context::Context, schema::Schema};
 use constraints::Constraints;
-use std::{
-    cell::RefCell,
-    rc::{Rc, Weak},
-};
+use std::{cell::RefCell, rc::Rc};
 
 #[derive(Debug)]
 pub struct Property {

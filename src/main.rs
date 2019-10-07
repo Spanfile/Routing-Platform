@@ -23,7 +23,8 @@ fn main() {
     editor.pretty_print_config();
 
     editor.edit_node(String::from("interfaces")).unwrap();
-    editor.edit_node(String::from("ethernet eth0")).unwrap();
+    editor.edit_node(String::from("ethernet")).unwrap();
+    editor.edit_node(String::from("eth0")).unwrap();
     editor.edit_node(String::from("vlan")).unwrap();
     editor.edit_node(String::from("10")).unwrap();
 

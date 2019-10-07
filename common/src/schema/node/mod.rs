@@ -4,16 +4,18 @@ mod single_schema_node;
 use enum_dispatch::enum_dispatch;
 
 use super::{Schema, Validate, ValidationError};
-pub use multi_schema_node::MultiSchemaNode;
+pub use multi_schema_node::{MultiSchemaNode, MultiSchemaNodeSource};
 pub use node_locator::NodeLocator;
 use serde::{Deserialize, Serialize};
 pub use single_schema_node::SingleSchemaNode;
+use std::rc::Rc;
 
 #[enum_dispatch(SchemaNode)]
 pub trait SchemaNodeTrait {
     fn node_count(&self) -> usize;
     fn property_count(&self) -> usize;
-    fn get_locator(&self) -> NodeLocator;
+    fn update_locators(&mut self, name: String, previous: Rc<NodeLocator>);
+    fn get_locator(&self) -> Rc<NodeLocator>;
 }
 
 #[enum_dispatch]

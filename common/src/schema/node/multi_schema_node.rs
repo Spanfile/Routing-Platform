@@ -1,10 +1,23 @@
-use super::{NodeLocator, Schema, SchemaNodeTrait, SingleSchemaNode, Validate, ValidationError};
+use super::{
+    super::{Query, Validate},
+    NodeLocator, Schema, SchemaNodeTrait, SingleSchemaNode, ValidationError,
+};
 use serde::{Deserialize, Serialize};
+use std::rc::Rc;
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct MultiSchemaNode {
-    pub template: String,
+    pub source: MultiSchemaNodeSource,
     pub node: SingleSchemaNode,
+    #[serde(skip)]
+    pub locator: Rc<NodeLocator>,
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+#[serde(rename_all = "lowercase")]
+pub enum MultiSchemaNodeSource {
+    Query(Query),
+    Template(String),
 }
 
 impl SchemaNodeTrait for MultiSchemaNode {
@@ -16,8 +29,14 @@ impl SchemaNodeTrait for MultiSchemaNode {
         0
     }
 
-    fn get_locator(&self) -> NodeLocator {
-        self.node.get_locator()
+    fn get_locator(&self) -> Rc<NodeLocator> {
+        Rc::clone(&self.locator)
+    }
+
+    fn update_locators(&mut self, name: String, locator: Rc<NodeLocator>) {
+        self.locator = Rc::new(NodeLocator::new(name, Some(Rc::clone(&locator))));
+        self.node
+            .update_locators(String::from("template"), Rc::clone(&self.locator));
     }
 }
 
@@ -26,11 +45,16 @@ impl Validate for MultiSchemaNode {
         let mut errors: Vec<ValidationError> = Vec::new();
         errors.extend(self.node.validate(schema));
 
-        if !schema.templates.contains_key(&self.template) {
-            errors.push(ValidationError::new(format!(
-                "Multinode validation error\nTemplate '{}' doesn't exist",
-                self.template
-            )));
+        match &self.source {
+            MultiSchemaNodeSource::Template(template) => {
+                if !schema.templates.contains_key(template) {
+                    errors.push(ValidationError::new(format!(
+                        "Multinode validation error\nTemplate '{}' doesn't exist",
+                        template
+                    )));
+                }
+            }
+            _ => {}
         }
 
         errors

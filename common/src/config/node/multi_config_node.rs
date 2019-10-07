@@ -1,7 +1,7 @@
-use super::{ConfigNode, FromSchemaNode, Node, NodeName};
+use super::{ConfigNode, FromSchemaNode, Node, NodeName, SingleConfigNode};
 use crate::{
     config::Property,
-    schema::{MultiSchemaNode, NodeLocator, Schema, SchemaNodeTrait},
+    schema::{MultiSchemaNode, MultiSchemaNodeSource, NodeLocator, Schema, SchemaNodeTrait},
     Context,
 };
 use std::{
@@ -13,10 +13,16 @@ use std::{
 pub struct MultiConfigNode {
     nodes: HashMap<String, Box<ConfigNode>>,
     name: String,
-    template: String,
-    node_locator: NodeLocator,
+    new_node_creation_allowed: NewNodeCreationAllowed,
+    node_locator: Rc<NodeLocator>,
     context: Rc<Context>,
     schema: Weak<Schema>,
+}
+
+#[derive(Debug)]
+enum NewNodeCreationAllowed {
+    No,
+    Yes(String),
 }
 
 impl Node for MultiConfigNode {
@@ -26,12 +32,13 @@ impl Node for MultiConfigNode {
 
     fn get_available_node_names(&self) -> Vec<NodeName> {
         let schema = self.schema.upgrade().expect("schema dropped");
-        let mut names = vec![NodeName::Multiple(Rc::downgrade(
-            schema
-                .templates
-                .get(&self.template)
-                .expect("template not found"),
-        ))];
+        let mut names = vec![];
+
+        if let NewNodeCreationAllowed::Yes(template) = &self.new_node_creation_allowed {
+            names.push(NodeName::Multiple(Rc::downgrade(
+                schema.templates.get(template).expect("template not found"),
+            )));
+        }
 
         for (name, _) in &self.nodes {
             names.push(NodeName::Literal(name.to_owned()));
@@ -48,19 +55,18 @@ impl Node for MultiConfigNode {
         match self.nodes.get(name) {
             Some(node) => node,
             _ => {
+                let new_node = ConfigNode::from_schema_node(
+                    Rc::clone(&self.context),
+                    name,
+                    Weak::clone(&self.schema),
+                    self.schema
+                        .upgrade()
+                        .expect("schema dropped")
+                        .find_node(&*self.node_locator)
+                        .expect("schema node not found"),
+                )
+                .expect("failed to create new node");
                 unimplemented!();
-                // let new_node = ConfigNode::from_schema_node(
-                //     Rc::clone(&self.context),
-                //     name,
-                //     Weak::clone(&self.schema),
-                //     self.schema
-                //         .upgrade()
-                //         .expect("schema dropped")
-                //         .find_node(self.node_locator)
-                //         .expect("schema node not found"),
-                // )
-                // .expect("failed to create new node");
-                // new_node
             }
         }
     }
@@ -96,15 +102,39 @@ impl FromSchemaNode<MultiSchemaNode> for MultiConfigNode {
         name: &str,
         schema: Weak<Schema>,
         schema_node: &MultiSchemaNode,
-    ) -> Result<Vec<ConfigNode>, Box<dyn std::error::Error>> {
-        Ok(vec![MultiConfigNode {
-            nodes: HashMap::new(),
-            name: name.to_string(),
-            template: schema_node.template.to_string(),
+    ) -> Result<ConfigNode, Box<dyn std::error::Error>> {
+        let mut nodes = HashMap::new();
+
+        let new_node_creation_allowed = match &schema_node.source {
+            MultiSchemaNodeSource::Query(query) => {
+                for result in &query.run(&context)? {
+                    let mut result_context = Context::new(Some(Rc::clone(&context)));
+                    result_context.set_value(query.id.to_owned(), result.to_owned());
+                    nodes.insert(
+                        result.to_owned(),
+                        Box::new(SingleConfigNode::from_schema_node(
+                            Rc::new(result_context),
+                            &name,
+                            Weak::clone(&schema),
+                            &schema_node.node,
+                        )?),
+                    );
+                }
+                NewNodeCreationAllowed::No
+            }
+            MultiSchemaNodeSource::Template(template) => {
+                NewNodeCreationAllowed::Yes(template.to_owned())
+            }
+        };
+
+        Ok(MultiConfigNode {
+            nodes,
+            name: name.to_owned(),
+            new_node_creation_allowed,
             context: Rc::clone(&context),
-            node_locator: schema_node.get_locator(),
+            node_locator: schema_node.node.get_locator(),
             schema,
         }
-        .into()])
+        .into())
     }
 }

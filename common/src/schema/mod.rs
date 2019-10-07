@@ -6,7 +6,10 @@ mod validate;
 mod value;
 
 use flate2::{read::ZlibDecoder, write::ZlibEncoder, Compression};
-pub use node::{MultiSchemaNode, NodeLocator, SchemaNode, SchemaNodeTrait, SingleSchemaNode};
+pub use node::{
+    MultiSchemaNode, MultiSchemaNodeSource, NodeLocator, SchemaNode, SchemaNodeTrait,
+    SingleSchemaNode,
+};
 pub use property::Property;
 pub use query::Query;
 use serde::{Deserialize, Serialize};
@@ -46,9 +49,9 @@ impl Schema {
 
     pub fn from_binary(binary: &[u8]) -> Result<Schema, Box<dyn Error>> {
         let decoder = ZlibDecoder::new(binary);
-        let schema: Schema = serde_json::from_reader(decoder)?;
+        let mut schema: Schema = serde_json::from_reader(decoder)?;
         schema.load_regexes_from_cache()?;
-        // schema.populate_node_metadata();
+        schema.populate_node_metadata();
         Ok(schema)
     }
 }
@@ -100,19 +103,10 @@ impl Schema {
     }
 
     fn populate_node_metadata(&mut self) {
-        unimplemented!();
-        // fn populate(node: Rc<RefCell<SchemaNode>>) {
-        //     for (name, subnode) in node.borrow_mut().subnodes.iter_mut() {
-        //         let mut subnode_mut = subnode.borrow_mut();
-        //         subnode_mut.parent = Some(Rc::downgrade(&node));
-        //         subnode_mut.name = name.to_string();
-        //     }
-        // }
-
-        // for (name, node) in self.nodes.iter_mut() {
-        //     node.borrow_mut().name = name.to_string();
-        //     populate(Rc::clone(node));
-        // }
+        let root_locator = Rc::new(NodeLocator::new(String::from("schema"), None));
+        for (name, node) in self.nodes.iter_mut() {
+            node.update_locators(name.to_owned(), Rc::clone(&root_locator));
+        }
     }
 
     fn load_regexes_from_cache(&self) -> Result<(), Box<dyn Error>> {
@@ -159,7 +153,7 @@ impl Schema {
         sum
     }
 
-    pub fn find_node(&self, locator: NodeLocator) -> Option<&SchemaNode> {
+    pub fn find_node(&self, locator: &NodeLocator) -> Option<&SchemaNode> {
         unimplemented!();
     }
 }

@@ -23,53 +23,56 @@ templates:
 nodes:
   "interfaces":
     subnodes:
-      "ethernet {interface}":
-        query:
-          id: interface
-          command:
-            ls: /sys/class/net
-        subnodes:
-          "vlan":
-            template: vid
-            node:
-              properties:
-                "description":
-                  values:
-                    - template: string
-                "address":
-                  values:
-                    - literal: dhcp
-                    - template: ipv4-cidr
-        properties:
-          "description":
-            values:
-              - template: string
-          "address":
-            values:
-              - literal: dhcp
-              - template: ipv4-cidr
-          "hardware":
-            default:
-              - query:
-                  id: mac
-                  command:
-                    cat: /sys/class/net/{interface}/address
-            deletable: false
-            values:
-              - template: mac
-          "mtu":
-            default:
-              - query:
-                  id: mtu
-                  command:
-                    cat: /sys/class/net/{interface}/mtu
-            deletable: false
-            values:
-              - range:
-                  lower:
-                    inclusive: 1
-                  upper:
-                    inclusive: 9000
+      "ethernet":
+        source:
+          query:
+            id: interface
+            command:
+              ls: /sys/class/net
+        node:
+          subnodes:
+            "vlan":
+              source:
+                template: vid
+              node:
+                properties:
+                  "description":
+                    values:
+                      - template: string
+                  "address":
+                    values:
+                      - literal: dhcp
+                      - template: ipv4-cidr
+          properties:
+            "description":
+              values:
+                - template: string
+            "address":
+              values:
+                - literal: dhcp
+                - template: ipv4-cidr
+            "hardware":
+              default:
+                - query:
+                    id: mac
+                    command:
+                      cat: /sys/class/net/{interface}/address
+              deletable: false
+              values:
+                - template: mac
+            "mtu":
+              default:
+                - query:
+                    id: mtu
+                    command:
+                      cat: /sys/class/net/{interface}/mtu
+              deletable: false
+              values:
+                - range:
+                    lower:
+                      inclusive: 1
+                    upper:
+                      inclusive: 9000
   "system":
     properties:
       "hostname":

@@ -25,15 +25,14 @@ impl Config {
 
         if let Some(s) = schema.upgrade() {
             for (name, node) in &s.nodes {
-                nodes.extend(
-                    ConfigNode::from_schema_node(
+                nodes.insert(
+                    name.to_owned(),
+                    Box::new(ConfigNode::from_schema_node(
                         Rc::clone(&context_rc),
                         &name,
                         Weak::clone(&schema),
                         &node,
-                    )?
-                    .into_iter()
-                    .map(|n| (n.name().to_owned(), Box::new(n))),
+                    )?),
                 );
             }
         }

@@ -42,7 +42,7 @@ where
         name: &str,
         schema: Weak<Schema>,
         schema_node: &TBuiltFrom,
-    ) -> Result<Vec<ConfigNode>, Box<dyn std::error::Error>>;
+    ) -> Result<ConfigNode, Box<dyn std::error::Error>>;
 }
 
 #[enum_dispatch(Node)]
@@ -58,20 +58,14 @@ impl FromSchemaNode<SchemaNode> for ConfigNode {
         name: &str,
         schema: Weak<Schema>,
         schema_node: &SchemaNode,
-    ) -> Result<Vec<ConfigNode>, Box<dyn std::error::Error>> {
+    ) -> Result<ConfigNode, Box<dyn std::error::Error>> {
         match schema_node {
-            SchemaNode::SingleSchemaNode(node) => Ok(SingleConfigNode::from_schema_node(
-                context, name, schema, node,
-            )?
-            .into_iter()
-            .map(|n| n.into())
-            .collect()),
-            SchemaNode::MultiSchemaNode(node) => Ok(MultiConfigNode::from_schema_node(
-                context, name, schema, node,
-            )?
-            .into_iter()
-            .map(|n| n.into())
-            .collect()),
+            SchemaNode::SingleSchemaNode(node) => {
+                Ok(SingleConfigNode::from_schema_node(context, name, schema, node)?.into())
+            }
+            SchemaNode::MultiSchemaNode(node) => {
+                Ok(MultiConfigNode::from_schema_node(context, name, schema, node)?.into())
+            }
         }
     }
 }

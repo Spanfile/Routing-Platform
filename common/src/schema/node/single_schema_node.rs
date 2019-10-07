@@ -1,9 +1,12 @@
 use super::{
-    super::{property::Property, query::Query},
-    NodeLocator, Schema, SchemaNode, SchemaNodeTrait, Validate, ValidationError,
+    super::property::Property, NodeLocator, Schema, SchemaNode, SchemaNodeTrait, Validate,
+    ValidationError,
 };
 use serde::{Deserialize, Serialize};
-use std::collections::{HashMap, HashSet};
+use std::{
+    collections::{HashMap, HashSet},
+    rc::Rc,
+};
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct SingleSchemaNode {
@@ -11,10 +14,10 @@ pub struct SingleSchemaNode {
     pub subnodes: HashMap<String, Box<SchemaNode>>,
     #[serde(default)]
     pub properties: HashMap<String, Property>,
-    #[serde(default)]
-    pub query: Option<Query>,
-    #[serde(default)]
-    pub name: String,
+    // #[serde(default)]
+    // pub name: String,
+    #[serde(skip)]
+    pub locator: Rc<NodeLocator>,
 }
 
 impl SchemaNodeTrait for SingleSchemaNode {
@@ -34,17 +37,12 @@ impl SchemaNodeTrait for SingleSchemaNode {
         sum
     }
 
-    fn get_locator(&self) -> NodeLocator {
-        NodeLocator::new(self.name.to_string(), None)
-        // if let Some(parent) = &self.parent {
-        //     if let Some(parent) = parent.upgrade() {
-        //         NodeLocator::new(self.name.to_string(),
-        // Some(parent.borrow().get_locator()))     } else {
-        //         panic!("parent node dropped");
-        //     }
-        // } else {
-        //     NodeLocator::new(self.name.to_string(), None)
-        // }
+    fn get_locator(&self) -> Rc<NodeLocator> {
+        self.locator.clone()
+    }
+
+    fn update_locators(&mut self, name: String, locator: Rc<NodeLocator>) {
+        self.locator = Rc::new(NodeLocator::new(name, Some(Rc::clone(&locator))));
     }
 }
 
@@ -67,10 +65,6 @@ impl Validate for SingleSchemaNode {
         for node in self.subnodes.values() {
             errors.extend(node.validate(schema));
         }
-
-        // if let Some(multinode) = &self.multinode {
-        //     errors.extend(multinode.validate(schema));
-        // }
 
         errors
     }
