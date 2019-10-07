@@ -2,13 +2,13 @@ use common::{
     config::{Config, ConfigNode, Node, NodeName, Property},
     schema::Schema,
 };
-use std::collections::HashMap;
+use std::{collections::HashMap, rc::Rc};
 
 #[derive(Debug)]
 pub struct ConfigEditor<'a> {
     schema: &'a Schema,
     config: &'a Config,
-    node_stack: Vec<&'a ConfigNode>,
+    node_stack: Vec<Rc<ConfigNode>>,
 }
 
 #[derive(Debug)]

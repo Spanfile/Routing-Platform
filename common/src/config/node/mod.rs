@@ -20,7 +20,7 @@ pub trait Node {
 
     fn get_available_node_names(&self) -> Vec<NodeName>;
     fn get_available_property_names(&self) -> Vec<String>;
-    fn get_node_with_name(&self, name: &str) -> &ConfigNode;
+    fn get_node_with_name(&self, name: &str) -> Rc<ConfigNode>;
     fn get_property(&self, property: &str) -> Option<&Property>;
     fn get_property_values(&self, of_property: Option<String>) -> HashMap<String, Vec<String>>;
 

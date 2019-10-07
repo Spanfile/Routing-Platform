@@ -12,7 +12,7 @@ use std::{
 #[derive(Debug)]
 pub struct SingleConfigNode {
     name: String,
-    subnodes: HashMap<String, Box<ConfigNode>>,
+    subnodes: HashMap<String, Rc<ConfigNode>>,
     properties: HashMap<String, Property>,
 }
 
@@ -35,13 +35,8 @@ impl Node for SingleConfigNode {
         self.properties.keys().map(|key| key.to_owned()).collect()
     }
 
-    fn get_node_with_name(&self, name: &str) -> &ConfigNode {
-        match self.subnodes.get(name) {
-            Some(node) => &node,
-            _ => {
-                panic!();
-            }
-        }
+    fn get_node_with_name(&self, name: &str) -> Rc<ConfigNode> {
+        Rc::clone(self.subnodes.get(name).expect("node not found"))
     }
 
     fn get_property(&self, property: &str) -> Option<&Property> {
@@ -105,7 +100,7 @@ impl FromSchemaNode<SingleSchemaNode> for SingleConfigNode {
         for (subname, subnode) in &schema_node.subnodes {
             subnodes.insert(
                 subname.to_owned(),
-                Box::new(ConfigNode::from_schema_node(
+                Rc::new(ConfigNode::from_schema_node(
                     Rc::clone(&context),
                     &subname,
                     Weak::clone(&schema),

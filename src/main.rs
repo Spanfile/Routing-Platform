@@ -28,6 +28,10 @@ fn main() {
     editor.edit_node(String::from("vlan")).unwrap();
     editor.edit_node(String::from("10")).unwrap();
 
+    editor
+        .set_property_value(String::from("description"), String::from("test"))
+        .unwrap();
+
     editor.go_up().unwrap();
     editor.go_up().unwrap();
 
@@ -45,6 +49,7 @@ fn main() {
         .remove_property_value(String::from("mtu"), None)
         .unwrap();
 
+    editor.go_up().unwrap();
     editor.go_up().unwrap();
     editor.go_up().unwrap();
 

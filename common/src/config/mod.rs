@@ -13,7 +13,7 @@ use std::{
 
 #[derive(Debug)]
 pub struct Config {
-    pub nodes: HashMap<String, Box<ConfigNode>>,
+    pub nodes: HashMap<String, Rc<ConfigNode>>,
 }
 
 impl Config {
@@ -27,7 +27,7 @@ impl Config {
             for (name, node) in &s.nodes {
                 nodes.insert(
                     name.to_owned(),
-                    Box::new(ConfigNode::from_schema_node(
+                    Rc::new(ConfigNode::from_schema_node(
                         Rc::clone(&context_rc),
                         &name,
                         Weak::clone(&schema),
@@ -50,9 +50,9 @@ impl Config {
         names
     }
 
-    pub fn get_node_with_name(&self, name: &str) -> &ConfigNode {
+    pub fn get_node_with_name(&self, name: &str) -> Rc<ConfigNode> {
         match self.nodes.get(name) {
-            Some(node) => &node,
+            Some(node) => Rc::clone(node),
             _ => panic!(),
         }
     }

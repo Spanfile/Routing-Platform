@@ -5,13 +5,14 @@ use crate::{
     Context,
 };
 use std::{
+    cell::RefCell,
     collections::HashMap,
     rc::{Rc, Weak},
 };
 
 #[derive(Debug)]
 pub struct MultiConfigNode {
-    nodes: HashMap<String, Box<ConfigNode>>,
+    nodes: RefCell<HashMap<String, Rc<ConfigNode>>>,
     name: String,
     new_node_creation_allowed: NewNodeCreationAllowed,
     node_locator: Rc<NodeLocator>,
@@ -40,7 +41,7 @@ impl Node for MultiConfigNode {
             )));
         }
 
-        for (name, _) in &self.nodes {
+        for name in self.nodes.borrow().keys() {
             names.push(NodeName::Literal(name.to_owned()));
         }
 
@@ -51,23 +52,28 @@ impl Node for MultiConfigNode {
         vec![]
     }
 
-    fn get_node_with_name(&self, name: &str) -> &ConfigNode {
-        match self.nodes.get(name) {
-            Some(node) => node,
+    fn get_node_with_name(&self, name: &str) -> Rc<ConfigNode> {
+        let mut nodes = self.nodes.borrow_mut();
+        match nodes.get(name) {
+            Some(node) => Rc::clone(&node),
             _ => {
-                let new_node = ConfigNode::from_schema_node(
-                    Rc::clone(&self.context),
-                    name,
-                    Weak::clone(&self.schema),
-                    self.schema
-                        .upgrade()
-                        .expect("schema dropped")
-                        .find_node(Rc::clone(&self.node_locator))
-                        .expect("schema node not found"),
-                )
-                .expect("failed to create new node");
+                let new_node = Rc::new(
+                    ConfigNode::from_schema_node(
+                        Rc::clone(&self.context),
+                        name,
+                        Weak::clone(&self.schema),
+                        self.schema
+                            .upgrade()
+                            .expect("schema dropped")
+                            .find_node(Rc::clone(&self.node_locator))
+                            .expect("schema node not found"),
+                    )
+                    .expect("failed to create new node"),
+                );
 
-                unimplemented!();
+                nodes.insert(name.to_owned(), Rc::clone(&new_node));
+
+                new_node
             }
         }
     }
@@ -89,7 +95,7 @@ impl Node for MultiConfigNode {
     }
 
     fn pretty_print(&self, indent: usize) {
-        for (name, node) in &self.nodes {
+        for (name, node) in &*self.nodes.borrow() {
             println!("{:indent$}{} {{", "", name, indent = indent * 4);
             node.pretty_print(indent + 1);
             println!("{:indent$}}}", "", indent = indent * 4);
@@ -113,7 +119,7 @@ impl FromSchemaNode<MultiSchemaNode> for MultiConfigNode {
                     result_context.set_value(query.id.to_owned(), result.to_owned());
                     nodes.insert(
                         result.to_owned(),
-                        Box::new(ConfigNode::from_schema_node(
+                        Rc::new(ConfigNode::from_schema_node(
                             Rc::new(result_context),
                             &name,
                             Weak::clone(&schema),
@@ -129,7 +135,7 @@ impl FromSchemaNode<MultiSchemaNode> for MultiConfigNode {
         };
 
         Ok(MultiConfigNode {
-            nodes,
+            nodes: RefCell::new(nodes),
             name: name.to_owned(),
             new_node_creation_allowed,
             context: Rc::clone(&context),
