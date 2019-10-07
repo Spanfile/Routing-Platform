@@ -158,4 +158,8 @@ impl Schema {
         }
         sum
     }
+
+    pub fn find_node(&self, locator: NodeLocator) -> Option<&SchemaNode> {
+        unimplemented!();
+    }
 }

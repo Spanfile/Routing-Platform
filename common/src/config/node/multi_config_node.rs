@@ -5,15 +5,15 @@ use crate::{
     Context,
 };
 use std::{
+    cell::RefCell,
     collections::HashMap,
     rc::{Rc, Weak},
 };
 
 #[derive(Debug)]
 pub struct MultiConfigNode {
-    nodes: HashMap<String, Box<ConfigNode>>,
+    nodes: RefCell<HashMap<String, Box<ConfigNode>>>,
     name: String,
-    parent: Option<Weak<ConfigNode>>,
     template: String,
     node_locator: NodeLocator,
     context: Rc<Context>,
@@ -25,18 +25,6 @@ impl Node for MultiConfigNode {
         self.name.to_owned()
     }
 
-    fn full_path(&self) -> String {
-        [
-            if let Some(parent) = &self.parent {
-                parent.upgrade().expect("parent dropped").full_path()
-            } else {
-                String::from("")
-            },
-            self.name.to_owned(),
-        ]
-        .join(".")
-    }
-
     fn get_available_node_names(&self) -> Vec<NodeName> {
         let schema = self.schema.upgrade().expect("schema dropped");
         let mut names = vec![NodeName::Multiple(Rc::downgrade(
@@ -46,7 +34,7 @@ impl Node for MultiConfigNode {
                 .expect("template not found"),
         ))];
 
-        for (name, _) in &self.nodes {
+        for (name, _) in &*self.nodes.borrow() {
             names.push(NodeName::Literal(name.to_owned()));
         }
 
@@ -58,18 +46,24 @@ impl Node for MultiConfigNode {
     }
 
     fn get_node_with_name(&self, name: &str) -> &ConfigNode {
-        match self.nodes.get(name) {
+        match self.nodes.borrow().get(name) {
             Some(node) => node,
             _ => {
-                println!("{:?}", self.node_locator);
-                // let new_node = ConfigNode::from_schema_node(
-                //     &self.path,
-                //     Rc::clone(&self.context),
-                //     name,
-                //     &self.schema_node.node,
-                //     self.schema,
-                // );
-                panic!();
+                let new_node = ConfigNode::from_schema_node(
+                    Rc::clone(&self.context),
+                    name,
+                    Weak::clone(&self.schema),
+                    self.schema
+                        .upgrade()
+                        .expect("schema dropped")
+                        .find_node(self.node_locator)
+                        .expect("schema node not found"),
+                )
+                .expect("failed to create new node")[0];
+                self.nodes
+                    .borrow_mut()
+                    .insert(name.to_owned(), Box::new(new_node));
+                unimplemented!();
             }
         }
     }
@@ -82,8 +76,16 @@ impl Node for MultiConfigNode {
         HashMap::new()
     }
 
+    fn set_property_value(
+        &self,
+        property: &str,
+        value: String,
+    ) -> Result<(), Box<dyn std::error::Error>> {
+        unimplemented!();
+    }
+
     fn pretty_print(&self, indent: usize) {
-        for (name, node) in &self.nodes {
+        for (name, node) in &*self.nodes.borrow() {
             println!("{:indent$}{} {{", "", name, indent = indent * 4);
             node.pretty_print(indent + 1);
             println!("{:indent$}}}", "", indent = indent * 4);
@@ -93,16 +95,14 @@ impl Node for MultiConfigNode {
 
 impl FromSchemaNode<MultiSchemaNode> for MultiConfigNode {
     fn from_schema_node(
-        parent: Option<Weak<ConfigNode>>,
         context: Rc<Context>,
         name: &str,
         schema: Weak<Schema>,
         schema_node: &MultiSchemaNode,
     ) -> Result<Vec<ConfigNode>, Box<dyn std::error::Error>> {
         Ok(vec![MultiConfigNode {
-            nodes: HashMap::new(),
+            nodes: RefCell::new(HashMap::new()),
             name: name.to_string(),
-            parent,
             template: schema_node.template.to_string(),
             context: Rc::clone(&context),
             node_locator: schema_node.get_locator(),

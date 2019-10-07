@@ -11,7 +11,6 @@ use std::{
 #[derive(Debug)]
 pub struct Property {
     pub key: String,
-    pub parent: Weak<ConfigNode>,
     values: RefCell<Vec<String>>,
     default_values: Vec<String>, // this is pretty horrible just look it up from the schema or smth
     constraints: Constraints,
@@ -47,7 +46,6 @@ impl std::error::Error for PropertyError {
 
 impl Property {
     pub fn from_schema_property(
-        parent: Weak<ConfigNode>,
         context: Rc<Context>,
         key: &str,
         property: &crate::schema::Property,
@@ -66,7 +64,6 @@ impl Property {
         } else {
             Ok(Property {
                 key: key.to_owned(),
-                parent,
                 default_values: values.iter().map(|s| s.to_owned()).collect(),
                 values: RefCell::new(values),
                 constraints: Constraints::from_schema_property(property),

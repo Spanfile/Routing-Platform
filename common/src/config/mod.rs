@@ -13,7 +13,6 @@ use std::{
 
 #[derive(Debug)]
 pub struct Config {
-    // it helps a ton down the line if this has the exact same type as a node's subnodes hashmap
     pub nodes: HashMap<String, Box<ConfigNode>>,
 }
 
@@ -28,7 +27,6 @@ impl Config {
             for (name, node) in &s.nodes {
                 nodes.extend(
                     ConfigNode::from_schema_node(
-                        None,
                         Rc::clone(&context_rc),
                         &name,
                         Weak::clone(&schema),

@@ -12,7 +12,6 @@ use std::{
 #[derive(Debug)]
 pub struct SingleConfigNode {
     name: String,
-    parent: Option<Weak<ConfigNode>>,
     subnodes: HashMap<String, Box<ConfigNode>>,
     properties: HashMap<String, Property>,
 }
@@ -20,18 +19,6 @@ pub struct SingleConfigNode {
 impl Node for SingleConfigNode {
     fn name(&self) -> String {
         self.name.to_owned()
-    }
-
-    fn full_path(&self) -> String {
-        [
-            if let Some(parent) = &self.parent {
-                parent.upgrade().expect("parent dropped").full_path()
-            } else {
-                String::from("")
-            },
-            self.name.to_owned(),
-        ]
-        .join(".")
     }
 
     fn get_available_node_names(&self) -> Vec<NodeName> {
@@ -90,6 +77,14 @@ impl Node for SingleConfigNode {
             .collect()
     }
 
+    fn set_property_value(
+        &self,
+        property: &str,
+        value: String,
+    ) -> Result<(), Box<dyn std::error::Error>> {
+        unimplemented!();
+    }
+
     fn pretty_print(&self, indent: usize) {
         for (name, node) in &self.subnodes {
             println!("{:indent$}{} {{", "", name, indent = indent * 4);
@@ -109,7 +104,6 @@ impl Node for SingleConfigNode {
 
 impl FromSchemaNode<SingleSchemaNode> for SingleConfigNode {
     fn from_schema_node(
-        parent: Option<Weak<ConfigNode>>,
         context: Rc<Context>,
         name: &str,
         schema: Weak<Schema>,
@@ -123,7 +117,6 @@ impl FromSchemaNode<SingleSchemaNode> for SingleConfigNode {
                     let mut result_context = Context::new(Some(Rc::clone(&context)));
                     result_context.set_value(query.id.to_owned(), result.to_owned());
                     nodes.push(SingleConfigNode::build_node(
-                        parent.clone(),
                         Rc::new(result_context),
                         name,
                         Weak::clone(&schema),
@@ -134,7 +127,6 @@ impl FromSchemaNode<SingleSchemaNode> for SingleConfigNode {
                 Ok(nodes)
             }
             None => Ok(vec![SingleConfigNode::build_node(
-                parent,
                 context,
                 name,
                 schema,
@@ -146,7 +138,6 @@ impl FromSchemaNode<SingleSchemaNode> for SingleConfigNode {
 
 impl SingleConfigNode {
     fn build_node(
-        parent: Option<Weak<ConfigNode>>,
         context: Rc<Context>,
         name: &str,
         schema: Weak<Schema>,
@@ -155,19 +146,12 @@ impl SingleConfigNode {
         let name = context
             .format(name.to_owned())
             .expect("couldn't context format node name");
-
-        let node_rc = Rc::new(SingleConfigNode {
-            name,
-            parent,
-            subnodes: HashMap::new(),
-            properties: HashMap::new(),
-            // multinodes,
-        });
+        let mut subnodes = HashMap::new();
+        let mut properties = HashMap::new();
 
         for (subname, subnode) in &schema_node.subnodes {
-            node_rc.subnodes.extend(
+            subnodes.extend(
                 ConfigNode::from_schema_node(
-                    Some(Rc::downgrade(&node_rc)),
                     Rc::clone(&context),
                     &subname,
                     Weak::clone(&schema),
@@ -179,21 +163,15 @@ impl SingleConfigNode {
         }
 
         for (key, property) in &schema_node.properties {
-            let prop = Property::from_schema_property(
-                Rc::downgrade(&node_rc),
-                Rc::clone(&context),
-                &key,
-                property,
-            )?;
-            node_rc.properties.insert(key.to_owned(), prop);
+            let prop = Property::from_schema_property(Rc::clone(&context), &key, property)?;
+            properties.insert(key.to_owned(), prop);
         }
 
-        // let multinodes = if let Some(multinode) = &schema_node.multinode {
-        //     Some(Multinodes::from_schema_node(&path, context, multinode)?)
-        // } else {
-        //     None
-        // };
-
-        Ok(node_rc)
+        Ok(SingleConfigNode {
+            name,
+            subnodes,
+            properties,
+        }
+        .into())
     }
 }
