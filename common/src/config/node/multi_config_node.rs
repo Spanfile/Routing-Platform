@@ -1,4 +1,4 @@
-use super::{ConfigNode, FromSchemaNode, Node, NodeName, SingleConfigNode};
+use super::{ConfigNode, FromSchemaNode, Node, NodeName};
 use crate::{
     config::Property,
     schema::{MultiSchemaNode, MultiSchemaNodeSource, NodeLocator, Schema, SchemaNodeTrait},
@@ -62,10 +62,11 @@ impl Node for MultiConfigNode {
                     self.schema
                         .upgrade()
                         .expect("schema dropped")
-                        .find_node(&*self.node_locator)
+                        .find_node(Rc::clone(&self.node_locator))
                         .expect("schema node not found"),
                 )
                 .expect("failed to create new node");
+
                 unimplemented!();
             }
         }
@@ -112,7 +113,7 @@ impl FromSchemaNode<MultiSchemaNode> for MultiConfigNode {
                     result_context.set_value(query.id.to_owned(), result.to_owned());
                     nodes.insert(
                         result.to_owned(),
-                        Box::new(SingleConfigNode::from_schema_node(
+                        Box::new(ConfigNode::from_schema_node(
                             Rc::new(result_context),
                             &name,
                             Weak::clone(&schema),

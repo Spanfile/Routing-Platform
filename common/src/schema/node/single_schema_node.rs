@@ -43,6 +43,10 @@ impl SchemaNodeTrait for SingleSchemaNode {
 
     fn update_locators(&mut self, name: String, locator: Rc<NodeLocator>) {
         self.locator = Rc::new(NodeLocator::new(name, Some(Rc::clone(&locator))));
+
+        for (subname, subnode) in &mut self.subnodes {
+            subnode.update_locators(subname.to_owned(), Rc::clone(&self.locator));
+        }
     }
 }
 

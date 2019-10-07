@@ -2,8 +2,8 @@ use std::rc::Rc;
 
 #[derive(Debug, Clone)]
 pub struct NodeLocator {
-    node: String,
-    previous: Option<Rc<NodeLocator>>,
+    pub node: String,
+    pub previous: Option<Rc<NodeLocator>>,
 }
 
 impl NodeLocator {

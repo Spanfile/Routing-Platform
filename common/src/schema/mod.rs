@@ -27,7 +27,7 @@ pub use value::Value;
 #[derive(Serialize, Deserialize, Debug)]
 pub struct Schema {
     pub templates: HashMap<String, Rc<Template>>,
-    pub nodes: HashMap<String, SchemaNode>,
+    pub nodes: HashMap<String, Box<SchemaNode>>,
     #[serde(default)]
     regex_cache: HashMap<String, Vec<u8>>,
 }
@@ -153,7 +153,52 @@ impl Schema {
         sum
     }
 
-    pub fn find_node(&self, locator: &NodeLocator) -> Option<&SchemaNode> {
-        unimplemented!();
+    pub fn find_node(&self, locator: Rc<NodeLocator>) -> Option<&Box<SchemaNode>> {
+        let mut locator_stack = Vec::new();
+        let mut current = Some(locator);
+
+        while let Some(c) = &current {
+            locator_stack.push(c.node.to_owned());
+            current = if let Some(prev_rc) = &c.previous {
+                Some(Rc::clone(prev_rc))
+            } else {
+                None
+            };
+        }
+
+        // the first locator is always "schema", i.e. this
+        locator_stack.pop();
+
+        // find the first node in schema
+        let mut current = if let Some(name) = &locator_stack.pop() {
+            self.nodes.get(name)
+        } else {
+            None
+        };
+
+        if current.is_none() {
+            return None;
+        }
+
+        let mut name = locator_stack.pop();
+
+        while let Some(n) = &name {
+            current = if let Some(c) = current {
+                match &**c {
+                    SchemaNode::SingleSchemaNode(single) => single.subnodes.get(n),
+                    SchemaNode::MultiSchemaNode(multi) => Some(&multi.node),
+                }
+            } else {
+                None
+            };
+
+            if current.is_none() {
+                return None;
+            }
+
+            name = locator_stack.pop();
+        }
+
+        current
     }
 }

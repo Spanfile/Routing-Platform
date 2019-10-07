@@ -1,6 +1,6 @@
 use super::{
     super::{Query, Validate},
-    NodeLocator, Schema, SchemaNodeTrait, SingleSchemaNode, ValidationError,
+    NodeLocator, Schema, SchemaNode, SchemaNodeTrait, ValidationError,
 };
 use serde::{Deserialize, Serialize};
 use std::rc::Rc;
@@ -8,7 +8,9 @@ use std::rc::Rc;
 #[derive(Serialize, Deserialize, Debug)]
 pub struct MultiSchemaNode {
     pub source: MultiSchemaNodeSource,
-    pub node: SingleSchemaNode,
+    // helps a ton down the line if this node is in the heap
+    // like subnodes in a single node
+    pub node: Box<SchemaNode>,
     #[serde(skip)]
     pub locator: Rc<NodeLocator>,
 }
