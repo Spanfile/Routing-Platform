@@ -8,6 +8,7 @@ build = "build_schema.rs"
 [dependencies]
 common = { path = "common" }
 enum_dispatch = "0.1.4"
+termion = "1.5.3"
 
 [build-dependencies]
 common = { path = "common" }
