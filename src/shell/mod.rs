@@ -5,10 +5,7 @@ mod shell_error;
 use crate::error;
 pub use commands::{Command, CommandError, ExecutableCommand};
 pub use shell_error::ShellError;
-use std::{
-    io::{self, Stdout, Write},
-    thread, time,
-};
+use std::io::{self, Stdout, Write};
 use termion::{
     self, cursor,
     event::Key,
@@ -30,12 +27,16 @@ pub enum ShellMode {
 
 impl Shell {
     pub fn new() -> Self {
+        let stdout = io::stdout()
+            .into_raw_mode()
+            .expect("couldn't set stdout into raw mode");
+        stdout
+            .suspend_raw_mode()
+            .expect("couldn't suspend raw mode");
         Shell {
             running: true,
             mode: ShellMode::Operational,
-            stdout: io::stdout()
-                .into_raw_mode()
-                .expect("couldn't set stdout into raw mode"),
+            stdout,
         }
     }
 
@@ -50,7 +51,7 @@ impl Shell {
                 self.mode = ShellMode::Configuration;
                 Ok(())
             }
-            ShellMode::Configuration => Err(ShellError::CannotEnterState.into()),
+            ShellMode::Configuration => Err(ShellError::CannotEnterState { source: None }.into()),
         }
     }
 
@@ -64,10 +65,12 @@ impl Shell {
 
 impl Shell {
     fn read_input(&mut self) -> error::CustomResult<String> {
-        let mut stdin = termion::async_stdin().keys();
+        let mut stdin = io::stdin().keys();
         let mut buffer = Vec::new();
         let mut cursor_location: usize = 0;
         let mut reading = true;
+
+        self.stdout.activate_raw_mode()?;
 
         while reading {
             if let Some(Ok(key)) = stdin.next() {
@@ -88,19 +91,19 @@ impl Shell {
                         }
                     }
                     Key::Backspace => {
-                        if cursor_location == 0 {
-                            break;
+                        if cursor_location > 0 {
+                            buffer.remove(cursor_location - 1);
+                            write!(self.stdout, "{}", cursor::Left(1))?;
+                            cursor_location -= 1;
                         }
-
-                        buffer.remove(cursor_location - 1);
-                        write!(self.stdout, "{}", cursor::Left(1))?;
-                        cursor_location -= 1;
                     }
                     Key::Char(c) => {
-                        write!(self.stdout, "{}", c)?;
                         if c == '\n' {
+                            write!(self.stdout, "\n\r")?;
                             reading = false;
                         } else {
+                            write!(self.stdout, "{}", c)?;
+
                             if cursor_location == buffer.len() {
                                 buffer.push(c);
                             } else {
@@ -124,8 +127,9 @@ impl Shell {
 
                 self.stdout.lock().flush()?;
             }
-            thread::sleep(time::Duration::from_millis(50));
         }
+
+        self.stdout.suspend_raw_mode()?;
 
         Ok(buffer.into_iter().collect())
     }

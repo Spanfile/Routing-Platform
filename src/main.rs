@@ -1,3 +1,5 @@
+#![feature(inner_deref)]
+
 mod config_editor;
 mod error;
 mod shell;

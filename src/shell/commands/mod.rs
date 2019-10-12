@@ -30,7 +30,11 @@ impl FromStr for Command {
         match s {
             "exit" | "quit" => Ok(Exit {}.into()),
             "configure" => Ok(Configure {}.into()),
-            _ => Err(CommandError::NotFound(s.to_string()).into()),
+            _ => Err(CommandError::NotFound {
+                command: s.to_string(),
+                source: None,
+            }
+            .into()),
         }
     }
 }

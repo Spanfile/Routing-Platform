@@ -1,5 +1,5 @@
 use super::{CommandError, ExecutableCommand, Shell};
-use crate::{error, error::ErrorTrait, ConfigEditor};
+use crate::{error, ConfigEditor};
 
 #[derive(Debug)]
 pub struct Configure;
@@ -9,7 +9,7 @@ impl ExecutableCommand for Configure {
         if let Err(e) = shell.enter_mode() {
             Err(CommandError::RunError {
                 command: String::from("configure"),
-                description: e.display(),
+                source: Some(Box::new(e)),
             }
             .into())
         } else {
