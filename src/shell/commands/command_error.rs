@@ -15,8 +15,10 @@ pub enum CommandError {
 impl ErrorTrait for CommandError {
     fn display(&self) -> String {
         match self {
-            CommandError::NotFound { command, .. } => format!("command {} not found", command),
-            CommandError::RunError { command, .. } => format!("command {} failed to run", command),
+            CommandError::NotFound { command, .. } => format!("No such command: {}", command),
+            CommandError::RunError { command, .. } => {
+                format!("Runtime error in command '{}'", command)
+            }
         }
     }
 

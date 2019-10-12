@@ -1,9 +1,10 @@
+use super::ShellMode;
 use crate::{error, error::ErrorTrait};
-use std::convert::From;
 
 #[derive(Debug)]
 pub enum ShellError {
-    CannotEnterState {
+    CannotEnterMode {
+        mode: ShellMode,
         source: Option<Box<error::Error>>,
     },
     Io {
@@ -15,14 +16,16 @@ pub enum ShellError {
 impl ErrorTrait for ShellError {
     fn display(&self) -> String {
         match self {
-            ShellError::CannotEnterState { .. } => String::from("cannot enter state"),
+            ShellError::CannotEnterMode { mode, .. } => {
+                format!("cannot enter mode (from {:?})", mode)
+            }
             ShellError::Io { err, .. } => err.to_string(),
         }
     }
 
     fn source(&self) -> Option<&error::Error> {
         match self {
-            ShellError::CannotEnterState { source } => source.as_deref(),
+            ShellError::CannotEnterMode { source, .. } => source.as_deref(),
             ShellError::Io { source, .. } => source.as_deref(),
         }
     }

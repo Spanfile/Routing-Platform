@@ -21,7 +21,7 @@ impl fmt::Display for Error {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(f, "{}", self.display())?;
         if let Some(source) = self.source() {
-            write!(f, "\ncaused by: {}", source.display())
+            write!(f, "\nCaused by: {}", source.display())
         } else {
             Ok(())
         }

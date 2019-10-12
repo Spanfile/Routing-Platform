@@ -19,7 +19,7 @@ pub struct Shell {
     stdout: RawTerminal<Stdout>,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone, Copy)]
 pub enum ShellMode {
     Operational,
     Configuration,
@@ -41,8 +41,15 @@ impl Shell {
     }
 
     pub fn process_input(&mut self) -> error::CustomResult<Command> {
-        let input = self.read_input()?;
-        input.parse()
+        loop {
+            self.print_prompt()?;
+            let input = self.read_input()?;
+            if input.trim().is_empty() {
+                continue;
+            }
+            break input;
+        }
+        .parse()
     }
 
     pub fn enter_mode(&mut self) -> error::CustomResult<()> {
@@ -51,7 +58,11 @@ impl Shell {
                 self.mode = ShellMode::Configuration;
                 Ok(())
             }
-            ShellMode::Configuration => Err(ShellError::CannotEnterState { source: None }.into()),
+            ShellMode::Configuration => Err(ShellError::CannotEnterMode {
+                mode: self.mode,
+                source: None,
+            }
+            .into()),
         }
     }
 
@@ -64,6 +75,15 @@ impl Shell {
 }
 
 impl Shell {
+    fn print_prompt(&mut self) -> error::CustomResult<()> {
+        match self.mode {
+            ShellMode::Operational => write!(self.stdout, "& ")?,
+            ShellMode::Configuration => write!(self.stdout, "\n>(top level)\n# ")?,
+        }
+        self.stdout.lock().flush()?;
+        Ok(())
+    }
+
     fn read_input(&mut self) -> error::CustomResult<String> {
         let mut stdin = io::stdin().keys();
         let mut buffer = Vec::new();
