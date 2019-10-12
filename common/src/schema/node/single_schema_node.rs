@@ -3,10 +3,7 @@ use super::{
 };
 use crate::error;
 use serde::{Deserialize, Serialize};
-use std::{
-    collections::{HashMap, HashSet},
-    rc::Rc,
-};
+use std::{collections::HashMap, rc::Rc};
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct SingleSchemaNode {
@@ -52,16 +49,7 @@ impl SchemaNodeTrait for SingleSchemaNode {
 
 impl Validate for SingleSchemaNode {
     fn validate(&self, schema: &Schema) -> error::CommonResult<()> {
-        let mut prop_keys = HashSet::new();
-
-        for (key, property) in &self.properties {
-            if !prop_keys.insert(key) {
-                return Err(error::SchemaValidationError::DuplicateProperty {
-                    property: key.to_owned(),
-                }
-                .into());
-            }
-
+        for property in self.properties.values() {
             property.validate(schema)?;
         }
 

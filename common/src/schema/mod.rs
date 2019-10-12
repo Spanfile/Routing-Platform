@@ -16,12 +16,7 @@ pub use node::{
 pub use property::Property;
 pub use query::Query;
 use serde::{Deserialize, Serialize};
-use std::{
-    collections::{HashMap, HashSet},
-    fs::File,
-    io::BufReader,
-    rc::Rc,
-};
+use std::{collections::HashMap, fs::File, io::BufReader, rc::Rc};
 pub use template::Template;
 pub use validate::Validate;
 pub use value::{DefaultValue, Value};
@@ -73,15 +68,7 @@ impl Schema {
     }
 
     fn validate_nodes(&self) -> error::CommonResult<()> {
-        let mut node_names = HashSet::new();
-
-        for (name, node) in &self.nodes {
-            if !node_names.insert(name) {
-                return Err(error::SchemaValidationError::DuplicateNodeName {
-                    name: name.to_owned(),
-                }
-                .into());
-            }
+        for node in self.nodes.values() {
             node.validate(&self)?;
         }
 

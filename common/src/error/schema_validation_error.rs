@@ -5,13 +5,11 @@ use std::error;
 #[derive(Debug)]
 pub enum SchemaValidationError {
     Range { lower: Bound, upper: Bound },
-    DuplicateNodeName { name: String },
     Regex { regex: String, description: String },
     NoValues,
     MissingTemplate { template: String },
     NoMultipleValuesAllowed,
     InvalidDefaultValue { default: DefaultValue },
-    DuplicateProperty { property: String },
 }
 
 impl CommonErrorTrait for SchemaValidationError {
@@ -21,9 +19,6 @@ impl CommonErrorTrait for SchemaValidationError {
                 "lower {:?} bound higher than upper {:?} bound",
                 lower, upper
             ),
-            SchemaValidationError::DuplicateNodeName { name } => {
-                format!("duplicate node name: {}", name)
-            }
             SchemaValidationError::Regex { regex, description } => {
                 format!("invalid regex {}: {}", regex, description)
             }
@@ -36,9 +31,6 @@ impl CommonErrorTrait for SchemaValidationError {
             }
             SchemaValidationError::InvalidDefaultValue { default } => {
                 format!("default value {:?} doesn't match any given value", default)
-            }
-            SchemaValidationError::DuplicateProperty { property } => {
-                format!("duplicate property name: {}", property)
             }
             _ => String::from("other schema validation error"),
         }
