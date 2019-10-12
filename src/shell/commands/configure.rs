@@ -1,22 +1,23 @@
-use super::{CommandError, ExecutableCommand, Shell, ShellMode};
-use crate::ConfigEditor;
+use super::{CommandError, ExecutableCommand, Shell};
+use crate::{error, error::ErrorTrait, ConfigEditor};
 
 #[derive(Debug)]
 pub struct Configure;
 
 impl ExecutableCommand for Configure {
-    fn run(
-        &self,
-        shell: &mut Shell,
-        _config_editor: &mut ConfigEditor,
-    ) -> Result<(), CommandError> {
-        if let ShellMode::Operational = shell.mode {
-            shell.enter_mode();
-            Ok(())
+    fn run(&self, shell: &mut Shell, _config_editor: &mut ConfigEditor) -> error::CustomResult<()> {
+        if let Err(e) = shell.enter_mode() {
+            Err(CommandError::RunError {
+                command: String::from("configure"),
+                description: e.display(),
+            }
+            .into())
         } else {
-            Err(CommandError {
-                message: String::from("shell already in configuration state"),
-            })
+            Ok(())
         }
+    }
+
+    fn aliases(&self) -> Vec<&str> {
+        vec!["configure"]
     }
 }

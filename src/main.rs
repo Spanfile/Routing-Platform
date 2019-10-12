@@ -1,4 +1,5 @@
 mod config_editor;
+mod error;
 mod shell;
 
 use common::{config::Config, schema::Schema};
@@ -25,9 +26,8 @@ fn main() {
     let mut shell = Shell::new();
 
     while shell.running {
-        let command = shell.process_input();
-        if let Err(e) = command.run(&mut shell, &mut editor) {
-            println!("{:?}", e);
+        if let Err(e) = process(&mut shell, &mut editor) {
+            println!("{}", e);
         }
     }
 
@@ -77,4 +77,9 @@ fn main() {
 
     // // editor.pretty_print_current_node();
     // editor.pretty_print_config();
+}
+
+fn process(shell: &mut Shell, editor: &mut ConfigEditor) -> error::CustomResult<()> {
+    let command = shell.process_input()?;
+    command.run(shell, editor)
 }
