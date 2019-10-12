@@ -121,7 +121,7 @@ impl FromSchemaNode<MultiSchemaNode> for MultiConfigNode {
                         result.to_owned(),
                         Rc::new(ConfigNode::from_schema_node(
                             Rc::new(result_context),
-                            &name,
+                            &result.to_owned(),
                             Weak::clone(&schema),
                             &schema_node.node,
                         )?),
