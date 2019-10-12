@@ -1,4 +1,7 @@
-use crate::schema::{Matches, Schema, Validate, ValidationError};
+use crate::{
+    error,
+    schema::{Matches, Schema, Validate},
+};
 use regex_automata::{DenseDFA, DFA};
 use serde::{
     de::{self, Deserializer, Visitor},
@@ -14,7 +17,7 @@ pub struct RegexTemplate {
 }
 
 impl RegexTemplate {
-    pub fn serialise_regex(&self) -> Result<Vec<u8>, Box<dyn Error>> {
+    pub fn serialise_regex(&self) -> error::CommonResult<Vec<u8>> {
         self.compile_regex();
         let bytes = self
             .compiled_regex
@@ -59,17 +62,17 @@ impl Matches for RegexTemplate {
 }
 
 impl Validate for RegexTemplate {
-    fn validate(&self, _schema: &Schema) -> Vec<ValidationError> {
+    fn validate(&self, _schema: &Schema) -> error::CommonResult<()> {
         match DenseDFA::new(&self.regex) {
             Ok(r) => {
                 *self.compiled_regex.borrow_mut() = Some(r);
-                vec![]
+                Ok(())
             }
-            Err(e) => vec![ValidationError::new(format!(
-                "Template validation error\nRegex: {}\n{}",
-                &self.regex,
-                e.description()
-            ))],
+            Err(e) => Err(error::SchemaValidationError::Regex {
+                regex: self.regex.to_owned(),
+                description: e.description().to_string(),
+            }
+            .into()),
         }
     }
 }

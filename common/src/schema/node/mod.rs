@@ -3,7 +3,8 @@ mod node_locator;
 mod single_schema_node;
 use enum_dispatch::enum_dispatch;
 
-use super::{Schema, Validate, ValidationError};
+use super::{Schema, Validate};
+use crate::error;
 pub use multi_schema_node::{MultiSchemaNode, MultiSchemaNodeSource};
 pub use node_locator::NodeLocator;
 use serde::{Deserialize, Serialize};
@@ -43,7 +44,7 @@ pub enum SchemaNode {
 // doesn't seem to support linking multiple traits to a single enum, only
 // multiple enums to a single trait
 impl Validate for SchemaNode {
-    fn validate(&self, schema: &Schema) -> Vec<ValidationError> {
+    fn validate(&self, schema: &Schema) -> error::CommonResult<()> {
         match self {
             SchemaNode::SingleSchemaNode(node) => node.validate(schema),
             SchemaNode::MultiSchemaNode(node) => node.validate(schema),

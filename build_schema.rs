@@ -13,12 +13,8 @@ fn main() {
 
     println!("{:#?}", schema);
 
-    let validation_errors = schema.validate();
-    if !validation_errors.is_empty() {
-        println!("----------");
-        for err in &validation_errors {
-            println!("{}\n----------", err.message);
-        }
+    if let Err(e) = schema.validate() {
+        println!("schema validation failed\n{}", e);
         panic!();
     }
 

@@ -1,3 +1,4 @@
+mod bound;
 mod node;
 mod property;
 mod query;
@@ -5,6 +6,8 @@ mod template;
 mod validate;
 mod value;
 
+use crate::error;
+pub use bound::Bound;
 use flate2::{read::ZlibDecoder, write::ZlibEncoder, Compression};
 pub use node::{
     MultiSchemaNode, MultiSchemaNodeSource, NodeLocator, SchemaNode, SchemaNodeTrait,
@@ -15,14 +18,13 @@ pub use query::Query;
 use serde::{Deserialize, Serialize};
 use std::{
     collections::{HashMap, HashSet},
-    error::Error,
     fs::File,
     io::BufReader,
     rc::Rc,
 };
 pub use template::Template;
-pub use validate::{Validate, ValidationError};
-pub use value::Value;
+pub use validate::Validate;
+pub use value::{DefaultValue, Value};
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct Schema {
@@ -37,17 +39,17 @@ pub trait Matches {
 }
 
 impl Schema {
-    pub fn to_binary_file(&self, file: &mut File) -> Result<(), serde_json::error::Error> {
+    pub fn to_binary_file(&self, file: &mut File) -> error::CommonResult<()> {
         let encoder = ZlibEncoder::new(file, Compression::best());
-        serde_json::to_writer(encoder, &self)
+        Ok(serde_json::to_writer(encoder, &self)?)
     }
 
-    pub fn from_yaml_file(file: &File) -> Result<Schema, Box<dyn Error>> {
+    pub fn from_yaml_file(file: &File) -> error::CommonResult<Schema> {
         let reader = BufReader::new(file);
         Ok(serde_yaml::from_reader(reader)?)
     }
 
-    pub fn from_binary(binary: &[u8]) -> Result<Schema, Box<dyn Error>> {
+    pub fn from_binary(binary: &[u8]) -> error::CommonResult<Schema> {
         let decoder = ZlibDecoder::new(binary);
         let mut schema: Schema = serde_json::from_reader(decoder)?;
         schema.load_regexes_from_cache()?;
@@ -57,40 +59,38 @@ impl Schema {
 }
 
 impl Schema {
-    pub fn validate(&mut self) -> Vec<ValidationError> {
-        let mut errors = self.validate_templates();
-        errors.extend(self.validate_nodes());
-        errors
+    pub fn validate(&mut self) -> error::CommonResult<()> {
+        self.validate_templates()?;
+        self.validate_nodes()?;
+        Ok(())
     }
 
-    fn validate_templates(&mut self) -> Vec<ValidationError> {
-        let mut errors: Vec<ValidationError> = Vec::new();
+    fn validate_templates(&mut self) -> error::CommonResult<()> {
         for template in self.templates.values() {
-            errors.extend(template.validate(&self));
+            template.validate(&self)?;
         }
-        errors
+        Ok(())
     }
 
-    fn validate_nodes(&self) -> Vec<ValidationError> {
-        let mut errors: Vec<ValidationError> = Vec::new();
+    fn validate_nodes(&self) -> error::CommonResult<()> {
         let mut node_names = HashSet::new();
 
         for (name, node) in &self.nodes {
             if !node_names.insert(name) {
-                errors.push(ValidationError::new(format!(
-                    "Node validation error\nName: {}\nDuplicate node name",
-                    &name
-                )));
+                return Err(error::SchemaValidationError::DuplicateNodeName {
+                    name: name.to_owned(),
+                }
+                .into());
             }
-            errors.extend(node.validate(self));
+            node.validate(&self)?;
         }
 
-        errors
+        Ok(())
     }
 }
 
 impl Schema {
-    pub fn build_regex_cache(&mut self) -> Result<(), Box<dyn Error>> {
+    pub fn build_regex_cache(&mut self) -> error::CommonResult<()> {
         self.regex_cache = HashMap::new();
 
         for (name, template) in &self.templates {
@@ -109,7 +109,7 @@ impl Schema {
         }
     }
 
-    fn load_regexes_from_cache(&self) -> Result<(), Box<dyn Error>> {
+    fn load_regexes_from_cache(&self) -> error::CommonResult<()> {
         for (name, template) in &self.templates {
             template.load_regex_from_cache(self.regex_cache.get(name));
         }

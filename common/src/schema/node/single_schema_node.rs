@@ -1,7 +1,7 @@
 use super::{
     super::property::Property, NodeLocator, Schema, SchemaNode, SchemaNodeTrait, Validate,
-    ValidationError,
 };
+use crate::error;
 use serde::{Deserialize, Serialize};
 use std::{
     collections::{HashMap, HashSet},
@@ -51,25 +51,24 @@ impl SchemaNodeTrait for SingleSchemaNode {
 }
 
 impl Validate for SingleSchemaNode {
-    fn validate(&self, schema: &Schema) -> Vec<ValidationError> {
-        let mut errors: Vec<ValidationError> = Vec::new();
+    fn validate(&self, schema: &Schema) -> error::CommonResult<()> {
         let mut prop_keys = HashSet::new();
 
         for (key, property) in &self.properties {
             if !prop_keys.insert(key) {
-                errors.push(ValidationError::new(format!(
-                    "Property validation error\nKey: {}\nDuplicate property key",
-                    &key
-                )));
+                return Err(error::SchemaValidationError::DuplicateProperty {
+                    property: key.to_owned(),
+                }
+                .into());
             }
 
-            errors.extend(property.validate(schema));
+            property.validate(schema)?;
         }
 
         for node in self.subnodes.values() {
-            errors.extend(node.validate(schema));
+            node.validate(schema)?;
         }
 
-        errors
+        Ok(())
     }
 }

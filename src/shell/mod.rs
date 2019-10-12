@@ -7,7 +7,7 @@ use std::{
     thread, time,
 };
 use termion::{
-    self, clear, cursor,
+    self, cursor,
     event::Key,
     input::TermRead,
     raw::{IntoRawMode, RawTerminal},
@@ -45,6 +45,9 @@ impl Shell {
         while reading {
             if let Some(Ok(key)) = stdin.next() {
                 match key {
+                    Key::Ctrl('c') => {
+                        reading = false;
+                    }
                     Key::Left => {
                         if cursor_location > 0 {
                             write!(self.stdout, "{}", cursor::Left(1));

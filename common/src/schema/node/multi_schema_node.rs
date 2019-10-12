@@ -1,7 +1,8 @@
 use super::{
     super::{Query, Validate},
-    NodeLocator, Schema, SchemaNode, SchemaNodeTrait, ValidationError,
+    NodeLocator, Schema, SchemaNode, SchemaNodeTrait,
 };
+use crate::error;
 use serde::{Deserialize, Serialize};
 use std::rc::Rc;
 
@@ -43,22 +44,21 @@ impl SchemaNodeTrait for MultiSchemaNode {
 }
 
 impl Validate for MultiSchemaNode {
-    fn validate(&self, schema: &Schema) -> Vec<ValidationError> {
-        let mut errors: Vec<ValidationError> = Vec::new();
-        errors.extend(self.node.validate(schema));
+    fn validate(&self, schema: &Schema) -> error::CommonResult<()> {
+        self.node.validate(schema)?;
 
         match &self.source {
             MultiSchemaNodeSource::Template(template) => {
                 if !schema.templates.contains_key(template) {
-                    errors.push(ValidationError::new(format!(
-                        "Multinode validation error\nTemplate '{}' doesn't exist",
-                        template
-                    )));
+                    return Err(error::SchemaValidationError::MissingTemplate {
+                        template: template.to_owned(),
+                    }
+                    .into());
                 }
             }
             _ => {}
         }
 
-        errors
+        Ok(())
     }
 }

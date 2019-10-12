@@ -15,7 +15,7 @@ pub enum Value {
     Range(Range),
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Clone)]
 pub enum DefaultValue {
     #[serde(rename = "literal")]
     Literal(String),

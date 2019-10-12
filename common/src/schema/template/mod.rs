@@ -1,6 +1,7 @@
 mod regex_template;
 
-use super::{value::range::Range, Matches, Schema, Validate, ValidationError};
+use super::{value::range::Range, Matches, Schema, Validate};
+use crate::error;
 use regex_template::RegexTemplate;
 use serde::{Deserialize, Serialize};
 
@@ -32,7 +33,7 @@ impl Template {
         }
     }
 
-    pub fn serialise_regex(&self) -> Result<Option<Vec<u8>>, Box<dyn std::error::Error>> {
+    pub fn serialise_regex(&self) -> error::CommonResult<Option<Vec<u8>>> {
         match self {
             Template::Regex(regex) => Ok(Some(regex.serialise_regex()?)),
             _ => Ok(None),
@@ -48,7 +49,7 @@ impl Template {
 }
 
 impl Validate for Template {
-    fn validate(&self, schema: &Schema) -> Vec<ValidationError> {
+    fn validate(&self, schema: &Schema) -> error::CommonResult<()> {
         match self {
             Template::Regex(regex) => regex.validate(schema),
             Template::Range(range) => range.validate(schema),

@@ -2,13 +2,13 @@ use crate::context::Context;
 use serde::{Deserialize, Serialize};
 use std::fs;
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct Query {
     pub id: String,
     pub command: Command,
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Clone)]
 pub enum Command {
     #[serde(rename = "ls")]
     Ls(String),

@@ -1,7 +1,8 @@
 use super::{
     value::{DefaultValue, Value},
-    Matches, Schema, Validate, ValidationError,
+    Matches, Schema, Validate,
 };
+use crate::error;
 use serde::{Deserialize, Serialize};
 
 #[derive(Serialize, Deserialize, Debug, Default)]
@@ -22,33 +23,29 @@ impl Property {
 }
 
 impl Validate for Property {
-    fn validate(&self, schema: &Schema) -> Vec<ValidationError> {
-        let mut errors = Vec::new();
-
+    fn validate(&self, schema: &Schema) -> error::CommonResult<()> {
         if self.values.is_empty() {
-            errors.push(ValidationError::new(
-                "Property validation error\nNo values defined".to_string(),
-            ));
+            return Err(error::SchemaValidationError::NoValues.into());
         }
 
         for value in &self.values {
             match value {
                 Value::Template(template) => {
                     if !schema.templates.contains_key(template) {
-                        errors.push(ValidationError::new(format!(
-                            "Property validation error\nTemplate '{}' for template value doesn't exist",
-                            template
-                        )));
+                        return Err(error::SchemaValidationError::MissingTemplate {
+                            template: template.to_owned(),
+                        }
+                        .into());
                     }
                 }
-                Value::Range(range) => errors.extend(range.validate(schema)),
+                Value::Range(range) => range.validate(schema)?,
                 _ => (),
             };
         }
 
         if !self.default.is_empty() {
             if !self.multiple && self.default.len() > 1 {
-                errors.push(ValidationError::new("Property validation error\nMultiple default values given where multiple values is disallowed".to_string()));
+                return Err(error::SchemaValidationError::NoMultipleValuesAllowed.into());
             }
 
             let mut match_found = false;
@@ -91,14 +88,14 @@ impl Validate for Property {
                 }
 
                 if !match_found {
-                    errors.push(ValidationError::new(format!(
-                        "Property validation error\nNo value allows given default value '{:?}'",
-                        default
-                    )));
+                    return Err(error::SchemaValidationError::InvalidDefaultValue {
+                        default: default.clone(),
+                    }
+                    .into());
                 }
             }
         }
 
-        errors
+        Ok(())
     }
 }
