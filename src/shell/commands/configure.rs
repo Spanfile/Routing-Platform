@@ -1,4 +1,4 @@
-use super::{CommandError, ExecutableCommand, Shell};
+use super::{CommandError, ExecutableCommand, Shell, ShellMode};
 use crate::{error, ConfigEditor};
 
 #[derive(Debug)]
@@ -19,5 +19,9 @@ impl ExecutableCommand for Configure {
 
     fn aliases(&self) -> Vec<&str> {
         vec!["configure"]
+    }
+
+    fn required_shell_mode(&self) -> Option<ShellMode> {
+        Some(ShellMode::Operational)
     }
 }

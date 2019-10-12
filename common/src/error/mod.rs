@@ -1,8 +1,10 @@
+mod property_error;
 mod regex_automata_error;
 mod schema_validation_error;
 mod serde_error;
 
 use enum_dispatch::enum_dispatch;
+pub use property_error::PropertyError;
 pub use regex_automata_error::RegexAutomataError;
 pub use schema_validation_error::SchemaValidationError;
 pub use serde_error::SerdeError;
@@ -11,7 +13,7 @@ use std::fmt;
 pub type CommonResult<T> = std::result::Result<T, CommonError>;
 
 #[enum_dispatch]
-trait CommonErrorTrait {
+pub trait CommonErrorTrait {
     fn display(&self) -> String;
     fn source(&self) -> Option<&(dyn std::error::Error + 'static)>;
 }
@@ -20,6 +22,7 @@ trait CommonErrorTrait {
 #[derive(Debug)]
 pub enum CommonError {
     SchemaValidationError,
+    PropertyError,
     SerdeError,
     RegexAutomataError,
 }

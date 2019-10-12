@@ -1,3 +1,4 @@
+use crate::{error, error::ErrorTrait};
 use common::{
     config::{Config, ConfigNode, Node, NodeName, Property},
     schema::Schema,
@@ -13,31 +14,49 @@ pub struct ConfigEditor<'a> {
 
 #[derive(Debug)]
 pub enum ConfigEditorError {
-    NodeNotFound(String),
-    PropertyNotFound(String),
-    NoParentNode,
-    ValueError { source: Box<dyn std::error::Error> },
-    AmbiguousNodeName(String),
+    NodeNotFound {
+        node: String,
+        source: Option<Box<error::Error>>,
+    },
+    PropertyNotFound {
+        property: String,
+        source: Option<Box<error::Error>>,
+    },
+    NoParentNode {
+        source: Option<Box<error::Error>>,
+    },
+    ValueError {
+        source: Option<Box<error::Error>>,
+    },
+    AmbiguousNodeName {
+        name: String,
+        source: Option<Box<error::Error>>,
+    },
 }
 
-impl std::fmt::Display for ConfigEditorError {
-    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
-        match &self {
-            ConfigEditorError::NodeNotFound(_name) => write!(f, "node not found"),
-            ConfigEditorError::PropertyNotFound(_name) => write!(f, "property not found"),
-            ConfigEditorError::NoParentNode => write!(f, "no parent node"),
-            ConfigEditorError::ValueError { source: _s } => write!(f, "invalid value"),
-            ConfigEditorError::AmbiguousNodeName(_name) => {
-                write!(f, "ambiguous node name (multiple literal node names)")
+impl ErrorTrait for ConfigEditorError {
+    fn display(&self) -> String {
+        match self {
+            ConfigEditorError::NodeNotFound { node, .. } => format!("node '{}' not found", node),
+            ConfigEditorError::PropertyNotFound { property, .. } => {
+                format!("property '{}' not found", property)
             }
+            ConfigEditorError::NoParentNode { .. } => String::from("no parent node"),
+            ConfigEditorError::ValueError { .. } => String::from("invalid value"),
+            ConfigEditorError::AmbiguousNodeName { name, .. } => format!(
+                "ambiguous node name '{}' (multiple literal node names)",
+                name
+            ),
         }
     }
-}
 
-impl std::error::Error for ConfigEditorError {
-    fn source(&self) -> Option<&(dyn std::error::Error + 'static)> {
+    fn source(&self) -> Option<&error::Error> {
         match &self {
-            ConfigEditorError::ValueError { source } => Some(source.as_ref()),
+            ConfigEditorError::NodeNotFound { source, .. } => source.as_deref(),
+            ConfigEditorError::PropertyNotFound { source, .. } => source.as_deref(),
+            ConfigEditorError::NoParentNode { source, .. } => source.as_deref(),
+            ConfigEditorError::ValueError { source } => source.as_deref(),
+            ConfigEditorError::AmbiguousNodeName { source, .. } => source.as_deref(),
             _ => None,
         }
     }
@@ -52,6 +71,14 @@ impl<'a> ConfigEditor<'a> {
         }
     }
 
+    pub fn get_current_node(&self) -> Option<String> {
+        self.node_stack.last().map(|n| n.name())
+    }
+
+    pub fn get_current_path(&self) -> Vec<String> {
+        self.node_stack.iter().map(|n| n.name()).collect()
+    }
+
     pub fn get_available_nodes(&self) -> Vec<String> {
         match self.node_stack.last() {
             Some(n) => n
@@ -63,20 +90,21 @@ impl<'a> ConfigEditor<'a> {
         }
     }
 
-    pub fn get_available_properties(&self) -> Vec<String> {
-        match self.node_stack.last() {
-            Some(n) => n.get_available_property_names(),
-            None => vec![],
-        }
+    pub fn get_available_properties(&self) -> Option<Vec<String>> {
+        self.node_stack
+            .last()
+            .map(|n| n.get_available_property_names())
     }
 
     pub fn get_available_nodes_and_properties(&self) -> Vec<String> {
         let mut names = self.get_available_nodes();
-        names.extend(self.get_available_properties());
+        if let Some(available_properties) = self.get_available_properties() {
+            names.extend(available_properties);
+        }
         names
     }
 
-    pub fn edit_node(&mut self, name: String) -> Result<(), ConfigEditorError> {
+    pub fn edit_node(&mut self, name: String) -> error::CustomResult<()> {
         // match match self.node_stack.last() {
         //     Some(n) => &n.subnodes,
         //     None => &self.config.nodes,
@@ -100,12 +128,20 @@ impl<'a> ConfigEditor<'a> {
                     Some(existing_match) => match existing_match {
                         NodeName::Literal(_n) => {
                             if let NodeName::Literal(_n) = node_name {
-                                return Err(ConfigEditorError::AmbiguousNodeName(name));
+                                return Err(ConfigEditorError::AmbiguousNodeName {
+                                    name,
+                                    source: None,
+                                }
+                                .into());
                             }
                         }
                         NodeName::Multiple(_t) => {
                             if let NodeName::Multiple(_t) = node_name {
-                                return Err(ConfigEditorError::AmbiguousNodeName(name));
+                                return Err(ConfigEditorError::AmbiguousNodeName {
+                                    name,
+                                    source: None,
+                                }
+                                .into());
                             }
                         }
                     },
@@ -121,26 +157,38 @@ impl<'a> ConfigEditor<'a> {
             });
             Ok(())
         } else {
-            Err(ConfigEditorError::NodeNotFound(name))
+            Err(ConfigEditorError::NodeNotFound {
+                node: name,
+                source: None,
+            }
+            .into())
         }
     }
 
-    pub fn go_up(&mut self) -> Result<(), ConfigEditorError> {
+    pub fn go_up(&mut self) -> error::CustomResult<()> {
         match self.node_stack.last() {
             Some(_n) => {
                 self.node_stack.pop();
                 Ok(())
             }
-            None => Err(ConfigEditorError::NoParentNode),
+            None => Err(ConfigEditorError::NoParentNode { source: None }.into()),
         }
     }
 
-    fn get_property(&self, property: String) -> Result<&Property, ConfigEditorError> {
+    fn get_property(&self, property: String) -> error::CustomResult<&Property> {
         match self.node_stack.last() {
-            Some(n) => n
-                .get_property(&property)
-                .ok_or(ConfigEditorError::PropertyNotFound(property)),
-            None => Err(ConfigEditorError::PropertyNotFound(property)),
+            Some(n) => n.get_property(&property).ok_or(
+                ConfigEditorError::PropertyNotFound {
+                    property,
+                    source: None,
+                }
+                .into(),
+            ),
+            None => Err(ConfigEditorError::PropertyNotFound {
+                property,
+                source: None,
+            }
+            .into()),
         }
     }
 
@@ -151,18 +199,16 @@ impl<'a> ConfigEditor<'a> {
         }
     }
 
-    pub fn set_property_value(
-        &self,
-        property: String,
-        value: String,
-    ) -> Result<(), ConfigEditorError> {
+    pub fn set_property_value(&self, property: String, value: String) -> error::CustomResult<()> {
         let property = self.get_property(property)?;
 
-        match property.set(value, self.schema) {
-            Ok(()) => Ok(()),
-            Err(e) => Err(ConfigEditorError::ValueError {
-                source: Box::new(e),
-            }),
+        if let Err(e) = property.set(value, self.schema) {
+            Err(ConfigEditorError::ValueError {
+                source: Some(Box::new(e.into())),
+            }
+            .into())
+        } else {
+            Ok(())
         }
     }
 
@@ -170,14 +216,16 @@ impl<'a> ConfigEditor<'a> {
         &self,
         property: String,
         value: Option<String>,
-    ) -> Result<(), ConfigEditorError> {
+    ) -> error::CustomResult<()> {
         let property = self.get_property(property)?;
 
-        match property.remove(value) {
-            Ok(()) => Ok(()),
-            Err(e) => Err(ConfigEditorError::ValueError {
-                source: Box::new(e),
-            }),
+        if let Err(e) = property.remove(value) {
+            Err(ConfigEditorError::ValueError {
+                source: Some(Box::new(e.into())),
+            }
+            .into())
+        } else {
+            Ok(())
         }
     }
 }

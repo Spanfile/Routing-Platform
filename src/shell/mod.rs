@@ -15,18 +15,19 @@ use termion::{
 
 pub struct Shell {
     pub running: bool,
-    mode: ShellMode,
+    pub mode: ShellMode,
+    pub prompt: String,
     stdout: RawTerminal<Stdout>,
 }
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum ShellMode {
     Operational,
     Configuration,
 }
 
 impl Shell {
-    pub fn new() -> Self {
+    pub fn new(prompt: String) -> Self {
         let stdout = io::stdout()
             .into_raw_mode()
             .expect("couldn't set stdout into raw mode");
@@ -36,6 +37,7 @@ impl Shell {
         Shell {
             running: true,
             mode: ShellMode::Operational,
+            prompt,
             stdout,
         }
     }
@@ -76,10 +78,7 @@ impl Shell {
 
 impl Shell {
     fn print_prompt(&mut self) -> error::CustomResult<()> {
-        match self.mode {
-            ShellMode::Operational => write!(self.stdout, "& ")?,
-            ShellMode::Configuration => write!(self.stdout, "\n>(top level)\n# ")?,
-        }
+        write!(self.stdout, "{}", self.prompt)?;
         self.stdout.lock().flush()?;
         Ok(())
     }

@@ -1,4 +1,11 @@
-use crate::shell::{CommandError, ShellError};
+mod common_error;
+
+use super::GeneralError;
+use crate::{
+    shell::{CommandError, ShellError},
+    ConfigEditorError,
+};
+use common_error::CommonError;
 use enum_dispatch::enum_dispatch;
 use std::fmt;
 
@@ -15,6 +22,9 @@ pub trait ErrorTrait {
 pub enum Error {
     ShellError,
     CommandError,
+    GeneralError,
+    ConfigEditorError,
+    CommonError,
 }
 
 impl fmt::Display for Error {
@@ -41,5 +51,11 @@ impl From<std::io::Error> for Error {
             source: None,
         }
         .into()
+    }
+}
+
+impl From<common::error::CommonError> for Error {
+    fn from(item: common::error::CommonError) -> Self {
+        CommonError { source: item }.into()
     }
 }

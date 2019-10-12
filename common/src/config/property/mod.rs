@@ -1,6 +1,6 @@
 mod constraints;
 
-use crate::{context::Context, schema::Schema};
+use crate::{context::Context, error, error::PropertyError, schema::Schema};
 use constraints::Constraints;
 use std::{cell::RefCell, rc::Rc};
 
@@ -12,51 +12,23 @@ pub struct Property {
     constraints: Constraints,
 }
 
-#[derive(Debug)]
-pub enum PropertyError {
-    DefaultResolvingError { source: Box<dyn std::error::Error> },
-    ConstraintNotMet,
-    NoValueSet,
-}
-
-impl std::fmt::Display for PropertyError {
-    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
-        match &self {
-            PropertyError::DefaultResolvingError { .. } => {
-                write!(f, "default value failed to resolve")
-            }
-            PropertyError::ConstraintNotMet => write!(f, "constraint not met"),
-            PropertyError::NoValueSet => write!(f, "no value set"),
-        }
-    }
-}
-
-impl std::error::Error for PropertyError {
-    fn source(&self) -> Option<&(dyn std::error::Error + 'static)> {
-        match &self {
-            PropertyError::DefaultResolvingError { source } => Some(source.as_ref()),
-            _ => None,
-        }
-    }
-}
-
 impl Property {
     pub fn from_schema_property(
         context: Rc<Context>,
         key: &str,
         property: &crate::schema::Property,
-    ) -> Result<Property, PropertyError> {
+    ) -> error::CommonResult<Property> {
         let mut values = Vec::new();
 
         for default in &property.default {
             values.extend(match default.resolve(&context) {
                 Ok(v) => v,
-                Err(e) => return Err(PropertyError::DefaultResolvingError { source: e }),
+                Err(e) => return Err(PropertyError::DefaultResolvingError.into()),
             });
         }
 
         if !property.multiple && values.len() > 1 {
-            Err(PropertyError::ConstraintNotMet)
+            Err(PropertyError::ConstraintNotMet.into())
         } else {
             Ok(Property {
                 key: key.to_owned(),
@@ -71,10 +43,10 @@ impl Property {
         self.values.borrow().iter().map(|v| v.to_owned()).collect()
     }
 
-    pub fn set(&self, value: String, schema: &Schema) -> Result<(), PropertyError> {
+    pub fn set(&self, value: String, schema: &Schema) -> error::CommonResult<()> {
         match self.constraints.matches(&value, schema) {
             Ok(()) => (),
-            Err(_e) => return Err(PropertyError::ConstraintNotMet),
+            Err(_e) => return Err(PropertyError::ConstraintNotMet.into()),
         }
 
         let mut values = self.values.borrow_mut();
@@ -86,9 +58,9 @@ impl Property {
         Ok(())
     }
 
-    pub fn remove(&self, value: Option<String>) -> Result<(), PropertyError> {
+    pub fn remove(&self, value: Option<String>) -> error::CommonResult<()> {
         if self.values.borrow().is_empty() {
-            return Err(PropertyError::NoValueSet);
+            return Err(PropertyError::NoValueSet.into());
         }
 
         let mut values = self.values.borrow_mut();

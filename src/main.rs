@@ -2,11 +2,13 @@
 
 mod config_editor;
 mod error;
+mod general_error;
 mod shell;
 
 use common::{config::Config, schema::Schema};
-pub use config_editor::ConfigEditor;
-use shell::{ExecutableCommand, Shell};
+pub use config_editor::{ConfigEditor, ConfigEditorError};
+use general_error::GeneralError;
+use shell::{ExecutableCommand, Shell, ShellMode};
 use std::{rc::Rc, time::Instant};
 
 fn main() {
@@ -25,7 +27,7 @@ fn main() {
     let mut editor = ConfigEditor::new(&config, &schema);
     println!("Config loaded in {}ms", start.elapsed().as_millis());
 
-    let mut shell = Shell::new();
+    let mut shell = Shell::new(String::from("& "));
 
     while shell.running {
         if let Err(e) = process(&mut shell, &mut editor) {
@@ -82,6 +84,36 @@ fn main() {
 }
 
 fn process(shell: &mut Shell, editor: &mut ConfigEditor) -> error::CustomResult<()> {
+    shell.prompt = get_prompt(shell, editor);
     let command = shell.process_input()?;
+
+    if let Some(required_mode) = command.required_shell_mode() {
+        if required_mode != shell.mode {
+            return Err(GeneralError::InvalidModeForCommand {
+                command: format!("{:?}", command),
+                mode: shell.mode,
+                source: None,
+            }
+            .into());
+        }
+    }
+
     command.run(shell, editor)
+}
+
+fn get_prompt(shell: &Shell, editor: &ConfigEditor) -> String {
+    match shell.mode {
+        ShellMode::Operational => String::from("& "),
+        ShellMode::Configuration => {
+            let path = editor.get_current_path();
+            format!(
+                "\n>{}\n# ",
+                if !path.is_empty() {
+                    path.join(" > ")
+                } else {
+                    String::from("(top level)")
+                }
+            )
+        }
+    }
 }
