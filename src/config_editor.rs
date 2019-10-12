@@ -57,7 +57,6 @@ impl ErrorTrait for ConfigEditorError {
             ConfigEditorError::NoParentNode { source, .. } => source.as_deref(),
             ConfigEditorError::ValueError { source } => source.as_deref(),
             ConfigEditorError::AmbiguousNodeName { source, .. } => source.as_deref(),
-            _ => None,
         }
     }
 }
@@ -166,50 +165,49 @@ impl<'a> ConfigEditor<'a> {
     }
 
     pub fn go_up(&mut self) -> error::CustomResult<()> {
-        match self.node_stack.last() {
-            Some(_n) => {
-                self.node_stack.pop();
-                Ok(())
-            }
-            None => Err(ConfigEditorError::NoParentNode { source: None }.into()),
-        }
+        self.node_stack
+            .pop()
+            .ok_or(error::Error::from(ConfigEditorError::NoParentNode {
+                source: None,
+            }))?;
+        Ok(())
     }
 
     fn get_property(&self, property: String) -> error::CustomResult<&Property> {
-        match self.node_stack.last() {
-            Some(n) => n.get_property(&property).ok_or(
+        self.node_stack
+            .last()
+            .ok_or(error::Error::from(ConfigEditorError::PropertyNotFound {
+                property: property.to_owned(),
+                source: None,
+            }))?
+            .get_property(&property)
+            .ok_or(
                 ConfigEditorError::PropertyNotFound {
                     property,
                     source: None,
                 }
                 .into(),
-            ),
-            None => Err(ConfigEditorError::PropertyNotFound {
-                property,
-                source: None,
-            }
-            .into()),
-        }
+            )
     }
 
-    pub fn get_property_values(&self, of_property: Option<String>) -> HashMap<String, Vec<String>> {
-        match self.node_stack.last() {
-            Some(n) => n.get_property_values(of_property),
-            None => HashMap::new(),
-        }
+    pub fn get_property_values(
+        &self,
+        of_property: Option<String>,
+    ) -> Option<HashMap<String, Vec<String>>> {
+        self.node_stack
+            .last()
+            .map(|n| n.get_property_values(of_property))
     }
 
     pub fn set_property_value(&self, property: String, value: String) -> error::CustomResult<()> {
         let property = self.get_property(property)?;
 
-        if let Err(e) = property.set(value, self.schema) {
-            Err(ConfigEditorError::ValueError {
+        property.set(value, self.schema).map_err(|e| {
+            ConfigEditorError::ValueError {
                 source: Some(Box::new(e.into())),
             }
-            .into())
-        } else {
-            Ok(())
-        }
+            .into()
+        })
     }
 
     pub fn remove_property_value(
@@ -219,14 +217,12 @@ impl<'a> ConfigEditor<'a> {
     ) -> error::CustomResult<()> {
         let property = self.get_property(property)?;
 
-        if let Err(e) = property.remove(value) {
-            Err(ConfigEditorError::ValueError {
+        property.remove(value).map_err(|e| {
+            ConfigEditorError::ValueError {
                 source: Some(Box::new(e.into())),
             }
-            .into())
-        } else {
-            Ok(())
-        }
+            .into()
+        })
     }
 }
 

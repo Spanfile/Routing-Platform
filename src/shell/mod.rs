@@ -42,16 +42,25 @@ impl Shell {
         }
     }
 
-    pub fn process_input(&mut self) -> error::CustomResult<Command> {
-        loop {
+    pub fn process_input(&mut self) -> error::CustomResult<(Command, Vec<String>)> {
+        let input = loop {
             self.print_prompt()?;
             let input = self.read_input()?;
             if input.trim().is_empty() {
                 continue;
             }
             break input;
+        };
+        let args: Vec<&str> = input.split_whitespace().collect();
+
+        if let Some(first) = args.first() {
+            Ok((
+                first.parse()?,
+                args.iter().skip(1).map(|s| s.to_string()).collect(),
+            ))
+        } else {
+            panic!("split returned no args");
         }
-        .parse()
     }
 
     pub fn enter_mode(&mut self) -> error::CustomResult<()> {

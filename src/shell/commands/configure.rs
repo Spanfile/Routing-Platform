@@ -5,7 +5,12 @@ use crate::{error, ConfigEditor};
 pub struct Configure;
 
 impl ExecutableCommand for Configure {
-    fn run(&self, shell: &mut Shell, _config_editor: &mut ConfigEditor) -> error::CustomResult<()> {
+    fn run(
+        &self,
+        _arguments: Vec<String>,
+        shell: &mut Shell,
+        _editor: &mut ConfigEditor,
+    ) -> error::CustomResult<()> {
         if let Err(e) = shell.enter_mode() {
             Err(CommandError::RunError {
                 command: String::from("configure"),

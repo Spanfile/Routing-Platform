@@ -1,5 +1,6 @@
 mod command_error;
 mod configure;
+mod edit;
 mod exit;
 mod show;
 
@@ -7,6 +8,7 @@ use super::{super::ConfigEditor, Shell, ShellMode};
 use crate::error;
 pub use command_error::CommandError;
 use configure::Configure;
+use edit::{Edit, Up};
 use enum_dispatch::enum_dispatch;
 use exit::Exit;
 use show::Show;
@@ -14,7 +16,12 @@ use std::str::FromStr;
 
 #[enum_dispatch]
 pub trait ExecutableCommand {
-    fn run(&self, shell: &mut Shell, config_editor: &mut ConfigEditor) -> error::CustomResult<()>;
+    fn run(
+        &self,
+        arguments: Vec<String>,
+        shell: &mut Shell,
+        config_editor: &mut ConfigEditor,
+    ) -> error::CustomResult<()>;
     fn aliases(&self) -> Vec<&str>;
     fn required_shell_mode(&self) -> Option<ShellMode>;
 }
@@ -25,6 +32,8 @@ pub enum Command {
     Exit,
     Configure,
     Show,
+    Edit,
+    Up,
 }
 
 impl FromStr for Command {
@@ -35,6 +44,8 @@ impl FromStr for Command {
             "exit" | "quit" => Ok(Exit {}.into()),
             "configure" => Ok(Configure {}.into()),
             "show" => Ok(Show {}.into()),
+            "edit" => Ok(Edit {}.into()),
+            "up" => Ok(Up {}.into()),
             _ => Err(CommandError::NotFound {
                 command: s.to_string(),
                 source: None,

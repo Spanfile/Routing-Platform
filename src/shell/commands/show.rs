@@ -5,8 +5,13 @@ use crate::{error, ConfigEditor};
 pub struct Show;
 
 impl ExecutableCommand for Show {
-    fn run(&self, _shell: &mut Shell, config_editor: &mut ConfigEditor) -> error::CustomResult<()> {
-        config_editor.pretty_print_current_node();
+    fn run(
+        &self,
+        _arguments: Vec<String>,
+        _shell: &mut Shell,
+        editor: &mut ConfigEditor,
+    ) -> error::CustomResult<()> {
+        editor.pretty_print_current_node();
         Ok(())
     }
 

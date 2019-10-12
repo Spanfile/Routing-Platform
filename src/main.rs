@@ -85,7 +85,7 @@ fn main() {
 
 fn process(shell: &mut Shell, editor: &mut ConfigEditor) -> error::CustomResult<()> {
     shell.prompt = get_prompt(shell, editor);
-    let command = shell.process_input()?;
+    let (command, args) = shell.process_input()?;
 
     if let Some(required_mode) = command.required_shell_mode() {
         if required_mode != shell.mode {
@@ -98,7 +98,7 @@ fn process(shell: &mut Shell, editor: &mut ConfigEditor) -> error::CustomResult<
         }
     }
 
-    command.run(shell, editor)
+    command.run(args, shell, editor)
 }
 
 fn get_prompt(shell: &Shell, editor: &ConfigEditor) -> String {
@@ -109,7 +109,7 @@ fn get_prompt(shell: &Shell, editor: &ConfigEditor) -> String {
             format!(
                 "\n>{}\n# ",
                 if !path.is_empty() {
-                    path.join(" > ")
+                    path.join(" ")
                 } else {
                     String::from("(top level)")
                 }

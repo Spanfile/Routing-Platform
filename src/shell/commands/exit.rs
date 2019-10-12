@@ -5,7 +5,12 @@ use crate::{error, ConfigEditor};
 pub struct Exit;
 
 impl ExecutableCommand for Exit {
-    fn run(&self, shell: &mut Shell, _config_editor: &mut ConfigEditor) -> error::CustomResult<()> {
+    fn run(
+        &self,
+        _arguments: Vec<String>,
+        shell: &mut Shell,
+        _editor: &mut ConfigEditor,
+    ) -> error::CustomResult<()> {
         shell.exit_mode();
         Ok(())
     }
