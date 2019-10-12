@@ -11,15 +11,12 @@ impl ExecutableCommand for Configure {
         shell: &mut Shell,
         _editor: &mut ConfigEditor,
     ) -> error::CustomResult<()> {
-        if let Err(e) = shell.enter_mode() {
-            Err(CommandError::RunError {
+        shell.enter_mode().map_err(|e| {
+            error::Error::from(CommandError::RunError {
                 command: String::from("configure"),
                 source: Some(Box::new(e)),
-            }
-            .into())
-        } else {
-            Ok(())
-        }
+            })
+        })
     }
 
     fn aliases(&self) -> Vec<&str> {

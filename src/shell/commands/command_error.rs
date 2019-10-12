@@ -10,6 +10,10 @@ pub enum CommandError {
         command: String,
         source: Option<Box<error::Error>>,
     },
+    MissingArgument {
+        argument: String,
+        source: Option<Box<error::Error>>,
+    },
 }
 
 impl ErrorTrait for CommandError {
@@ -19,6 +23,9 @@ impl ErrorTrait for CommandError {
             CommandError::RunError { command, .. } => {
                 format!("Runtime error in command '{}'", command)
             }
+            CommandError::MissingArgument { argument, .. } => {
+                format!("Missing argument: {}", argument)
+            }
         }
     }
 
@@ -26,6 +33,7 @@ impl ErrorTrait for CommandError {
         match self {
             CommandError::NotFound { source, .. } => source.as_deref(),
             CommandError::RunError { source, .. } => source.as_deref(),
+            CommandError::MissingArgument { source, .. } => source.as_deref(),
         }
     }
 }

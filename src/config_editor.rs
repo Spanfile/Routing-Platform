@@ -22,7 +22,7 @@ pub enum ConfigEditorError {
         property: String,
         source: Option<Box<error::Error>>,
     },
-    NoParentNode {
+    AlreadyAtTop {
         source: Option<Box<error::Error>>,
     },
     ValueError {
@@ -37,14 +37,14 @@ pub enum ConfigEditorError {
 impl ErrorTrait for ConfigEditorError {
     fn display(&self) -> String {
         match self {
-            ConfigEditorError::NodeNotFound { node, .. } => format!("node '{}' not found", node),
+            ConfigEditorError::NodeNotFound { node, .. } => format!("No such node: '{}'", node),
             ConfigEditorError::PropertyNotFound { property, .. } => {
-                format!("property '{}' not found", property)
+                format!("No such property: '{}'", property)
             }
-            ConfigEditorError::NoParentNode { .. } => String::from("no parent node"),
-            ConfigEditorError::ValueError { .. } => String::from("invalid value"),
+            ConfigEditorError::AlreadyAtTop { .. } => String::from("Already at top"),
+            ConfigEditorError::ValueError { .. } => String::from("Invalid value"),
             ConfigEditorError::AmbiguousNodeName { name, .. } => format!(
-                "ambiguous node name '{}' (multiple literal node names)",
+                "Ambiguous node name: '{}' (multiple literal node names)",
                 name
             ),
         }
@@ -54,7 +54,7 @@ impl ErrorTrait for ConfigEditorError {
         match &self {
             ConfigEditorError::NodeNotFound { source, .. } => source.as_deref(),
             ConfigEditorError::PropertyNotFound { source, .. } => source.as_deref(),
-            ConfigEditorError::NoParentNode { source, .. } => source.as_deref(),
+            ConfigEditorError::AlreadyAtTop { source, .. } => source.as_deref(),
             ConfigEditorError::ValueError { source } => source.as_deref(),
             ConfigEditorError::AmbiguousNodeName { source, .. } => source.as_deref(),
         }
@@ -167,10 +167,19 @@ impl<'a> ConfigEditor<'a> {
     pub fn go_up(&mut self) -> error::CustomResult<()> {
         self.node_stack
             .pop()
-            .ok_or(error::Error::from(ConfigEditorError::NoParentNode {
+            .ok_or(error::Error::from(ConfigEditorError::AlreadyAtTop {
                 source: None,
             }))?;
         Ok(())
+    }
+
+    pub fn go_top(&mut self) -> error::CustomResult<()> {
+        if self.node_stack.is_empty() {
+            Err(ConfigEditorError::AlreadyAtTop { source: None }.into())
+        } else {
+            self.node_stack.clear();
+            Ok(())
+        }
     }
 
     fn get_property(&self, property: String) -> error::CustomResult<&Property> {

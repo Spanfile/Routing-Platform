@@ -27,7 +27,7 @@ pub enum ShellMode {
 }
 
 impl Shell {
-    pub fn new(prompt: String) -> Self {
+    pub fn new() -> Self {
         let stdout = io::stdout()
             .into_raw_mode()
             .expect("couldn't set stdout into raw mode");
@@ -37,7 +37,7 @@ impl Shell {
         Shell {
             running: true,
             mode: ShellMode::Operational,
-            prompt,
+            prompt: String::from(""),
             stdout,
         }
     }

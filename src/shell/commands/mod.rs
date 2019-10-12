@@ -8,7 +8,7 @@ use super::{super::ConfigEditor, Shell, ShellMode};
 use crate::error;
 pub use command_error::CommandError;
 use configure::Configure;
-use edit::{Edit, Up};
+use edit::{Edit, Top, Up};
 use enum_dispatch::enum_dispatch;
 use exit::Exit;
 use show::Show;
@@ -34,6 +34,7 @@ pub enum Command {
     Show,
     Edit,
     Up,
+    Top,
 }
 
 impl FromStr for Command {
@@ -46,6 +47,7 @@ impl FromStr for Command {
             "show" => Ok(Show {}.into()),
             "edit" => Ok(Edit {}.into()),
             "up" => Ok(Up {}.into()),
+            "top" => Ok(Top {}.into()),
             _ => Err(CommandError::NotFound {
                 command: s.to_string(),
                 source: None,
