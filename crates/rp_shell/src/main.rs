@@ -56,7 +56,7 @@ fn process(shell: &mut Shell, editor: &mut ConfigEditor) -> error::Result<()> {
 
 fn get_prompt(shell: &Shell, editor: &ConfigEditor) -> String {
     match shell.mode {
-        ShellMode::Operational => String::from("& "),
+        ShellMode::Operational => String::from("$ "),
         ShellMode::Configuration => {
             let path = editor.get_current_path();
             format!(

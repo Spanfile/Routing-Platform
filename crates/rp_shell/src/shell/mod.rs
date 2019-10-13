@@ -5,7 +5,8 @@ use crate::error;
 pub use commands::{Command, ExecutableCommand};
 use std::io::{self, Stdout, Write};
 use termion::{
-    self, cursor,
+    self, clear, cursor,
+    cursor::DetectCursorPos,
     event::Key,
     input::TermRead,
     raw::{IntoRawMode, RawTerminal},
@@ -94,6 +95,10 @@ impl Shell {
         Ok(())
     }
 
+    fn cursor_pos(&mut self) -> error::Result<(u16, u16)> {
+        Ok(self.stdout.cursor_pos().map_err(error::IoError::from)?)
+    }
+
     fn print_prompt(&mut self) -> error::Result<()> {
         self.write(format_args!("{}", self.prompt.to_owned()))?;
         self.flush()?;
@@ -131,8 +136,35 @@ impl Shell {
                     Key::Backspace => {
                         if cursor_location > 0 {
                             buffer.remove(cursor_location - 1);
-                            self.write(format_args!("{}", cursor::Left(1)))?;
+                            let (cursor_x, cursor_y) = self.cursor_pos()?;
+
+                            self.write(format_args!(
+                                "{}{}",
+                                cursor::Goto(cursor_x - cursor_location as u16, cursor_y),
+                                clear::UntilNewline
+                            ))?;
+
+                            for b in buffer.iter() {
+                                self.write(format_args!("{}", b))?;
+                            }
+
+                            self.write(format_args!("{}", cursor::Goto(cursor_x - 1, cursor_y)))?;
+
                             cursor_location -= 1;
+                        }
+                    }
+                    Key::Delete => {
+                        if cursor_location < buffer.len() {
+                            buffer.remove(cursor_location);
+                            let (cursor_x, cursor_y) = self.cursor_pos()?;
+
+                            self.write(format_args!("{}", clear::UntilNewline))?;
+
+                            for b in buffer.iter() {
+                                self.write(format_args!("{}", b))?;
+                            }
+
+                            self.write(format_args!("{}", cursor::Goto(cursor_x, cursor_y)))?;
                         }
                     }
                     Key::Char(c) => {
@@ -141,6 +173,7 @@ impl Shell {
                             reading = false;
                         } else {
                             self.write(format_args!("{}", c))?;
+
                             if cursor_location == buffer.len() {
                                 buffer.push(c);
                             } else {
@@ -155,6 +188,7 @@ impl Shell {
                                     cursor::Left((buffer.len() - cursor_location - 1) as u16)
                                 ))?;
                             }
+
                             cursor_location += 1;
                         }
                     }
