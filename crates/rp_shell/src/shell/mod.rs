@@ -84,9 +84,19 @@ impl Shell {
 }
 
 impl Shell {
-    fn print_prompt(&mut self) -> error::Result<()> {
-        write!(self.stdout, "{}", self.prompt).map_err(error::IoError::from)?;
+    fn write(&mut self, args: std::fmt::Arguments) -> error::Result<()> {
+        write!(self.stdout, "{}", args).map_err(error::IoError::from)?;
+        Ok(())
+    }
+
+    fn flush(&mut self) -> error::Result<()> {
         self.stdout.lock().flush().map_err(error::IoError::from)?;
+        Ok(())
+    }
+
+    fn print_prompt(&mut self) -> error::Result<()> {
+        self.write(format_args!("{}", self.prompt.to_owned()))?;
+        self.flush()?;
         Ok(())
     }
 
@@ -108,48 +118,42 @@ impl Shell {
                     }
                     Key::Left => {
                         if cursor_location > 0 {
-                            write!(self.stdout, "{}", cursor::Left(1))
-                                .map_err(error::IoError::from)?;
+                            self.write(format_args!("{}", cursor::Left(1)))?;
                             cursor_location -= 1;
                         }
                     }
                     Key::Right => {
                         if cursor_location < buffer.len() {
-                            write!(self.stdout, "{}", cursor::Right(1))
-                                .map_err(error::IoError::from)?;
+                            self.write(format_args!("{}", cursor::Right(1)))?;
                             cursor_location += 1;
                         }
                     }
                     Key::Backspace => {
                         if cursor_location > 0 {
                             buffer.remove(cursor_location - 1);
-                            write!(self.stdout, "{}", cursor::Left(1))
-                                .map_err(error::IoError::from)?;
+                            self.write(format_args!("{}", cursor::Left(1)))?;
                             cursor_location -= 1;
                         }
                     }
                     Key::Char(c) => {
                         if c == '\n' {
-                            write!(self.stdout, "\n\r").map_err(error::IoError::from)?;
+                            self.write(format_args!("\n\r"))?;
                             reading = false;
                         } else {
-                            write!(self.stdout, "{}", c).map_err(error::IoError::from)?;
-
+                            self.write(format_args!("{}", c))?;
                             if cursor_location == buffer.len() {
                                 buffer.push(c);
                             } else {
                                 buffer.insert(cursor_location, c);
 
                                 for b in buffer[cursor_location + 1..].iter() {
-                                    write!(self.stdout, "{}", b).map_err(error::IoError::from)?;
+                                    self.write(format_args!("{}", b))?;
                                 }
 
-                                write!(
-                                    self.stdout,
+                                self.write(format_args!(
                                     "{}",
                                     cursor::Left((buffer.len() - cursor_location - 1) as u16)
-                                )
-                                .map_err(error::IoError::from)?;
+                                ))?;
                             }
                             cursor_location += 1;
                         }
@@ -157,7 +161,7 @@ impl Shell {
                     _ => continue,
                 }
 
-                self.stdout.lock().flush().map_err(error::IoError::from)?;
+                self.flush()?;
             }
         }
 
