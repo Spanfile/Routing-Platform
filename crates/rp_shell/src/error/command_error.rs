@@ -8,7 +8,7 @@ pub enum CommandError {
     },
     MissingArgument {
         argument: String,
-        source: Option<Box<dyn ErrorTrait>>,
+        source: Option<Box<dyn ErrorTrait + 'static>>,
     },
 }
 
@@ -22,7 +22,7 @@ impl ErrorTrait for CommandError {
         }
     }
 
-    fn source(&self) -> Option<&dyn ErrorTrait> {
+    fn source(&self) -> Option<&(dyn ErrorTrait + 'static)> {
         match self {
             CommandError::NotFound { source, .. } => source.as_deref(),
             CommandError::MissingArgument { source, .. } => source.as_deref(),

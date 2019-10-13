@@ -4,21 +4,21 @@ use rp_error::ErrorTrait;
 pub enum ConfigEditorError {
     NodeNotFound {
         node: String,
-        source: Option<Box<dyn ErrorTrait>>,
+        source: Option<Box<dyn ErrorTrait + 'static>>,
     },
     PropertyNotFound {
         property: String,
-        source: Option<Box<dyn ErrorTrait>>,
+        source: Option<Box<dyn ErrorTrait + 'static>>,
     },
     AlreadyAtTop {
-        source: Option<Box<dyn ErrorTrait>>,
+        source: Option<Box<dyn ErrorTrait + 'static>>,
     },
     ValueError {
-        source: Option<Box<dyn ErrorTrait>>,
+        source: Option<Box<dyn ErrorTrait + 'static>>,
     },
     AmbiguousNodeName {
         name: String,
-        source: Option<Box<dyn ErrorTrait>>,
+        source: Option<Box<dyn ErrorTrait + 'static>>,
     },
 }
 
@@ -38,7 +38,7 @@ impl ErrorTrait for ConfigEditorError {
         }
     }
 
-    fn source(&self) -> Option<&dyn ErrorTrait> {
+    fn source(&self) -> Option<&(dyn ErrorTrait + 'static)> {
         match &self {
             ConfigEditorError::NodeNotFound { source, .. } => source.as_deref(),
             ConfigEditorError::PropertyNotFound { source, .. } => source.as_deref(),

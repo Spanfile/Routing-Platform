@@ -5,11 +5,11 @@ use rp_error::ErrorTrait;
 pub enum ShellError {
     CannotEnterMode {
         mode: ShellMode,
-        source: Option<Box<dyn ErrorTrait>>,
+        source: Option<Box<dyn ErrorTrait + 'static>>,
     },
     Io {
         err: std::io::Error,
-        source: Option<Box<dyn ErrorTrait>>,
+        source: Option<Box<dyn ErrorTrait + 'static>>,
     },
 }
 
@@ -23,7 +23,7 @@ impl ErrorTrait for ShellError {
         }
     }
 
-    fn source(&self) -> Option<&dyn ErrorTrait> {
+    fn source(&self) -> Option<&(dyn ErrorTrait + 'static)> {
         match self {
             ShellError::CannotEnterMode { source, .. } => source.as_deref(),
             ShellError::Io { source, .. } => source.as_deref(),

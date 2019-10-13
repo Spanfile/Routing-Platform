@@ -18,7 +18,7 @@ impl ErrorTrait for CommonError {
         }
     }
 
-    fn source(&self) -> Option<&(dyn ErrorTrait)> {
+    fn source(&self) -> Option<&(dyn ErrorTrait + 'static)> {
         match self {
             CommonError::Format(err) => err.source(),
         }

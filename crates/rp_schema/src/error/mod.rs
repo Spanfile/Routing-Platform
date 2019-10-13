@@ -34,7 +34,7 @@ impl ErrorTrait for SchemaError {
         }
     }
 
-    fn source(&self) -> Option<&(dyn ErrorTrait)> {
+    fn source(&self) -> Option<&(dyn ErrorTrait + 'static)> {
         match self {
             SchemaError::SchemaValidation(err) => err.source(),
             SchemaError::Serde(err) => err.source(),

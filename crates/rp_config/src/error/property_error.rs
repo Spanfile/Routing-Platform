@@ -2,9 +2,15 @@ use rp_error::ErrorTrait;
 
 #[derive(Debug)]
 pub enum PropertyError {
-    DefaultResolvingError { source: Option<Box<dyn ErrorTrait>> },
-    ConstraintNotMet { source: Option<Box<dyn ErrorTrait>> },
-    NoValueSet { source: Option<Box<dyn ErrorTrait>> },
+    DefaultResolvingError {
+        source: Option<Box<dyn ErrorTrait + 'static>>,
+    },
+    ConstraintNotMet {
+        source: Option<Box<dyn ErrorTrait + 'static>>,
+    },
+    NoValueSet {
+        source: Option<Box<dyn ErrorTrait + 'static>>,
+    },
 }
 
 impl ErrorTrait for PropertyError {
@@ -18,7 +24,7 @@ impl ErrorTrait for PropertyError {
         }
     }
 
-    fn source(&self) -> Option<&dyn ErrorTrait> {
+    fn source(&self) -> Option<&(dyn ErrorTrait + 'static)> {
         match self {
             PropertyError::DefaultResolvingError { source } => source.as_deref(),
             PropertyError::ConstraintNotMet { source } => source.as_deref(),

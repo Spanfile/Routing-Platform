@@ -37,7 +37,7 @@ impl ErrorTrait for Error {
         }
     }
 
-    fn source(&self) -> Option<&(dyn ErrorTrait)> {
+    fn source(&self) -> Option<&(dyn ErrorTrait + 'static)> {
         match self {
             Error::Shell(err) => err.source(),
             Error::Command(err) => err.source(),

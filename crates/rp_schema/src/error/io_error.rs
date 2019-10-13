@@ -3,7 +3,7 @@ use rp_error::ErrorTrait;
 #[derive(Debug)]
 pub struct IoError {
     pub error: std::io::Error,
-    pub source: Option<Box<dyn ErrorTrait>>,
+    pub source: Option<Box<dyn ErrorTrait + 'static>>,
 }
 
 impl ErrorTrait for IoError {
@@ -11,7 +11,7 @@ impl ErrorTrait for IoError {
         format!("{}", self.error)
     }
 
-    fn source(&self) -> Option<&(dyn ErrorTrait)> {
+    fn source(&self) -> Option<&(dyn ErrorTrait + 'static)> {
         self.source.as_deref()
     }
 }

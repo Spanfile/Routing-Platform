@@ -6,26 +6,26 @@ pub enum SchemaValidationError {
     Range {
         lower: Bound,
         upper: Bound,
-        source: Option<Box<dyn ErrorTrait>>,
+        source: Option<Box<dyn ErrorTrait + 'static>>,
     },
     Regex {
         regex: String,
         description: String,
-        source: Option<Box<dyn ErrorTrait>>,
+        source: Option<Box<dyn ErrorTrait + 'static>>,
     },
     NoValues {
-        source: Option<Box<dyn ErrorTrait>>,
+        source: Option<Box<dyn ErrorTrait + 'static>>,
     },
     MissingTemplate {
         template: String,
-        source: Option<Box<dyn ErrorTrait>>,
+        source: Option<Box<dyn ErrorTrait + 'static>>,
     },
     NoMultipleValuesAllowed {
-        source: Option<Box<dyn ErrorTrait>>,
+        source: Option<Box<dyn ErrorTrait + 'static>>,
     },
     InvalidDefaultValue {
         default: DefaultValue,
-        source: Option<Box<dyn ErrorTrait>>,
+        source: Option<Box<dyn ErrorTrait + 'static>>,
     },
 }
 
@@ -52,7 +52,7 @@ impl ErrorTrait for SchemaValidationError {
         }
     }
 
-    fn source(&self) -> Option<&(dyn ErrorTrait)> {
+    fn source(&self) -> Option<&(dyn ErrorTrait + 'static)> {
         match self {
             SchemaValidationError::Range { source, .. } => source.as_deref(),
             SchemaValidationError::Regex { source, .. } => source.as_deref(),

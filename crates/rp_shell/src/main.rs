@@ -6,6 +6,7 @@ mod shell;
 
 pub use config_editor::ConfigEditor;
 use rp_config::Config;
+use rp_error::ErrorTrait;
 use rp_schema::Schema;
 use shell::{ExecutableCommand, Shell, ShellMode};
 use std::{rc::Rc, time::Instant};
@@ -30,56 +31,9 @@ fn main() {
 
     while shell.running {
         if let Err(e) = process(&mut shell, &mut editor) {
-            println!("{:?}", e);
+            println!("{}", &e as &(dyn ErrorTrait + 'static));
         }
     }
-
-    // editor.pretty_print_config();
-
-    // editor.edit_node(String::from("interfaces")).unwrap();
-    // editor.edit_node(String::from("ethernet")).unwrap();
-    // editor.edit_node(String::from("eth0")).unwrap();
-    // editor.edit_node(String::from("vlan")).unwrap();
-    // editor.edit_node(String::from("10")).unwrap();
-
-    // editor
-    //     .set_property_value(String::from("description"),
-    // String::from("test"))     .unwrap();
-
-    // editor.go_up().unwrap();
-    // editor.go_up().unwrap();
-
-    // println!(
-    //     "{:?}",
-    //     editor.get_property_values(Some(String::from("description")))
-    // );
-    // editor
-    //     .set_property_value(String::from("description"),
-    // String::from("test"))     .unwrap();
-    // editor
-    //     .set_property_value(String::from("mtu"), String::from("8000"))
-    //     .unwrap();
-    // editor
-    //     .remove_property_value(String::from("mtu"), None)
-    //     .unwrap();
-
-    // editor.go_up().unwrap();
-    // editor.go_up().unwrap();
-    // editor.go_up().unwrap();
-
-    // editor.edit_node(String::from("system")).unwrap();
-    // editor.edit_node(String::from("ntp")).unwrap();
-    // println!("{:?}", editor.get_available_nodes_and_properties());
-    // editor
-    //     .remove_property_value(String::from("server"),
-    // Some(String::from("4.pool.ntp.org")))     .unwrap();
-    // editor.pretty_print_current_node();
-    // editor
-    //     .remove_property_value(String::from("server"), None)
-    //     .unwrap();
-
-    // // editor.pretty_print_current_node();
-    // editor.pretty_print_config();
 }
 
 fn process(shell: &mut Shell, editor: &mut ConfigEditor) -> error::Result<()> {

@@ -5,7 +5,7 @@ use rp_schema::Value;
 pub struct ConstraintError {
     pub given: String,
     pub allowed_values: Vec<Value>,
-    pub source: Option<Box<dyn ErrorTrait>>,
+    pub source: Option<Box<dyn ErrorTrait + 'static>>,
 }
 
 impl ErrorTrait for ConstraintError {
@@ -21,7 +21,7 @@ impl ErrorTrait for ConstraintError {
         )
     }
 
-    fn source(&self) -> Option<&(dyn ErrorTrait)> {
+    fn source(&self) -> Option<&(dyn ErrorTrait + 'static)> {
         self.source.as_deref()
     }
 }

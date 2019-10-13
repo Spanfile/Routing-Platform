@@ -5,11 +5,11 @@ use std::convert::From;
 pub enum SerdeError {
     Json {
         error: serde_json::Error,
-        source: Option<Box<dyn ErrorTrait>>,
+        source: Option<Box<dyn ErrorTrait + 'static>>,
     },
     Yaml {
         error: serde_yaml::Error,
-        source: Option<Box<dyn ErrorTrait>>,
+        source: Option<Box<dyn ErrorTrait + 'static>>,
     },
 }
 
@@ -21,7 +21,7 @@ impl ErrorTrait for SerdeError {
         }
     }
 
-    fn source(&self) -> Option<&(dyn ErrorTrait)> {
+    fn source(&self) -> Option<&(dyn ErrorTrait + 'static)> {
         match self {
             SerdeError::Json { source, .. } => source.as_deref(),
             SerdeError::Yaml { source, .. } => source.as_deref(),

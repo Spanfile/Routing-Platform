@@ -6,7 +6,7 @@ pub enum GeneralError {
     InvalidModeForCommand {
         command: String,
         mode: ShellMode,
-        source: Option<Box<dyn ErrorTrait>>,
+        source: Option<Box<dyn ErrorTrait + 'static>>,
     },
 }
 
@@ -19,7 +19,7 @@ impl ErrorTrait for GeneralError {
         }
     }
 
-    fn source(&self) -> Option<&dyn ErrorTrait> {
+    fn source(&self) -> Option<&(dyn ErrorTrait + 'static)> {
         match self {
             GeneralError::InvalidModeForCommand { source, .. } => source.as_deref(),
         }

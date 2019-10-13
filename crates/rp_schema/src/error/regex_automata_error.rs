@@ -3,7 +3,7 @@ use rp_error::ErrorTrait;
 #[derive(Debug)]
 pub struct RegexAutomataError {
     pub error: regex_automata::Error,
-    pub source: Option<Box<dyn ErrorTrait>>,
+    pub source: Option<Box<dyn ErrorTrait + 'static>>,
 }
 
 impl ErrorTrait for RegexAutomataError {
@@ -11,7 +11,7 @@ impl ErrorTrait for RegexAutomataError {
         format!("regex_automata error: {}", self.error)
     }
 
-    fn source(&self) -> Option<&dyn ErrorTrait> {
+    fn source(&self) -> Option<&(dyn ErrorTrait + 'static)> {
         self.source.as_deref()
     }
 }

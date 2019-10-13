@@ -26,7 +26,7 @@ impl ErrorTrait for ConfigError {
         }
     }
 
-    fn source(&self) -> Option<&(dyn ErrorTrait)> {
+    fn source(&self) -> Option<&(dyn ErrorTrait + 'static)> {
         match self {
             ConfigError::Property(err) => err.source(),
             ConfigError::NodeCreation(err) => err.source(),
