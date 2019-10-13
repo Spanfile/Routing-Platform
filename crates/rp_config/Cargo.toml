@@ -1,0 +1,11 @@
+[package]
+name = "rp_config"
+version = "0.1.0"
+authors = ["Spanfile <spansdev@gmail.com>"]
+edition = "2018"
+
+[dependencies]
+rp_error = { path = "../rp_error" }
+rp_schema = { path = "../rp_schema" }
+rp_common = { path = "../rp_common" }
+enum_dispatch = "0.1.4"

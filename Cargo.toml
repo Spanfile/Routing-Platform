@@ -1,14 +1,4 @@
-[package]
-name = "routing-platform"
-version = "0.1.0"
-authors = ["Spanfile <spansdev@gmail.com>"]
-edition = "2018"
-build = "build_schema.rs"
-
-[dependencies]
-common = { path = "common" }
-enum_dispatch = "0.1.4"
-termion = "1.5.3"
-
-[build-dependencies]
-common = { path = "common" }
+[workspace]
+members = [
+    "crates/*"
+]

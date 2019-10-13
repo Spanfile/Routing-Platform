@@ -1,0 +1,17 @@
+[package]
+name = "rp_shell"
+version = "0.1.0"
+authors = ["Spanfile <spansdev@gmail.com>"]
+edition = "2018"
+build = "build_schema.rs"
+
+[dependencies]
+rp_schema = { path = "../rp_schema" }
+rp_config = { path = "../rp_config" }
+rp_error = { path = "../rp_error" }
+enum_dispatch = "0.1.4"
+termion = "1.5.3"
+
+[build-dependencies]
+rp_schema = { path = "../rp_schema" }
+rp_error = { path = "../rp_error" }
