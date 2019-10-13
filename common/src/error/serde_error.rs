@@ -1,24 +1,29 @@
-use super::CommonErrorTrait;
-use std::error::Error;
+use super::{CommonError, CommonErrorTrait};
 
 #[derive(Debug)]
 pub enum SerdeError {
-    Json(serde_json::Error),
-    Yaml(serde_yaml::Error),
+    Json {
+        error: serde_json::Error,
+        source: Option<Box<CommonError>>,
+    },
+    Yaml {
+        error: serde_yaml::Error,
+        source: Option<Box<CommonError>>,
+    },
 }
 
 impl CommonErrorTrait for SerdeError {
     fn display(&self) -> String {
         match self {
-            SerdeError::Json(e) => format!("Serde JSON error: {}", e),
-            SerdeError::Yaml(e) => format!("Serde YAML error: {}", e),
+            SerdeError::Json { error, .. } => format!("Serde JSON error: {}", error),
+            SerdeError::Yaml { error, .. } => format!("Serde YAML error: {}", error),
         }
     }
 
-    fn source(&self) -> Option<&(dyn Error + 'static)> {
+    fn source(&self) -> Option<&CommonError> {
         match self {
-            SerdeError::Json(e) => e.source(),
-            SerdeError::Yaml(e) => e.source(),
+            SerdeError::Json { source, .. } => source.as_deref(),
+            SerdeError::Yaml { source, .. } => source.as_deref(),
         }
     }
 }

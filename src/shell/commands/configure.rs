@@ -1,4 +1,4 @@
-use super::{CommandError, ExecutableCommand, Shell, ShellMode};
+use super::{ExecutableCommand, Shell, ShellMode};
 use crate::{error, ConfigEditor};
 
 #[derive(Debug)]
@@ -11,12 +11,7 @@ impl ExecutableCommand for Configure {
         shell: &mut Shell,
         _editor: &mut ConfigEditor,
     ) -> error::CustomResult<()> {
-        shell.enter_mode().map_err(|e| {
-            error::Error::from(CommandError::RunError {
-                command: String::from("configure"),
-                source: Some(Box::new(e)),
-            })
-        })
+        shell.enter_mode()
     }
 
     fn aliases(&self) -> Vec<&str> {

@@ -1,4 +1,4 @@
-use crate::context::Context;
+use crate::{context::Context, error};
 use serde::{Deserialize, Serialize};
 use std::fs;
 
@@ -17,7 +17,7 @@ pub enum Command {
 }
 
 impl Query {
-    pub fn run(&self, context: &Context) -> Result<Vec<String>, Box<dyn std::error::Error>> {
+    pub fn run(&self, context: &Context) -> error::CommonResult<Vec<String>> {
         match &self.command {
             Command::Ls(path) => {
                 let path = context.format(format!("{}{}", "{mock}", path.to_owned()))?;

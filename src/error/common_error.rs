@@ -1,5 +1,4 @@
 use super::{Error, ErrorTrait};
-use common::error::CommonErrorTrait;
 
 #[derive(Debug)]
 pub struct CommonError {
@@ -8,7 +7,7 @@ pub struct CommonError {
 
 impl ErrorTrait for CommonError {
     fn display(&self) -> String {
-        self.source.display()
+        format!("{}", self.source)
     }
 
     fn source(&self) -> Option<&Error> {

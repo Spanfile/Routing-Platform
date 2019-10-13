@@ -182,7 +182,7 @@ impl<'a> ConfigEditor<'a> {
         }
     }
 
-    fn get_property(&self, property: String) -> error::CustomResult<&Property> {
+    fn get_property(&self, property: &str) -> error::CustomResult<&Property> {
         self.node_stack
             .last()
             .ok_or(error::Error::from(ConfigEditorError::PropertyNotFound {
@@ -192,7 +192,7 @@ impl<'a> ConfigEditor<'a> {
             .get_property(&property)
             .ok_or(
                 ConfigEditorError::PropertyNotFound {
-                    property,
+                    property: property.to_string(),
                     source: None,
                 }
                 .into(),
@@ -208,7 +208,7 @@ impl<'a> ConfigEditor<'a> {
             .map(|n| n.get_property_values(of_property))
     }
 
-    pub fn set_property_value(&self, property: String, value: String) -> error::CustomResult<()> {
+    pub fn set_property_value(&self, property: &str, value: &str) -> error::CustomResult<()> {
         let property = self.get_property(property)?;
 
         property.set(value, self.schema).map_err(|e| {
@@ -221,8 +221,8 @@ impl<'a> ConfigEditor<'a> {
 
     pub fn remove_property_value(
         &self,
-        property: String,
-        value: Option<String>,
+        property: &str,
+        value: Option<&str>,
     ) -> error::CustomResult<()> {
         let property = self.get_property(property)?;
 

@@ -1,3 +1,4 @@
+use crate::{error, error::FormatError};
 use lazy_static::lazy_static;
 use regex_automata::Regex;
 use std::{collections::HashMap, rc::Rc};
@@ -7,23 +8,6 @@ pub struct Context {
     values: HashMap<String, String>,
     parent: Option<Rc<Context>>,
 }
-
-#[derive(Debug)]
-pub enum FormatError {
-    FormatStringEmpty,
-    IDNotInContext(String),
-}
-
-impl std::fmt::Display for FormatError {
-    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
-        match &self {
-            FormatError::FormatStringEmpty => write!(f, "format string empty"),
-            FormatError::IDNotInContext(_id) => write!(f, "ID not in given context"),
-        }
-    }
-}
-
-impl std::error::Error for FormatError {}
 
 impl Context {
     pub fn new(parent: Option<Rc<Context>>) -> Context {
@@ -47,7 +31,7 @@ impl Context {
         self.values.insert(id, value);
     }
 
-    pub fn format(&self, text: String) -> Result<String, FormatError> {
+    pub fn format(&self, text: String) -> error::CommonResult<String> {
         lazy_static! {
             static ref FORMAT_MATCHER: Regex =
                 Regex::new(r"\{[^\{\}]*\}").expect("couldn't compile format matcher regex");
@@ -59,12 +43,18 @@ impl Context {
             // right bound being one character away from the left bound means the format
             // string is empty
             if mat.0 == mat.1 - 1 {
-                return Err(FormatError::FormatStringEmpty);
+                return Err(FormatError::FormatStringEmpty { source: None }.into());
             } else {
                 let match_str = &text[mat.0 + 1..mat.1 - 1];
                 match &self.get_value(match_str) {
                     Some(value) => replacements.push((mat.0, mat.1, value.to_owned())),
-                    None => return Err(FormatError::IDNotInContext(match_str.to_owned())),
+                    None => {
+                        return Err(FormatError::IdNotInContext {
+                            id: match_str.to_owned(),
+                            source: None,
+                        }
+                        .into())
+                    }
                 };
             }
         }

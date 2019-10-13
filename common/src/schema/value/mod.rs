@@ -1,7 +1,7 @@
 pub mod range;
 
 use super::query::Query;
-use crate::context::Context;
+use crate::{context::Context, error};
 use range::Range;
 use serde::{Deserialize, Serialize};
 
@@ -15,6 +15,8 @@ pub enum Value {
     Range(Range),
 }
 
+// TODO: impl Display for Value
+
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub enum DefaultValue {
     #[serde(rename = "literal")]
@@ -24,7 +26,7 @@ pub enum DefaultValue {
 }
 
 impl DefaultValue {
-    pub fn resolve(&self, context: &Context) -> Result<Vec<String>, Box<dyn std::error::Error>> {
+    pub fn resolve(&self, context: &Context) -> error::CommonResult<Vec<String>> {
         match self {
             DefaultValue::Literal(literal) => Ok(vec![literal.to_owned()]),
             DefaultValue::Query(query) => query.run(context),

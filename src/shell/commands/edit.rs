@@ -10,6 +10,9 @@ pub struct Up;
 #[derive(Debug)]
 pub struct Top;
 
+#[derive(Debug)]
+pub struct Set;
+
 impl ExecutableCommand for Edit {
     fn run(
         &self,
@@ -72,6 +75,39 @@ impl ExecutableCommand for Top {
 
     fn aliases(&self) -> Vec<&str> {
         vec!["top"]
+    }
+
+    fn required_shell_mode(&self) -> Option<ShellMode> {
+        Some(ShellMode::Configuration)
+    }
+}
+
+impl ExecutableCommand for Set {
+    fn run(
+        &self,
+        arguments: Vec<String>,
+        _shell: &mut Shell,
+        editor: &mut ConfigEditor,
+    ) -> error::CustomResult<()> {
+        let property =
+            arguments
+                .get(0)
+                .ok_or(error::Error::from(CommandError::MissingArgument {
+                    argument: String::from("property"),
+                    source: None,
+                }))?;
+        let value = arguments
+            .get(1)
+            .ok_or(error::Error::from(CommandError::MissingArgument {
+                argument: String::from("value"),
+                source: None,
+            }))?;
+
+        editor.set_property_value(property, value)
+    }
+
+    fn aliases(&self) -> Vec<&str> {
+        vec!["set"]
     }
 
     fn required_shell_mode(&self) -> Option<ShellMode> {

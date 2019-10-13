@@ -1,14 +1,14 @@
 use super::{CommonError, CommonErrorTrait};
 
 #[derive(Debug)]
-pub struct RegexAutomataError {
-    pub error: regex_automata::Error,
+pub struct IoError {
+    pub error: std::io::Error,
     pub source: Option<Box<CommonError>>,
 }
 
-impl CommonErrorTrait for RegexAutomataError {
+impl CommonErrorTrait for IoError {
     fn display(&self) -> String {
-        format!("regex_automata error: {}", self.error)
+        format!("{}", self.error)
     }
 
     fn source(&self) -> Option<&CommonError> {

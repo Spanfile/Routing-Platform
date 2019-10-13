@@ -1,4 +1,8 @@
-use crate::schema::{Matches, Property, Schema, Value};
+use crate::{
+    error,
+    error::ConstraintError,
+    schema::{Matches, Property, Schema, Value},
+};
 
 #[derive(Debug)]
 pub struct Constraints {
@@ -6,17 +10,6 @@ pub struct Constraints {
     values: Vec<Value>,
     pub deletable: bool,
 }
-
-#[derive(Debug)]
-pub struct ConstraintError {}
-
-impl std::fmt::Display for ConstraintError {
-    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
-        write!(f, "constraints not met")
-    }
-}
-
-impl std::error::Error for ConstraintError {}
 
 impl Constraints {
     pub fn from_schema_property(property: &Property) -> Constraints {
@@ -27,7 +20,7 @@ impl Constraints {
         }
     }
 
-    pub fn matches(&self, value: &str, schema: &Schema) -> Result<(), ConstraintError> {
+    pub fn matches(&self, value: &str, schema: &Schema) -> error::CommonResult<()> {
         for v in &self.values {
             match v {
                 Value::Literal(literal) => {
@@ -54,6 +47,11 @@ impl Constraints {
             }
         }
 
-        Err(ConstraintError {})
+        Err(ConstraintError {
+            given: value.to_string(),
+            allowed_values: self.values.clone(),
+            source: None,
+        }
+        .into())
     }
 }

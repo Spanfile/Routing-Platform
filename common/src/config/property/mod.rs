@@ -21,14 +21,15 @@ impl Property {
         let mut values = Vec::new();
 
         for default in &property.default {
-            values.extend(match default.resolve(&context) {
-                Ok(v) => v,
-                Err(e) => return Err(PropertyError::DefaultResolvingError.into()),
-            });
+            values.extend(default.resolve(&context).map_err(|e| {
+                error::CommonError::from(PropertyError::DefaultResolvingError {
+                    source: Some(Box::new(e)),
+                })
+            })?);
         }
 
         if !property.multiple && values.len() > 1 {
-            Err(PropertyError::ConstraintNotMet.into())
+            Err(PropertyError::ConstraintNotMet { source: None }.into())
         } else {
             Ok(Property {
                 key: key.to_owned(),
@@ -43,24 +44,25 @@ impl Property {
         self.values.borrow().iter().map(|v| v.to_owned()).collect()
     }
 
-    pub fn set(&self, value: String, schema: &Schema) -> error::CommonResult<()> {
-        match self.constraints.matches(&value, schema) {
-            Ok(()) => (),
-            Err(_e) => return Err(PropertyError::ConstraintNotMet.into()),
-        }
+    pub fn set(&self, value: &str, schema: &Schema) -> error::CommonResult<()> {
+        self.constraints.matches(&value, schema).map_err(|e| {
+            error::CommonError::from(PropertyError::ConstraintNotMet {
+                source: Some(Box::new(e)),
+            })
+        })?;
 
         let mut values = self.values.borrow_mut();
         if !self.constraints.multiple {
             values.clear();
         }
-        values.push(value);
+        values.push(value.to_string());
 
         Ok(())
     }
 
-    pub fn remove(&self, value: Option<String>) -> error::CommonResult<()> {
+    pub fn remove(&self, value: Option<&str>) -> error::CommonResult<()> {
         if self.values.borrow().is_empty() {
-            return Err(PropertyError::NoValueSet.into());
+            return Err(PropertyError::NoValueSet { source: None }.into());
         }
 
         let mut values = self.values.borrow_mut();

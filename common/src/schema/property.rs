@@ -25,7 +25,7 @@ impl Property {
 impl Validate for Property {
     fn validate(&self, schema: &Schema) -> error::CommonResult<()> {
         if self.values.is_empty() {
-            return Err(error::SchemaValidationError::NoValues.into());
+            return Err(error::SchemaValidationError::NoValues { source: None }.into());
         }
 
         for value in &self.values {
@@ -34,6 +34,7 @@ impl Validate for Property {
                     if !schema.templates.contains_key(template) {
                         return Err(error::SchemaValidationError::MissingTemplate {
                             template: template.to_owned(),
+                            source: None,
                         }
                         .into());
                     }
@@ -45,7 +46,9 @@ impl Validate for Property {
 
         if !self.default.is_empty() {
             if !self.multiple && self.default.len() > 1 {
-                return Err(error::SchemaValidationError::NoMultipleValuesAllowed.into());
+                return Err(
+                    error::SchemaValidationError::NoMultipleValuesAllowed { source: None }.into(),
+                );
             }
 
             let mut match_found = false;
@@ -90,6 +93,7 @@ impl Validate for Property {
                 if !match_found {
                     return Err(error::SchemaValidationError::InvalidDefaultValue {
                         default: default.clone(),
+                        source: None,
                     }
                     .into());
                 }

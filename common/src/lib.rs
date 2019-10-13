@@ -1,3 +1,5 @@
+#![feature(inner_deref)]
+
 pub mod config;
 mod context;
 pub mod error;
