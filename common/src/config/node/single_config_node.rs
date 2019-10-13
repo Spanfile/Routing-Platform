@@ -63,14 +63,6 @@ impl Node for SingleConfigNode {
             .collect()
     }
 
-    fn set_property_value(
-        &self,
-        property: &str,
-        value: String,
-    ) -> Result<(), Box<dyn std::error::Error>> {
-        unimplemented!();
-    }
-
     fn pretty_print(&self, indent: usize) {
         for (name, node) in &self.subnodes {
             println!("{:indent$}{} {{", "", name, indent = indent * 4);

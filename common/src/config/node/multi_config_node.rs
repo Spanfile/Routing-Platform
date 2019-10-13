@@ -86,14 +86,6 @@ impl Node for MultiConfigNode {
         HashMap::new()
     }
 
-    fn set_property_value(
-        &self,
-        property: &str,
-        value: String,
-    ) -> Result<(), Box<dyn std::error::Error>> {
-        unimplemented!();
-    }
-
     fn pretty_print(&self, indent: usize) {
         for (name, node) in &*self.nodes.borrow() {
             println!("{:indent$}{} {{", "", name, indent = indent * 4);

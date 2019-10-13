@@ -15,8 +15,6 @@ pub enum Value {
     Range(Range),
 }
 
-// TODO: impl Display for Value
-
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub enum DefaultValue {
     #[serde(rename = "literal")]
@@ -30,6 +28,16 @@ impl DefaultValue {
         match self {
             DefaultValue::Literal(literal) => Ok(vec![literal.to_owned()]),
             DefaultValue::Query(query) => query.run(context),
+        }
+    }
+}
+
+impl std::fmt::Display for Value {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Value::Literal(value) => write!(f, "'{}'", value),
+            Value::Template(template) => write!(f, "template '{}'", template),
+            Value::Range(range) => write!(f, "{}", range),
         }
     }
 }

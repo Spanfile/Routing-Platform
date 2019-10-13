@@ -24,12 +24,6 @@ pub trait Node {
     fn get_property(&self, property: &str) -> Option<&Property>;
     fn get_property_values(&self, of_property: Option<String>) -> HashMap<String, Vec<String>>;
 
-    fn set_property_value(
-        &self,
-        property: &str,
-        value: String,
-    ) -> Result<(), Box<dyn std::error::Error>>;
-
     fn pretty_print(&self, indent: usize);
 }
 

@@ -15,7 +15,7 @@ impl CommonErrorTrait for ConstraintError {
             self.given,
             self.allowed_values
                 .iter()
-                .map(|v| format!("{:?}", v))
+                .map(|v| format!("{}", v))
                 .collect::<Vec<String>>()
                 .join("\n   -> ")
         )
