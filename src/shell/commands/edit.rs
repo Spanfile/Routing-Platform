@@ -13,6 +13,9 @@ pub struct Top;
 #[derive(Debug)]
 pub struct Set;
 
+#[derive(Debug)]
+pub struct Remove;
+
 impl ExecutableCommand for Edit {
     fn run(
         &self,
@@ -107,6 +110,33 @@ impl ExecutableCommand for Set {
 
     fn aliases(&self) -> Vec<&str> {
         vec!["set"]
+    }
+
+    fn required_shell_mode(&self) -> Option<ShellMode> {
+        Some(ShellMode::Configuration)
+    }
+}
+
+impl ExecutableCommand for Remove {
+    fn run(
+        &self,
+        arguments: Vec<String>,
+        _shell: &mut Shell,
+        editor: &mut ConfigEditor,
+    ) -> error::CustomResult<()> {
+        let property = arguments.get(0).ok_or_else(|| {
+            error::Error::from(CommandError::MissingArgument {
+                argument: String::from("property"),
+                source: None,
+            })
+        })?;
+        let value = arguments.get(1).map(|v| v.as_str());
+
+        editor.remove_property_value(property, value)
+    }
+
+    fn aliases(&self) -> Vec<&str> {
+        vec!["remove"]
     }
 
     fn required_shell_mode(&self) -> Option<ShellMode> {
