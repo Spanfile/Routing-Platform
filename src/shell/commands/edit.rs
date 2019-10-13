@@ -89,19 +89,18 @@ impl ExecutableCommand for Set {
         _shell: &mut Shell,
         editor: &mut ConfigEditor,
     ) -> error::CustomResult<()> {
-        let property =
-            arguments
-                .get(0)
-                .ok_or(error::Error::from(CommandError::MissingArgument {
-                    argument: String::from("property"),
-                    source: None,
-                }))?;
-        let value = arguments
-            .get(1)
-            .ok_or(error::Error::from(CommandError::MissingArgument {
+        let property = arguments.get(0).ok_or_else(|| {
+            error::Error::from(CommandError::MissingArgument {
+                argument: String::from("property"),
+                source: None,
+            })
+        })?;
+        let value = arguments.get(1).ok_or_else(|| {
+            error::Error::from(CommandError::MissingArgument {
                 argument: String::from("value"),
                 source: None,
-            }))?;
+            })
+        })?;
 
         editor.set_property_value(property, value)
     }

@@ -163,9 +163,7 @@ impl Schema {
             None
         };
 
-        if current.is_none() {
-            return None;
-        }
+        current?;
 
         let mut name = locator_stack.pop();
 
@@ -179,10 +177,7 @@ impl Schema {
                 None
             };
 
-            if current.is_none() {
-                return None;
-            }
-
+            current?;
             name = locator_stack.pop();
         }
 

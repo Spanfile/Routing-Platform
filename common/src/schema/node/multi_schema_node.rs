@@ -47,17 +47,14 @@ impl Validate for MultiSchemaNode {
     fn validate(&self, schema: &Schema) -> error::CommonResult<()> {
         self.node.validate(schema)?;
 
-        match &self.source {
-            MultiSchemaNodeSource::Template(template) => {
-                if !schema.templates.contains_key(template) {
-                    return Err(error::SchemaValidationError::MissingTemplate {
-                        template: template.to_owned(),
-                        source: None,
-                    }
-                    .into());
+        if let MultiSchemaNodeSource::Template(template) = &self.source {
+            if !schema.templates.contains_key(template) {
+                return Err(error::SchemaValidationError::MissingTemplate {
+                    template: template.to_owned(),
+                    source: None,
                 }
+                .into());
             }
-            _ => {}
         }
 
         Ok(())

@@ -55,12 +55,12 @@ impl FromSchemaNode<SchemaNode> for ConfigNode {
         schema_node: &SchemaNode,
     ) -> error::CommonResult<ConfigNode> {
         match schema_node {
-            SchemaNode::SingleSchemaNode(node) => {
-                Ok(SingleConfigNode::from_schema_node(context, name, schema, node)?.into())
-            }
-            SchemaNode::MultiSchemaNode(node) => {
-                Ok(MultiConfigNode::from_schema_node(context, name, schema, node)?.into())
-            }
+            SchemaNode::SingleSchemaNode(node) => Ok(SingleConfigNode::from_schema_node(
+                context, name, schema, node,
+            )?),
+            SchemaNode::MultiSchemaNode(node) => Ok(MultiConfigNode::from_schema_node(
+                context, name, schema, node,
+            )?),
         }
     }
 }

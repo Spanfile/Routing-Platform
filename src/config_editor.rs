@@ -167,9 +167,7 @@ impl<'a> ConfigEditor<'a> {
     pub fn go_up(&mut self) -> error::CustomResult<()> {
         self.node_stack
             .pop()
-            .ok_or(error::Error::from(ConfigEditorError::AlreadyAtTop {
-                source: None,
-            }))?;
+            .ok_or_else(|| error::Error::from(ConfigEditorError::AlreadyAtTop { source: None }))?;
         Ok(())
     }
 
@@ -185,18 +183,20 @@ impl<'a> ConfigEditor<'a> {
     fn get_property(&self, property: &str) -> error::CustomResult<&Property> {
         self.node_stack
             .last()
-            .ok_or(error::Error::from(ConfigEditorError::PropertyNotFound {
-                property: property.to_owned(),
-                source: None,
-            }))?
+            .ok_or_else(|| {
+                error::Error::from(ConfigEditorError::PropertyNotFound {
+                    property: property.to_owned(),
+                    source: None,
+                })
+            })?
             .get_property(&property)
-            .ok_or(
+            .ok_or_else(|| {
                 ConfigEditorError::PropertyNotFound {
                     property: property.to_string(),
                     source: None,
                 }
-                .into(),
-            )
+                .into()
+            })
     }
 
     pub fn get_property_values(
