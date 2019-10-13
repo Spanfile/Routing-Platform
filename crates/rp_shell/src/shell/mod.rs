@@ -99,6 +99,20 @@ impl Shell {
         Ok(self.stdout.cursor_pos().map_err(error::IoError::from)?)
     }
 
+    fn activate_raw_mode(&mut self) -> error::Result<()> {
+        self.stdout
+            .activate_raw_mode()
+            .map_err(error::IoError::from)?;
+        Ok(())
+    }
+
+    fn suspend_raw_mode(&mut self) -> error::Result<()> {
+        self.stdout
+            .suspend_raw_mode()
+            .map_err(error::IoError::from)?;
+        Ok(())
+    }
+
     fn print_prompt(&mut self) -> error::Result<()> {
         self.write(format_args!("{}", self.prompt.to_owned()))?;
         self.flush()?;
@@ -111,15 +125,14 @@ impl Shell {
         let mut cursor_location: usize = 0;
         let mut reading = true;
 
-        self.stdout
-            .activate_raw_mode()
-            .map_err(error::IoError::from)?;
+        self.activate_raw_mode()?;
 
         while reading {
             if let Some(Ok(key)) = stdin.next() {
                 match key {
                     Key::Ctrl('c') => {
-                        reading = false;
+                        self.suspend_raw_mode()?;
+                        return Err(error::ShellError::Abort { source: None }.into());
                     }
                     Key::Left => {
                         if cursor_location > 0 {
@@ -199,10 +212,7 @@ impl Shell {
             }
         }
 
-        self.stdout
-            .suspend_raw_mode()
-            .map_err(error::IoError::from)?;
-
+        self.suspend_raw_mode()?;
         Ok(buffer.into_iter().collect())
     }
 }

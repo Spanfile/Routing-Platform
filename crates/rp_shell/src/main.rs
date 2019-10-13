@@ -31,6 +31,10 @@ fn main() {
 
     while shell.running {
         if let Err(e) = process(&mut shell, &mut editor) {
+            if let error::Error::Shell(error::ShellError::Abort { .. }) = e {
+                println!();
+                continue;
+            }
             println!("{}", &e as &(dyn ErrorTrait + 'static));
         }
     }

@@ -11,6 +11,9 @@ pub enum ShellError {
         err: std::io::Error,
         source: Option<Box<dyn ErrorTrait + 'static>>,
     },
+    Abort {
+        source: Option<Box<dyn ErrorTrait + 'static>>,
+    },
 }
 
 impl ErrorTrait for ShellError {
@@ -20,6 +23,7 @@ impl ErrorTrait for ShellError {
                 format!("cannot enter mode (from {:?})", mode)
             }
             ShellError::Io { err, .. } => err.to_string(),
+            ShellError::Abort { .. } => String::from("abort"),
         }
     }
 
@@ -27,6 +31,7 @@ impl ErrorTrait for ShellError {
         match self {
             ShellError::CannotEnterMode { source, .. } => source.as_deref(),
             ShellError::Io { source, .. } => source.as_deref(),
+            ShellError::Abort { source, .. } => source.as_deref(),
         }
     }
 }
