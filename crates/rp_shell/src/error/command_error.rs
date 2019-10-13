@@ -10,6 +10,10 @@ pub enum CommandError {
         argument: String,
         source: Option<Box<dyn ErrorTrait + 'static>>,
     },
+    UnexpectedArgument {
+        argument: String,
+        source: Option<Box<dyn ErrorTrait + 'static>>,
+    },
 }
 
 impl ErrorTrait for CommandError {
@@ -19,6 +23,9 @@ impl ErrorTrait for CommandError {
             CommandError::MissingArgument { argument, .. } => {
                 format!("Missing argument: {}", argument)
             }
+            CommandError::UnexpectedArgument { argument, .. } => {
+                format!("Unexpected argument: {}", argument)
+            }
         }
     }
 
@@ -26,6 +33,7 @@ impl ErrorTrait for CommandError {
         match self {
             CommandError::NotFound { source, .. } => source.as_deref(),
             CommandError::MissingArgument { source, .. } => source.as_deref(),
+            CommandError::UnexpectedArgument { source, .. } => source.as_deref(),
         }
     }
 }

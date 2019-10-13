@@ -1,4 +1,5 @@
 #![feature(inner_deref)]
+extern crate chrono;
 
 mod config_editor;
 mod error;

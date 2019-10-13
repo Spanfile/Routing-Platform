@@ -1,8 +1,10 @@
 mod commands;
 mod completions;
+mod history;
 
 use crate::error;
 pub use commands::{Command, ExecutableCommand};
+use history::HistoryEntry;
 use std::io::{self, Stdout, Write};
 use termion::{
     self, clear, cursor,
@@ -17,6 +19,8 @@ pub struct Shell {
     pub mode: ShellMode,
     pub prompt: String,
     stdout: RawTerminal<Stdout>,
+    history: Vec<HistoryEntry>,
+    history_index: Option<usize>,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -38,6 +42,8 @@ impl Shell {
             mode: ShellMode::Operational,
             prompt: String::from(""),
             stdout,
+            history: Vec::new(),
+            history_index: None,
         }
     }
 
@@ -50,9 +56,13 @@ impl Shell {
             }
             break input;
         };
-        let args: Vec<&str> = input.split_whitespace().collect();
+
+        let input_args = input.to_owned();
+        let args: Vec<&str> = input_args.split_whitespace().collect();
 
         if let Some(first) = args.first() {
+            self.history.push(HistoryEntry::new(input));
+            self.history_index = None;
             Ok((
                 first.parse()?,
                 args.iter().skip(1).map(|s| s.to_string()).collect(),
@@ -81,6 +91,17 @@ impl Shell {
             ShellMode::Configuration => self.mode = ShellMode::Operational,
             ShellMode::Operational => self.running = false,
         }
+    }
+
+    pub fn print_history(&mut self) -> error::Result<()> {
+        for entry in &self.history {
+            write!(self.stdout, "{}\n", entry).map_err(error::IoError::from)?;
+        }
+        Ok(())
+    }
+
+    pub fn clear_history(&mut self) {
+        self.history.clear();
     }
 }
 
@@ -145,6 +166,70 @@ impl Shell {
                             self.write(format_args!("{}", cursor::Right(1)))?;
                             cursor_location += 1;
                         }
+                    }
+                    Key::Up => {
+                        let (cursor_x, cursor_y) = self.cursor_pos()?;
+                        let index = match self.history_index {
+                            Some(i) => {
+                                if i > 0 {
+                                    self.history_index = Some(i - 1);
+                                    i - 1
+                                } else {
+                                    i
+                                }
+                            }
+                            None => {
+                                let i = self.history.len() - 1;
+                                self.history_index = Some(i);
+                                i
+                            }
+                        };
+
+                        buffer = self.history.get(index).unwrap().command.chars().collect();
+
+                        self.write(format_args!(
+                            "{}{}",
+                            cursor::Goto(cursor_x - cursor_location as u16, cursor_y),
+                            clear::UntilNewline
+                        ))?;
+
+                        for b in buffer.iter() {
+                            self.write(format_args!("{}", b))?;
+                        }
+
+                        cursor_location = buffer.len();
+                    }
+                    Key::Down => {
+                        let (cursor_x, cursor_y) = self.cursor_pos()?;
+                        let index = match self.history_index {
+                            Some(i) => {
+                                if i == self.history.len() - 1 {
+                                    self.history_index = None;
+                                } else {
+                                    self.history_index = Some(i + 1);
+                                }
+                                self.history_index
+                            }
+                            None => None,
+                        };
+
+                        self.write(format_args!(
+                            "{}{}",
+                            cursor::Goto(cursor_x - cursor_location as u16, cursor_y),
+                            clear::UntilNewline
+                        ))?;
+
+                        if let Some(i) = index {
+                            buffer = self.history.get(i).unwrap().command.chars().collect();
+
+                            for b in buffer.iter() {
+                                self.write(format_args!("{}", b))?;
+                            }
+                        } else {
+                            buffer.clear();
+                        }
+
+                        cursor_location = buffer.len();
                     }
                     Key::Backspace => {
                         if cursor_location > 0 {

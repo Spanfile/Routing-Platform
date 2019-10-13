@@ -1,6 +1,7 @@
 mod configure;
 mod edit;
 mod exit;
+mod history;
 mod show;
 
 use super::{super::ConfigEditor, Shell, ShellMode};
@@ -9,6 +10,7 @@ use configure::Configure;
 use edit::{Edit, Remove, Set, Top, Up};
 use enum_dispatch::enum_dispatch;
 use exit::Exit;
+use history::History;
 use show::Show;
 use std::str::FromStr;
 
@@ -35,6 +37,7 @@ pub enum Command {
     Top,
     Set,
     Remove,
+    History,
 }
 
 impl FromStr for Command {
@@ -50,6 +53,7 @@ impl FromStr for Command {
             "top" => Ok(Top {}.into()),
             "set" => Ok(Set {}.into()),
             "remove" => Ok(Remove {}.into()),
+            "history" => Ok(History {}.into()),
             _ => Err(error::CommandError::NotFound {
                 command: s.to_string(),
                 source: None,
