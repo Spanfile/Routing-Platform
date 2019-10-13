@@ -1,6 +1,7 @@
 use super::{ConfigNode, FromSchemaNode, Node, NodeName};
 use crate::{
     config::Property,
+    error,
     schema::{MultiSchemaNode, MultiSchemaNodeSource, NodeLocator, Schema, SchemaNodeTrait},
     Context,
 };
@@ -101,7 +102,7 @@ impl FromSchemaNode<MultiSchemaNode> for MultiConfigNode {
         name: &str,
         schema: Weak<Schema>,
         schema_node: &MultiSchemaNode,
-    ) -> Result<ConfigNode, Box<dyn std::error::Error>> {
+    ) -> error::CommonResult<ConfigNode> {
         let mut nodes = HashMap::new();
 
         let new_node_creation_allowed = match &schema_node.source {

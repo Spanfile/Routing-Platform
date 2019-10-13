@@ -1,6 +1,7 @@
 use super::{ConfigNode, FromSchemaNode, Node, NodeName};
 use crate::{
     config::Property,
+    error,
     schema::{Schema, SingleSchemaNode},
     Context,
 };
@@ -82,10 +83,8 @@ impl FromSchemaNode<SingleSchemaNode> for SingleConfigNode {
         name: &str,
         schema: Weak<Schema>,
         schema_node: &SingleSchemaNode,
-    ) -> Result<ConfigNode, Box<dyn std::error::Error>> {
-        let name = context
-            .format(name.to_owned())
-            .expect("couldn't context format node name for SingleConfigNode");
+    ) -> error::CommonResult<ConfigNode> {
+        let name = context.format(name.to_owned())?;
         let mut subnodes = HashMap::new();
         let mut properties = HashMap::new();
 

@@ -3,6 +3,7 @@ mod single_config_node;
 
 use super::{NodeName, Property};
 use crate::{
+    error,
     schema::{Schema, SchemaNode},
     Context,
 };
@@ -36,7 +37,7 @@ where
         name: &str,
         schema: Weak<Schema>,
         schema_node: &TBuiltFrom,
-    ) -> Result<ConfigNode, Box<dyn std::error::Error>>;
+    ) -> error::CommonResult<ConfigNode>;
 }
 
 #[enum_dispatch(Node)]
@@ -52,7 +53,7 @@ impl FromSchemaNode<SchemaNode> for ConfigNode {
         name: &str,
         schema: Weak<Schema>,
         schema_node: &SchemaNode,
-    ) -> Result<ConfigNode, Box<dyn std::error::Error>> {
+    ) -> error::CommonResult<ConfigNode> {
         match schema_node {
             SchemaNode::SingleSchemaNode(node) => {
                 Ok(SingleConfigNode::from_schema_node(context, name, schema, node)?.into())
