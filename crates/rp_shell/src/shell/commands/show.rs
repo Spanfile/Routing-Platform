@@ -1,5 +1,5 @@
 use super::{ExecutableCommand, Shell, ShellMode};
-use crate::{error, ConfigEditor};
+use crate::ConfigEditor;
 
 #[derive(Debug)]
 pub struct Show;
@@ -10,7 +10,7 @@ impl ExecutableCommand for Show {
         _arguments: Vec<String>,
         _shell: &mut Shell,
         editor: &mut ConfigEditor,
-    ) -> error::Result<()> {
+    ) -> anyhow::Result<()> {
         editor.pretty_print_current_node();
         Ok(())
     }

@@ -1,5 +1,5 @@
 use super::{ExecutableCommand, Shell, ShellMode};
-use crate::{error, ConfigEditor};
+use crate::ConfigEditor;
 
 #[derive(Debug)]
 pub struct Configure;
@@ -10,7 +10,7 @@ impl ExecutableCommand for Configure {
         _arguments: Vec<String>,
         shell: &mut Shell,
         _editor: &mut ConfigEditor,
-    ) -> error::Result<()> {
+    ) -> anyhow::Result<()> {
         shell.enter_mode()
     }
 

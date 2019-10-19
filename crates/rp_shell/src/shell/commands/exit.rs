@@ -1,5 +1,5 @@
 use super::{ExecutableCommand, Shell, ShellMode};
-use crate::{error, ConfigEditor};
+use crate::ConfigEditor;
 
 #[derive(Debug)]
 pub struct Exit;
@@ -10,7 +10,7 @@ impl ExecutableCommand for Exit {
         _arguments: Vec<String>,
         shell: &mut Shell,
         _editor: &mut ConfigEditor,
-    ) -> error::Result<()> {
+    ) -> anyhow::Result<()> {
         shell.exit_mode();
         Ok(())
     }

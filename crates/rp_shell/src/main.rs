@@ -1,4 +1,6 @@
 #![feature(inner_deref)]
+#![feature(backtrace)]
+
 extern crate chrono;
 
 mod config_editor;
@@ -7,7 +9,6 @@ mod shell;
 
 pub use config_editor::ConfigEditor;
 use rp_config::Config;
-use rp_error::ErrorTrait;
 use rp_schema::Schema;
 use shell::{ExecutableCommand, Shell, ShellMode};
 use std::{rc::Rc, time::Instant};
@@ -32,16 +33,16 @@ fn main() {
 
     while shell.running {
         if let Err(e) = process(&mut shell, &mut editor) {
-            if let error::Error::Shell(error::ShellError::Abort { .. }) = e {
+            if let Some(error::ShellError::Abort) = e.downcast_ref() {
                 println!();
                 continue;
             }
-            println!("{}", &e as &(dyn ErrorTrait + 'static));
+            println!("{}", e);
         }
     }
 }
 
-fn process(shell: &mut Shell, editor: &mut ConfigEditor) -> error::Result<()> {
+fn process(shell: &mut Shell, editor: &mut ConfigEditor) -> anyhow::Result<()> {
     shell.prompt = get_prompt(shell, editor);
     let (command, args) = shell.process_input()?;
 
@@ -50,9 +51,7 @@ fn process(shell: &mut Shell, editor: &mut ConfigEditor) -> error::Result<()> {
             return Err(error::GeneralError::InvalidModeForCommand {
                 command: format!("{:?}", command),
                 mode: shell.mode,
-                source: None,
-            }
-            .into());
+            })?;
         }
     }
 

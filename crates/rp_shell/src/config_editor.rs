@@ -52,7 +52,7 @@ impl<'a> ConfigEditor<'a> {
         names
     }
 
-    pub fn edit_node(&mut self, name: String) -> error::Result<()> {
+    pub fn edit_node(&mut self, name: String) -> anyhow::Result<()> {
         // match match self.node_stack.last() {
         //     Some(n) => &n.subnodes,
         //     None => &self.config.nodes,
@@ -76,20 +76,12 @@ impl<'a> ConfigEditor<'a> {
                     Some(existing_match) => match existing_match {
                         NodeName::Literal(_n) => {
                             if let NodeName::Literal(_n) = node_name {
-                                return Err(error::ConfigEditorError::AmbiguousNodeName {
-                                    name,
-                                    source: None,
-                                }
-                                .into());
+                                return Err(error::ConfigEditorError::AmbiguousNodeName(name))?;
                             }
                         }
                         NodeName::Multiple(_t) => {
                             if let NodeName::Multiple(_t) = node_name {
-                                return Err(error::ConfigEditorError::AmbiguousNodeName {
-                                    name,
-                                    source: None,
-                                }
-                                .into());
+                                return Err(error::ConfigEditorError::AmbiguousNodeName(name))?;
                             }
                         }
                     },
@@ -105,47 +97,33 @@ impl<'a> ConfigEditor<'a> {
             });
             Ok(())
         } else {
-            Err(error::ConfigEditorError::NodeNotFound {
-                node: name,
-                source: None,
-            }
-            .into())
+            Err(error::ConfigEditorError::NodeNotFound(name).into())
         }
     }
 
-    pub fn go_up(&mut self) -> error::Result<()> {
-        self.node_stack.pop().ok_or_else(|| {
-            error::Error::from(error::ConfigEditorError::AlreadyAtTop { source: None })
-        })?;
+    pub fn go_up(&mut self) -> anyhow::Result<()> {
+        self.node_stack
+            .pop()
+            .ok_or_else(|| error::ConfigEditorError::AlreadyAtTop)?;
         Ok(())
     }
 
-    pub fn go_top(&mut self) -> error::Result<()> {
+    pub fn go_top(&mut self) -> anyhow::Result<()> {
         if self.node_stack.is_empty() {
-            Err(error::ConfigEditorError::AlreadyAtTop { source: None }.into())
+            Err(error::ConfigEditorError::AlreadyAtTop.into())
         } else {
             self.node_stack.clear();
             Ok(())
         }
     }
 
-    fn get_property(&self, property: &str) -> error::Result<&Property> {
-        self.node_stack
+    fn get_property(&self, property: &str) -> anyhow::Result<&Property> {
+        Ok(self
+            .node_stack
             .last()
-            .ok_or_else(|| {
-                error::Error::from(error::ConfigEditorError::PropertyNotFound {
-                    property: property.to_owned(),
-                    source: None,
-                })
-            })?
+            .ok_or_else(|| error::ConfigEditorError::PropertyNotFound(property.to_owned()))?
             .get_property(&property)
-            .ok_or_else(|| {
-                error::ConfigEditorError::PropertyNotFound {
-                    property: property.to_string(),
-                    source: None,
-                }
-                .into()
-            })
+            .ok_or_else(|| error::ConfigEditorError::PropertyNotFound(property.to_owned()))?)
     }
 
     pub fn get_property_values(
@@ -157,26 +135,21 @@ impl<'a> ConfigEditor<'a> {
             .map(|n| n.get_property_values(of_property))
     }
 
-    pub fn set_property_value(&self, property: &str, value: &str) -> error::Result<()> {
+    pub fn set_property_value(&self, property: &str, value: &str) -> anyhow::Result<()> {
         let property = self.get_property(property)?;
 
-        property.set(value, self.schema).map_err(|e| {
-            error::ConfigEditorError::ValueError {
-                source: Some(Box::new(e)),
-            }
-            .into()
-        })
+        Ok(property
+            .set(value, self.schema)
+            .map_err(|_e| error::ConfigEditorError::ValueError)?)
     }
 
-    pub fn remove_property_value(&self, property: &str, value: Option<&str>) -> error::Result<()> {
+    pub fn remove_property_value(&self, property: &str, value: Option<&str>) -> anyhow::Result<()> {
         let property = self.get_property(property)?;
 
-        property.remove(value).map_err(|e| {
-            error::ConfigEditorError::ValueError {
-                source: Some(Box::new(e)),
-            }
-            .into()
-        })
+        property
+            .remove(value)
+            .map_err(|_e| error::ConfigEditorError::ValueError)?;
+        Ok(())
     }
 }
 

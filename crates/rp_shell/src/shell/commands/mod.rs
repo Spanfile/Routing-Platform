@@ -21,7 +21,7 @@ pub trait ExecutableCommand {
         arguments: Vec<String>,
         shell: &mut Shell,
         config_editor: &mut ConfigEditor,
-    ) -> error::Result<()>;
+    ) -> anyhow::Result<()>;
     fn aliases(&self) -> Vec<&str>;
     fn required_shell_mode(&self) -> Option<ShellMode>;
 }
@@ -41,7 +41,7 @@ pub enum Command {
 }
 
 impl FromStr for Command {
-    type Err = error::Error;
+    type Err = anyhow::Error;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         match s {
@@ -54,11 +54,7 @@ impl FromStr for Command {
             "set" => Ok(Set {}.into()),
             "remove" => Ok(Remove {}.into()),
             "history" => Ok(History {}.into()),
-            _ => Err(error::CommandError::NotFound {
-                command: s.to_string(),
-                source: None,
-            }
-            .into()),
+            _ => Err(error::CommandError::NotFound(s.to_string()))?,
         }
     }
 }

@@ -10,18 +10,14 @@ impl ExecutableCommand for History {
         arguments: Vec<String>,
         shell: &mut Shell,
         _editor: &mut ConfigEditor,
-    ) -> error::Result<()> {
+    ) -> anyhow::Result<()> {
         match arguments.get(0) {
             Some(s) => match s.as_str() {
                 "clear" => {
                     shell.clear_history();
                     Ok(())
                 }
-                _ => Err(error::CommandError::UnexpectedArgument {
-                    argument: s.to_owned(),
-                    source: None,
-                }
-                .into()),
+                _ => Err(error::CommandError::UnexpectedArgument(s.to_owned()))?,
             },
             None => {
                 shell.print_history()?;

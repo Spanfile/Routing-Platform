@@ -47,7 +47,7 @@ impl Shell {
         }
     }
 
-    pub fn process_input(&mut self) -> error::Result<(Command, Vec<String>)> {
+    pub fn process_input(&mut self) -> anyhow::Result<(Command, Vec<String>)> {
         let input = loop {
             self.print_prompt()?;
             let input = self.read_input()?;
@@ -72,17 +72,13 @@ impl Shell {
         }
     }
 
-    pub fn enter_mode(&mut self) -> error::Result<()> {
+    pub fn enter_mode(&mut self) -> anyhow::Result<()> {
         match self.mode {
             ShellMode::Operational => {
                 self.mode = ShellMode::Configuration;
                 Ok(())
             }
-            ShellMode::Configuration => Err(error::ShellError::CannotEnterMode {
-                mode: self.mode,
-                source: None,
-            }
-            .into()),
+            ShellMode::Configuration => Err(error::ShellError::CannotEnterMode(self.mode))?,
         }
     }
 
@@ -93,7 +89,7 @@ impl Shell {
         }
     }
 
-    pub fn print_history(&mut self) -> error::Result<()> {
+    pub fn print_history(&mut self) -> anyhow::Result<()> {
         for entry in &self.history {
             write!(self.stdout, "{}\n", entry).map_err(error::IoError::from)?;
         }
@@ -106,41 +102,41 @@ impl Shell {
 }
 
 impl Shell {
-    fn write(&mut self, args: std::fmt::Arguments) -> error::Result<()> {
+    fn write(&mut self, args: std::fmt::Arguments) -> anyhow::Result<()> {
         write!(self.stdout, "{}", args).map_err(error::IoError::from)?;
         Ok(())
     }
 
-    fn flush(&mut self) -> error::Result<()> {
+    fn flush(&mut self) -> anyhow::Result<()> {
         self.stdout.lock().flush().map_err(error::IoError::from)?;
         Ok(())
     }
 
-    fn cursor_pos(&mut self) -> error::Result<(u16, u16)> {
+    fn cursor_pos(&mut self) -> anyhow::Result<(u16, u16)> {
         Ok(self.stdout.cursor_pos().map_err(error::IoError::from)?)
     }
 
-    fn activate_raw_mode(&mut self) -> error::Result<()> {
+    fn activate_raw_mode(&mut self) -> anyhow::Result<()> {
         self.stdout
             .activate_raw_mode()
             .map_err(error::IoError::from)?;
         Ok(())
     }
 
-    fn suspend_raw_mode(&mut self) -> error::Result<()> {
+    fn suspend_raw_mode(&mut self) -> anyhow::Result<()> {
         self.stdout
             .suspend_raw_mode()
             .map_err(error::IoError::from)?;
         Ok(())
     }
 
-    fn print_prompt(&mut self) -> error::Result<()> {
+    fn print_prompt(&mut self) -> anyhow::Result<()> {
         self.write(format_args!("{}", self.prompt.to_owned()))?;
         self.flush()?;
         Ok(())
     }
 
-    fn read_input(&mut self) -> error::Result<String> {
+    fn read_input(&mut self) -> anyhow::Result<String> {
         let mut stdin = io::stdin().keys();
         let mut buffer = Vec::new();
         let mut cursor_location: usize = 0;
@@ -153,7 +149,7 @@ impl Shell {
                 match key {
                     Key::Ctrl('c') => {
                         self.suspend_raw_mode()?;
-                        return Err(error::ShellError::Abort { source: None }.into());
+                        return Err(error::ShellError::Abort)?;
                     }
                     Key::Left => {
                         if cursor_location > 0 {

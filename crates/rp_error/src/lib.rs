@@ -1,6 +1,6 @@
 use std::fmt;
 
-pub trait ErrorTrait: fmt::Debug {
+pub trait ErrorTrait: fmt::Debug + Send + Sync {
     fn display(&self) -> String;
     fn source(&self) -> Option<&(dyn ErrorTrait + 'static)>;
 }

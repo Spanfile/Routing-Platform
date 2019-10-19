@@ -22,13 +22,9 @@ impl ExecutableCommand for Edit {
         arguments: Vec<String>,
         _shell: &mut Shell,
         editor: &mut ConfigEditor,
-    ) -> error::Result<()> {
+    ) -> anyhow::Result<()> {
         if arguments.is_empty() {
-            Err(error::CommandError::MissingArgument {
-                argument: String::from("node"),
-                source: None,
-            }
-            .into())
+            Err(error::CommandError::MissingArgument(String::from("node")))?
         } else {
             for arg in arguments {
                 editor.edit_node(arg)?;
@@ -53,7 +49,7 @@ impl ExecutableCommand for Up {
         _arguments: Vec<String>,
         _shell: &mut Shell,
         editor: &mut ConfigEditor,
-    ) -> error::Result<()> {
+    ) -> anyhow::Result<()> {
         editor.go_up()
     }
 
@@ -72,7 +68,7 @@ impl ExecutableCommand for Top {
         _arguments: Vec<String>,
         _shell: &mut Shell,
         editor: &mut ConfigEditor,
-    ) -> error::Result<()> {
+    ) -> anyhow::Result<()> {
         editor.go_top()
     }
 
@@ -91,19 +87,13 @@ impl ExecutableCommand for Set {
         arguments: Vec<String>,
         _shell: &mut Shell,
         editor: &mut ConfigEditor,
-    ) -> error::Result<()> {
-        let property = arguments.get(0).ok_or_else(|| {
-            error::Error::from(error::CommandError::MissingArgument {
-                argument: String::from("property"),
-                source: None,
-            })
-        })?;
-        let value = arguments.get(1).ok_or_else(|| {
-            error::Error::from(error::CommandError::MissingArgument {
-                argument: String::from("value"),
-                source: None,
-            })
-        })?;
+    ) -> anyhow::Result<()> {
+        let property = arguments
+            .get(0)
+            .ok_or_else(|| error::CommandError::MissingArgument(String::from("property")))?;
+        let value = arguments
+            .get(1)
+            .ok_or_else(|| error::CommandError::MissingArgument(String::from("value")))?;
 
         editor.set_property_value(property, value)
     }
@@ -123,13 +113,10 @@ impl ExecutableCommand for Remove {
         arguments: Vec<String>,
         _shell: &mut Shell,
         editor: &mut ConfigEditor,
-    ) -> error::Result<()> {
-        let property = arguments.get(0).ok_or_else(|| {
-            error::Error::from(error::CommandError::MissingArgument {
-                argument: String::from("property"),
-                source: None,
-            })
-        })?;
+    ) -> anyhow::Result<()> {
+        let property = arguments
+            .get(0)
+            .ok_or_else(|| error::CommandError::MissingArgument(String::from("property")))?;
         let value = arguments.get(1).map(|v| v.as_str());
 
         editor.remove_property_value(property, value)
