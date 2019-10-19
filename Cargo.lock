@@ -185,10 +185,12 @@ dependencies = [
 name = "rp_config"
 version = "0.1.0"
 dependencies = [
+ "anyhow 1.0.15 (registry+https://github.com/rust-lang/crates.io-index)",
  "enum_dispatch 0.1.5 (registry+https://github.com/rust-lang/crates.io-index)",
  "rp_common 0.1.0",
  "rp_error 0.1.0",
  "rp_schema 0.1.0",
+ "thiserror 1.0.3 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
 
 [[package]]

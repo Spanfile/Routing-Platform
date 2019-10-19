@@ -2,7 +2,6 @@ mod multi_config_node;
 mod single_config_node;
 
 use super::{NodeName, Property};
-use crate::error;
 use enum_dispatch::enum_dispatch;
 use multi_config_node::MultiConfigNode;
 use rp_common::Context;
@@ -35,7 +34,7 @@ where
         name: &str,
         schema: Weak<Schema>,
         schema_node: &TBuiltFrom,
-    ) -> error::Result<ConfigNode>;
+    ) -> anyhow::Result<ConfigNode>;
 }
 
 #[enum_dispatch(Node)]
@@ -51,7 +50,7 @@ impl FromSchemaNode<SchemaNode> for ConfigNode {
         name: &str,
         schema: Weak<Schema>,
         schema_node: &SchemaNode,
-    ) -> error::Result<ConfigNode> {
+    ) -> anyhow::Result<ConfigNode> {
         match schema_node {
             SchemaNode::SingleSchemaNode(node) => Ok(SingleConfigNode::from_schema_node(
                 context, name, schema, node,

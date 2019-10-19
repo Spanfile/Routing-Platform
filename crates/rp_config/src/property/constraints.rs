@@ -1,4 +1,4 @@
-use crate::{error, error::ConstraintError};
+use crate::error::ConstraintError;
 use rp_schema::{Matches, Property, Schema, Value};
 
 #[derive(Debug)]
@@ -17,7 +17,7 @@ impl Constraints {
         }
     }
 
-    pub fn matches(&self, value: &str, schema: &Schema) -> error::Result<()> {
+    pub fn matches(&self, value: &str, schema: &Schema) -> anyhow::Result<()> {
         for v in &self.values {
             match v {
                 Value::Literal(literal) => {
@@ -47,8 +47,6 @@ impl Constraints {
         Err(ConstraintError {
             given: value.to_string(),
             allowed_values: self.values.clone(),
-            source: None,
-        }
-        .into())
+        })?
     }
 }

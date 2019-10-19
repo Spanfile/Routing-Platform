@@ -1,5 +1,5 @@
 use super::{ConfigNode, FromSchemaNode, Node, NodeName};
-use crate::{error, Property};
+use crate::Property;
 use rp_common::Context;
 use rp_schema::{MultiSchemaNode, MultiSchemaNodeSource, NodeLocator, Schema, SchemaNodeTrait};
 use std::{
@@ -99,14 +99,12 @@ impl FromSchemaNode<MultiSchemaNode> for MultiConfigNode {
         name: &str,
         schema: Weak<Schema>,
         schema_node: &MultiSchemaNode,
-    ) -> error::Result<ConfigNode> {
+    ) -> anyhow::Result<ConfigNode> {
         let mut nodes = HashMap::new();
 
         let new_node_creation_allowed = match &schema_node.source {
             MultiSchemaNodeSource::Query(query) => {
-                for result in &query.run(&context).map_err(|e| error::NodeCreationError {
-                    source: Some(Box::new(e)),
-                })? {
+                for result in &query.run(&context)? {
                     let mut result_context = Context::new(Some(Rc::clone(&context)));
                     result_context.set_value(query.id.to_owned(), result.to_owned());
                     nodes.insert(

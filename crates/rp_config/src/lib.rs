@@ -19,7 +19,7 @@ pub struct Config {
 }
 
 impl Config {
-    pub fn from_schema(schema: Weak<Schema>) -> error::Result<Config> {
+    pub fn from_schema(schema: Weak<Schema>) -> anyhow::Result<Config> {
         let mut nodes = HashMap::new();
         let mut context = Context::new(None);
         context.set_value(String::from("mock"), String::from("mock"));

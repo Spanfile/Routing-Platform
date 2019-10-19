@@ -9,3 +9,5 @@ rp_error = { path = "../rp_error" }
 rp_schema = { path = "../rp_schema" }
 rp_common = { path = "../rp_common" }
 enum_dispatch = "0.1.4"
+anyhow = "1.0.15"
+thiserror = "1.0.3"

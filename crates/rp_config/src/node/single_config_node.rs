@@ -1,5 +1,5 @@
 use super::{ConfigNode, FromSchemaNode, Node, NodeName};
-use crate::{error, Property};
+use crate::Property;
 use rp_common::Context;
 use rp_schema::{Schema, SingleSchemaNode};
 use std::{
@@ -80,12 +80,8 @@ impl FromSchemaNode<SingleSchemaNode> for SingleConfigNode {
         name: &str,
         schema: Weak<Schema>,
         schema_node: &SingleSchemaNode,
-    ) -> error::Result<ConfigNode> {
-        let name = context
-            .format(name.to_owned())
-            .map_err(|e| error::NodeCreationError {
-                source: Some(Box::new(e)),
-            })?;
+    ) -> anyhow::Result<ConfigNode> {
+        let name = context.format(name.to_owned())?;
         let mut subnodes = HashMap::new();
         let mut properties = HashMap::new();
 
