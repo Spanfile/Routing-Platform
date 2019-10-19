@@ -78,7 +78,7 @@ impl Shell {
                 self.mode = ShellMode::Configuration;
                 Ok(())
             }
-            ShellMode::Configuration => Err(error::ShellError::CannotEnterMode(self.mode))?,
+            ShellMode::Configuration => Err(error::ShellError::CannotEnterMode(self.mode).into()),
         }
     }
 
@@ -91,7 +91,7 @@ impl Shell {
 
     pub fn print_history(&mut self) -> anyhow::Result<()> {
         for entry in &self.history {
-            write!(self.stdout, "{}\n", entry).map_err(error::IoError::from)?;
+            writeln!(self.stdout, "{}", entry)?;
         }
         Ok(())
     }
@@ -103,30 +103,26 @@ impl Shell {
 
 impl Shell {
     fn write(&mut self, args: std::fmt::Arguments) -> anyhow::Result<()> {
-        write!(self.stdout, "{}", args).map_err(error::IoError::from)?;
+        write!(self.stdout, "{}", args)?;
         Ok(())
     }
 
     fn flush(&mut self) -> anyhow::Result<()> {
-        self.stdout.lock().flush().map_err(error::IoError::from)?;
+        self.stdout.lock().flush()?;
         Ok(())
     }
 
     fn cursor_pos(&mut self) -> anyhow::Result<(u16, u16)> {
-        Ok(self.stdout.cursor_pos().map_err(error::IoError::from)?)
+        Ok(self.stdout.cursor_pos()?)
     }
 
     fn activate_raw_mode(&mut self) -> anyhow::Result<()> {
-        self.stdout
-            .activate_raw_mode()
-            .map_err(error::IoError::from)?;
+        self.stdout.activate_raw_mode()?;
         Ok(())
     }
 
     fn suspend_raw_mode(&mut self) -> anyhow::Result<()> {
-        self.stdout
-            .suspend_raw_mode()
-            .map_err(error::IoError::from)?;
+        self.stdout.suspend_raw_mode()?;
         Ok(())
     }
 
@@ -149,7 +145,7 @@ impl Shell {
                 match key {
                     Key::Ctrl('c') => {
                         self.suspend_raw_mode()?;
-                        return Err(error::ShellError::Abort)?;
+                        return Err(error::ShellError::Abort.into());
                     }
                     Key::Left => {
                         if cursor_location > 0 {

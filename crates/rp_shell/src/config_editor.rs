@@ -76,12 +76,16 @@ impl<'a> ConfigEditor<'a> {
                     Some(existing_match) => match existing_match {
                         NodeName::Literal(_n) => {
                             if let NodeName::Literal(_n) = node_name {
-                                return Err(error::ConfigEditorError::AmbiguousNodeName(name))?;
+                                return Err(
+                                    error::ConfigEditorError::AmbiguousNodeName(name).into()
+                                );
                             }
                         }
                         NodeName::Multiple(_t) => {
                             if let NodeName::Multiple(_t) = node_name {
-                                return Err(error::ConfigEditorError::AmbiguousNodeName(name))?;
+                                return Err(
+                                    error::ConfigEditorError::AmbiguousNodeName(name).into()
+                                );
                             }
                         }
                     },
@@ -138,17 +142,13 @@ impl<'a> ConfigEditor<'a> {
     pub fn set_property_value(&self, property: &str, value: &str) -> anyhow::Result<()> {
         let property = self.get_property(property)?;
 
-        Ok(property
-            .set(value, self.schema)
-            .map_err(|_e| error::ConfigEditorError::ValueError)?)
+        Ok(property.set(value, self.schema)?)
     }
 
     pub fn remove_property_value(&self, property: &str, value: Option<&str>) -> anyhow::Result<()> {
         let property = self.get_property(property)?;
 
-        property
-            .remove(value)
-            .map_err(|_e| error::ConfigEditorError::ValueError)?;
+        property.remove(value)?;
         Ok(())
     }
 }

@@ -33,7 +33,7 @@ impl Validate for Range {
                         Err(error::SchemaValidationError::Range {
                             lower: self.lower,
                             upper: self.upper,
-                        })?
+                        }.into())
                     } else {
                         Ok(())
                     }
@@ -43,7 +43,7 @@ impl Validate for Range {
                         Err(error::SchemaValidationError::Range {
                             lower: self.lower,
                             upper: self.upper,
-                        })?
+                        }.into())
                     } else {
                         Ok(())
                     }
@@ -55,7 +55,7 @@ impl Validate for Range {
                         Err(error::SchemaValidationError::Range {
                             lower: self.lower,
                             upper: self.upper,
-                        })?
+                        }.into())
                     } else {
                         Ok(())
                     }
@@ -65,7 +65,7 @@ impl Validate for Range {
                         Err(error::SchemaValidationError::Range {
                             lower: self.lower,
                             upper: self.upper,
-                        })?
+                        }.into())
                     } else {
                         Ok(())
                     }

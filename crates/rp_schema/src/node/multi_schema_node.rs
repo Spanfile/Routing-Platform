@@ -49,9 +49,9 @@ impl Validate for MultiSchemaNode {
 
         if let MultiSchemaNodeSource::Template(template) = &self.source {
             if !schema.templates.contains_key(template) {
-                return Err(error::SchemaValidationError::MissingTemplate(
-                    template.to_owned(),
-                ))?;
+                return Err(
+                    error::SchemaValidationError::MissingTemplate(template.to_owned()).into(),
+                );
             }
         }
 

@@ -51,7 +51,8 @@ fn process(shell: &mut Shell, editor: &mut ConfigEditor) -> anyhow::Result<()> {
             return Err(error::GeneralError::InvalidModeForCommand {
                 command: format!("{:?}", command),
                 mode: shell.mode,
-            })?;
+            }
+            .into());
         }
     }
 

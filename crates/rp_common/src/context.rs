@@ -43,12 +43,12 @@ impl Context {
             // right bound being one character away from the left bound means the format
             // string is empty
             if mat.0 == mat.1 - 1 {
-                return Err(FormatError::FormatStringEmpty)?;
+                return Err(FormatError::FormatStringEmpty.into());
             } else {
                 let match_str = &text[mat.0 + 1..mat.1 - 1];
                 match &self.get_value(match_str) {
                     Some(value) => replacements.push((mat.0, mat.1, value.to_owned())),
-                    None => return Err(FormatError::IdNotInContext(match_str.to_owned()))?,
+                    None => return Err(FormatError::IdNotInContext(match_str.to_owned()).into()),
                 };
             }
         }

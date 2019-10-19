@@ -17,7 +17,7 @@ impl ExecutableCommand for History {
                     shell.clear_history();
                     Ok(())
                 }
-                _ => Err(error::CommandError::UnexpectedArgument(s.to_owned()))?,
+                _ => Err(error::CommandError::UnexpectedArgument(s.to_owned()).into()),
             },
             None => {
                 shell.print_history()?;

@@ -54,7 +54,7 @@ impl FromStr for Command {
             "set" => Ok(Set {}.into()),
             "remove" => Ok(Remove {}.into()),
             "history" => Ok(History {}.into()),
-            _ => Err(error::CommandError::NotFound(s.to_string()))?,
+            _ => Err(error::CommandError::NotFound(s.to_string()).into()),
         }
     }
 }

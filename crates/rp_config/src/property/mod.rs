@@ -27,7 +27,7 @@ impl Property {
         }
 
         if !property.multiple && values.len() > 1 {
-            Err(PropertyError::ConstraintNotMet)?
+            Err(PropertyError::ConstraintNotMet.into())
         } else {
             Ok(Property {
                 key: key.to_owned(),
@@ -56,7 +56,7 @@ impl Property {
 
     pub fn remove(&self, value: Option<&str>) -> anyhow::Result<()> {
         if self.values.borrow().is_empty() {
-            return Err(PropertyError::NoValueSet)?;
+            return Err(PropertyError::NoValueSet.into());
         }
 
         let mut values = self.values.borrow_mut();

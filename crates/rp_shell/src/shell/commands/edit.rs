@@ -24,7 +24,7 @@ impl ExecutableCommand for Edit {
         editor: &mut ConfigEditor,
     ) -> anyhow::Result<()> {
         if arguments.is_empty() {
-            Err(error::CommandError::MissingArgument(String::from("node")))?
+            Err(error::CommandError::MissingArgument(String::from("node")).into())
         } else {
             for arg in arguments {
                 editor.edit_node(arg)?;

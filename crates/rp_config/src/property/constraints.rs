@@ -47,6 +47,6 @@ impl Constraints {
         Err(ConstraintError {
             given: value.to_string(),
             allowed_values: self.values.clone(),
-        })?
+        }.into())
     }
 }

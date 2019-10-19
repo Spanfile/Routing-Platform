@@ -8,8 +8,6 @@ pub enum ConfigEditorError {
     PropertyNotFound(String),
     #[error("Already at top")]
     AlreadyAtTop,
-    #[error("Invalid value")]
-    ValueError,
     #[error("Ambiguous node name: '{0}' (multiple literal node names)")]
     AmbiguousNodeName(String),
 }

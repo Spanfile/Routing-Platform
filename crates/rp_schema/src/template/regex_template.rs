@@ -68,7 +68,7 @@ impl Validate for RegexTemplate {
             Err(e) => Err(error::SchemaValidationError::Regex {
                 regex: self.regex.to_owned(),
                 description: e.description().to_string(),
-            })?,
+            }.into()),
         }
     }
 }
