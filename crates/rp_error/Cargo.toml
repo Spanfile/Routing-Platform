@@ -1,8 +1,0 @@
-[package]
-name = "rp_error"
-version = "0.1.0"
-authors = ["Spanfile <spansdev@gmail.com>"]
-edition = "2018"
-
-[dependencies]
-enum_dispatch = "0.1.4"

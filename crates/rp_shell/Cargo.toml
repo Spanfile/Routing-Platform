@@ -8,7 +8,6 @@ build = "build_schema.rs"
 [dependencies]
 rp_schema = { path = "../rp_schema" }
 rp_config = { path = "../rp_config" }
-rp_error = { path = "../rp_error" }
 enum_dispatch = "0.1.4"
 termion = "1.5.3"
 chrono = "0.4.9"
@@ -17,4 +16,3 @@ thiserror = "1.0.3"
 
 [build-dependencies]
 rp_schema = { path = "../rp_schema" }
-rp_error = { path = "../rp_error" }

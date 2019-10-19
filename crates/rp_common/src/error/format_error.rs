@@ -1,4 +1,3 @@
-use rp_error::ErrorTrait;
 use thiserror::Error;
 
 #[derive(Debug, Error)]
