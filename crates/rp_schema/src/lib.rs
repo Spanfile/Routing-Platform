@@ -17,6 +17,7 @@ pub use node::{
 };
 pub use property::Property;
 pub use query::Query;
+use rp_log::*;
 use serde::{Deserialize, Serialize};
 use std::{collections::HashMap, fs::File, io::BufReader, rc::Rc};
 pub use template::Template;
@@ -38,18 +39,17 @@ pub trait Matches {
 impl Schema {
     pub fn to_binary_file(&self, file: &mut File) -> anyhow::Result<()> {
         let encoder = ZlibEncoder::new(file, Compression::best());
-        Ok(serde_json::to_writer(encoder, &self).map_err(error::SerdeError::from)?)
+        Ok(serde_json::to_writer(encoder, &self)?)
     }
 
     pub fn from_yaml_file(file: &File) -> anyhow::Result<Schema> {
         let reader = BufReader::new(file);
-        Ok(serde_yaml::from_reader(reader).map_err(error::SerdeError::from)?)
+        Ok(serde_yaml::from_reader(reader)?)
     }
 
     pub fn from_binary(binary: &[u8]) -> anyhow::Result<Schema> {
         let decoder = ZlibDecoder::new(binary);
-        let mut schema: Schema =
-            serde_json::from_reader(decoder).map_err(error::SerdeError::from)?;
+        let mut schema: Schema = serde_json::from_reader(decoder)?;
         schema.load_regexes_from_cache()?;
         schema.populate_node_metadata();
         Ok(schema)
@@ -110,12 +110,12 @@ impl Schema {
 
 impl Schema {
     pub fn print_debug_info(&self) {
-        println!(
-            "Schema {{\n\tTemplates: {}\n\tNodes: {}\n\tProperties: {}\n\tRegex cache DFA size: {}\n}}",
-            self.templates.len(),
-            self.node_count(),
-            self.property_count(),
-            self.regex_cache_dfa_size(),
+        debug!("Schema templates: {}", self.templates.len());
+        debug!("Schema nodes: {}", self.node_count());
+        debug!("Schema properties: {}", self.property_count());
+        debug!(
+            "Schema regex cache DFA size: {} bytes",
+            self.regex_cache_dfa_size()
         );
     }
 

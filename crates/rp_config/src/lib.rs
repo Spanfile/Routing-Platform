@@ -3,6 +3,7 @@ mod node;
 mod node_name;
 mod property;
 
+use anyhow::anyhow;
 pub use node::{ConfigNode, FromSchemaNode, Node};
 pub use node_name::NodeName;
 pub use property::Property;
@@ -37,6 +38,8 @@ impl Config {
                     )?),
                 );
             }
+        } else {
+            return Err(anyhow!("Schema weak reference upgrading failed"));
         }
 
         Ok(Config { nodes })

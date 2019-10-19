@@ -2,6 +2,7 @@ mod regex_template;
 
 use super::{value::range::Range, Matches, Schema, Validate};
 use regex_template::RegexTemplate;
+use rp_log::*;
 use serde::{Deserialize, Serialize};
 
 #[derive(Serialize, Deserialize, Debug)]
@@ -25,10 +26,12 @@ impl Template {
             match regex_cache {
                 Some(cache) => regex.deserialise_regex(cache),
                 None => {
-                    println!("missing cached regex for template, recompiling");
+                    debug!("Missing cached regex for template, recompiling");
                     regex.compile_regex();
                 }
             }
+        } else {
+            warn!("Tried to load regex into non-regex template");
         }
     }
 

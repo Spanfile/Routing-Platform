@@ -3,6 +3,7 @@ mod completions;
 mod history;
 
 use crate::error;
+use anyhow::anyhow;
 pub use commands::{Command, ExecutableCommand};
 use history::HistoryEntry;
 use rp_common::ShellMode;
@@ -63,7 +64,7 @@ impl Shell {
                 args.iter().skip(1).map(|s| s.to_string()).collect(),
             ))
         } else {
-            panic!("split returned no args");
+            Err(anyhow!("Split returned no args"))
         }
     }
 

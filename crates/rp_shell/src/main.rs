@@ -1,8 +1,6 @@
 #![feature(inner_deref)]
 #![feature(backtrace)]
 
-extern crate chrono;
-
 mod config_editor;
 mod error;
 mod shell;
@@ -10,25 +8,26 @@ mod shell;
 pub use config_editor::ConfigEditor;
 use rp_common::{CommandMetadata, ShellMode};
 use rp_config::Config;
+use rp_log::*;
 use rp_schema::Schema;
 use shell::{ExecutableCommand, Shell};
 use std::{rc::Rc, time::Instant};
 
-fn main() {
+fn main() -> anyhow::Result<()> {
+    setup_logging()?;
+
     let binary = include_bytes!(concat!(env!("OUT_DIR"), "/schema"));
+    debug!("Schema binary: {} bytes", binary.len());
 
     let start = Instant::now();
-    let schema = Rc::new(Schema::from_binary(binary).expect("couldn't load schema from binary"));
-    println!("Schema loaded in {}ms", start.elapsed().as_millis());
-
+    let schema = Rc::new(Schema::from_binary(binary)?);
+    debug!("Schema loaded in {}ms", start.elapsed().as_millis());
     schema.print_debug_info();
-    // println!("{:#?}", schema);
 
     let start = Instant::now();
-    let config =
-        Config::from_schema(Rc::downgrade(&schema)).expect("couldn't build config from schema");
+    let config = Config::from_schema(Rc::downgrade(&schema))?;
     let mut editor = ConfigEditor::new(&config, &schema);
-    println!("Config loaded in {}ms", start.elapsed().as_millis());
+    debug!("Config loaded in {}ms", start.elapsed().as_millis());
 
     let mut shell = Shell::new();
 
@@ -38,9 +37,11 @@ fn main() {
                 println!();
                 continue;
             }
-            println!("{}", e);
+            error!("{}", e);
         }
     }
+
+    Ok(())
 }
 
 fn process(shell: &mut Shell, editor: &mut ConfigEditor) -> anyhow::Result<()> {

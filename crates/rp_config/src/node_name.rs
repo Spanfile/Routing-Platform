@@ -1,6 +1,8 @@
+use rp_log::*;
 use rp_schema::Template;
 use std::rc::Weak;
 
+#[derive(Debug)]
 pub enum NodeName {
     Literal(String),
     Multiple(Weak<Template>),
@@ -12,6 +14,7 @@ impl NodeName {
             NodeName::Literal(s) => name == s,
             NodeName::Multiple(_t) => {
                 // TODO: actually check the template
+                warn!("NodeName matching against a template not implemented yet");
                 true
             }
         }

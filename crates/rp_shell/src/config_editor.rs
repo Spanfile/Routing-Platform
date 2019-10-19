@@ -72,8 +72,8 @@ impl<'a> ConfigEditor<'a> {
             None => self.config.get_available_node_names(),
         } {
             if node_name.matches(&name) {
-                match &matching_name {
-                    Some(existing_match) => match existing_match {
+                if let Some(existing_match) = &matching_name {
+                    match existing_match {
                         NodeName::Literal(_n) => {
                             if let NodeName::Literal(_n) = node_name {
                                 return Err(
@@ -88,8 +88,9 @@ impl<'a> ConfigEditor<'a> {
                                 );
                             }
                         }
-                    },
-                    _ => matching_name = Some(node_name),
+                    }
+                } else {
+                    matching_name = Some(node_name)
                 }
             }
         }
@@ -141,7 +142,6 @@ impl<'a> ConfigEditor<'a> {
 
     pub fn set_property_value(&self, property: &str, value: &str) -> anyhow::Result<()> {
         let property = self.get_property(property)?;
-
         Ok(property.set(value, self.schema)?)
     }
 
