@@ -14,17 +14,15 @@ pub struct RegexTemplate {
 }
 
 impl RegexTemplate {
-    pub fn serialise_regex(&self) -> error::Result<Vec<u8>> {
+    pub fn serialise_regex(&self) -> anyhow::Result<Vec<u8>> {
         self.compile_regex();
         let bytes = self
             .compiled_regex
             .borrow()
             .as_ref()
             .expect("compiled regex cache empty while serialising")
-            .to_u16()
-            .map_err(error::RegexAutomataError::from)?
-            .to_bytes_native_endian()
-            .map_err(error::RegexAutomataError::from)?;
+            .to_u16()?
+            .to_bytes_native_endian()?;
         Ok(bytes)
     }
 
@@ -61,7 +59,7 @@ impl Matches for RegexTemplate {
 }
 
 impl Validate for RegexTemplate {
-    fn validate(&self, _schema: &Schema) -> error::Result<()> {
+    fn validate(&self, _schema: &Schema) -> anyhow::Result<()> {
         match DenseDFA::new(&self.regex) {
             Ok(r) => {
                 *self.compiled_regex.borrow_mut() = Some(r);
@@ -70,9 +68,7 @@ impl Validate for RegexTemplate {
             Err(e) => Err(error::SchemaValidationError::Regex {
                 regex: self.regex.to_owned(),
                 description: e.description().to_string(),
-                source: None,
-            }
-            .into()),
+            })?,
         }
     }
 }

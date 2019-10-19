@@ -13,3 +13,5 @@ serde_yaml = "0.8.11"
 flate2 = { version = "1.0.12", features = ["rust_backend"], default-features = false }
 enum_dispatch = "0.1.4"
 regex-automata = "0.1.8"
+anyhow = "1.0.15"
+thiserror = "1.0.3"

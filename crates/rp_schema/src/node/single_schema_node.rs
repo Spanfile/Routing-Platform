@@ -1,7 +1,6 @@
 use super::{
     super::property::Property, NodeLocator, Schema, SchemaNode, SchemaNodeTrait, Validate,
 };
-use crate::error;
 use serde::{Deserialize, Serialize};
 use std::{collections::HashMap, rc::Rc};
 
@@ -48,7 +47,7 @@ impl SchemaNodeTrait for SingleSchemaNode {
 }
 
 impl Validate for SingleSchemaNode {
-    fn validate(&self, schema: &Schema) -> error::Result<()> {
+    fn validate(&self, schema: &Schema) -> anyhow::Result<()> {
         for property in self.properties.values() {
             property.validate(schema)?;
         }

@@ -1,3 +1,5 @@
+#![feature(backtrace)]
+
 mod bound;
 mod error;
 mod node;
@@ -34,17 +36,17 @@ pub trait Matches {
 }
 
 impl Schema {
-    pub fn to_binary_file(&self, file: &mut File) -> error::Result<()> {
+    pub fn to_binary_file(&self, file: &mut File) -> anyhow::Result<()> {
         let encoder = ZlibEncoder::new(file, Compression::best());
         Ok(serde_json::to_writer(encoder, &self).map_err(error::SerdeError::from)?)
     }
 
-    pub fn from_yaml_file(file: &File) -> error::Result<Schema> {
+    pub fn from_yaml_file(file: &File) -> anyhow::Result<Schema> {
         let reader = BufReader::new(file);
         Ok(serde_yaml::from_reader(reader).map_err(error::SerdeError::from)?)
     }
 
-    pub fn from_binary(binary: &[u8]) -> error::Result<Schema> {
+    pub fn from_binary(binary: &[u8]) -> anyhow::Result<Schema> {
         let decoder = ZlibDecoder::new(binary);
         let mut schema: Schema =
             serde_json::from_reader(decoder).map_err(error::SerdeError::from)?;
@@ -55,20 +57,20 @@ impl Schema {
 }
 
 impl Schema {
-    pub fn validate(&mut self) -> error::Result<()> {
+    pub fn validate(&mut self) -> anyhow::Result<()> {
         self.validate_templates()?;
         self.validate_nodes()?;
         Ok(())
     }
 
-    fn validate_templates(&mut self) -> error::Result<()> {
+    fn validate_templates(&mut self) -> anyhow::Result<()> {
         for template in self.templates.values() {
             template.validate(&self)?;
         }
         Ok(())
     }
 
-    fn validate_nodes(&self) -> error::Result<()> {
+    fn validate_nodes(&self) -> anyhow::Result<()> {
         for node in self.nodes.values() {
             node.validate(&self)?;
         }
@@ -78,7 +80,7 @@ impl Schema {
 }
 
 impl Schema {
-    pub fn build_regex_cache(&mut self) -> error::Result<()> {
+    pub fn build_regex_cache(&mut self) -> anyhow::Result<()> {
         self.regex_cache = HashMap::new();
 
         for (name, template) in &self.templates {
@@ -97,7 +99,7 @@ impl Schema {
         }
     }
 
-    fn load_regexes_from_cache(&self) -> error::Result<()> {
+    fn load_regexes_from_cache(&self) -> anyhow::Result<()> {
         for (name, template) in &self.templates {
             template.load_regex_from_cache(self.regex_cache.get(name));
         }

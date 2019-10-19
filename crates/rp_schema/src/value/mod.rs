@@ -1,7 +1,6 @@
 pub mod range;
 
 use super::query::Query;
-use crate::error;
 use range::Range;
 use rp_common::Context;
 use serde::{Deserialize, Serialize};
@@ -25,7 +24,7 @@ pub enum DefaultValue {
 }
 
 impl DefaultValue {
-    pub fn resolve(&self, context: &Context) -> error::Result<Vec<String>> {
+    pub fn resolve(&self, context: &Context) -> anyhow::Result<Vec<String>> {
         match self {
             DefaultValue::Literal(literal) => Ok(vec![literal.to_owned()]),
             DefaultValue::Query(query) => query.run(context),

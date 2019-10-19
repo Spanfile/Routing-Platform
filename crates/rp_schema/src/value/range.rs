@@ -25,7 +25,7 @@ impl Matches for Range {
 }
 
 impl Validate for Range {
-    fn validate(&self, _schema: &Schema) -> error::Result<()> {
+    fn validate(&self, _schema: &Schema) -> anyhow::Result<()> {
         match self.lower {
             Bound::Inclusive(lower_v) => match self.upper {
                 Bound::Inclusive(upper_v) => {
@@ -33,9 +33,7 @@ impl Validate for Range {
                         Err(error::SchemaValidationError::Range {
                             lower: self.lower,
                             upper: self.upper,
-                            source: None,
-                        }
-                        .into())
+                        })?
                     } else {
                         Ok(())
                     }
@@ -45,9 +43,7 @@ impl Validate for Range {
                         Err(error::SchemaValidationError::Range {
                             lower: self.lower,
                             upper: self.upper,
-                            source: None,
-                        }
-                        .into())
+                        })?
                     } else {
                         Ok(())
                     }
@@ -59,9 +55,7 @@ impl Validate for Range {
                         Err(error::SchemaValidationError::Range {
                             lower: self.lower,
                             upper: self.upper,
-                            source: None,
-                        }
-                        .into())
+                        })?
                     } else {
                         Ok(())
                     }
@@ -71,9 +65,7 @@ impl Validate for Range {
                         Err(error::SchemaValidationError::Range {
                             lower: self.lower,
                             upper: self.upper,
-                            source: None,
-                        }
-                        .into())
+                        })?
                     } else {
                         Ok(())
                     }
