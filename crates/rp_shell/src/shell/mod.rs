@@ -5,6 +5,7 @@ mod history;
 use crate::error;
 pub use commands::{Command, ExecutableCommand};
 use history::HistoryEntry;
+use rp_common::ShellMode;
 use std::io::{self, Stdout, Write};
 use termion::{
     self, clear, cursor,
@@ -21,12 +22,6 @@ pub struct Shell {
     stdout: RawTerminal<Stdout>,
     history: Vec<HistoryEntry>,
     history_index: Option<usize>,
-}
-
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub enum ShellMode {
-    Operational,
-    Configuration,
 }
 
 impl Shell {

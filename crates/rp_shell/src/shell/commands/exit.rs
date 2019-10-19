@@ -1,6 +1,9 @@
-use super::{ExecutableCommand, Shell, ShellMode};
+use super::{ExecutableCommand, Shell};
 use crate::ConfigEditor;
+use command_metadata::command;
+use rp_common::{CommandMetadata, ShellMode};
 
+#[command(alias = "quit")]
 #[derive(Debug)]
 pub struct Exit;
 
@@ -13,13 +16,5 @@ impl ExecutableCommand for Exit {
     ) -> anyhow::Result<()> {
         shell.exit_mode();
         Ok(())
-    }
-
-    fn aliases(&self) -> Vec<&str> {
-        vec!["configure"]
-    }
-
-    fn required_shell_mode(&self) -> Option<ShellMode> {
-        None
     }
 }

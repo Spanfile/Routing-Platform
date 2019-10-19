@@ -1,6 +1,9 @@
-use super::{ExecutableCommand, Shell, ShellMode};
+use super::{ExecutableCommand, Shell};
 use crate::{error, ConfigEditor};
+use command_metadata::command;
+use rp_common::{CommandMetadata, ShellMode};
 
+#[command]
 #[derive(Debug)]
 pub struct History;
 
@@ -24,13 +27,5 @@ impl ExecutableCommand for History {
                 Ok(())
             }
         }
-    }
-
-    fn aliases(&self) -> Vec<&str> {
-        vec!["history"]
-    }
-
-    fn required_shell_mode(&self) -> Option<ShellMode> {
-        None
     }
 }

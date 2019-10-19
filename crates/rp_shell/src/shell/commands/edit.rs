@@ -1,18 +1,25 @@
-use super::{ExecutableCommand, Shell, ShellMode};
+use super::{ExecutableCommand, Shell};
 use crate::{error, ConfigEditor};
+use command_metadata::command;
+use rp_common::{CommandMetadata, ShellMode};
 
+#[command(required_shell_mode = "Configuration")]
 #[derive(Debug)]
 pub struct Edit;
 
+#[command(required_shell_mode = "Configuration")]
 #[derive(Debug)]
 pub struct Up;
 
+#[command(required_shell_mode = "Configuration")]
 #[derive(Debug)]
 pub struct Top;
 
+#[command(required_shell_mode = "Configuration")]
 #[derive(Debug)]
 pub struct Set;
 
+#[command(required_shell_mode = "Configuration")]
 #[derive(Debug)]
 pub struct Remove;
 
@@ -33,14 +40,6 @@ impl ExecutableCommand for Edit {
             Ok(())
         }
     }
-
-    fn aliases(&self) -> Vec<&str> {
-        vec!["edit"]
-    }
-
-    fn required_shell_mode(&self) -> Option<ShellMode> {
-        Some(ShellMode::Configuration)
-    }
 }
 
 impl ExecutableCommand for Up {
@@ -52,14 +51,6 @@ impl ExecutableCommand for Up {
     ) -> anyhow::Result<()> {
         editor.go_up()
     }
-
-    fn aliases(&self) -> Vec<&str> {
-        vec!["up"]
-    }
-
-    fn required_shell_mode(&self) -> Option<ShellMode> {
-        Some(ShellMode::Configuration)
-    }
 }
 
 impl ExecutableCommand for Top {
@@ -70,14 +61,6 @@ impl ExecutableCommand for Top {
         editor: &mut ConfigEditor,
     ) -> anyhow::Result<()> {
         editor.go_top()
-    }
-
-    fn aliases(&self) -> Vec<&str> {
-        vec!["top"]
-    }
-
-    fn required_shell_mode(&self) -> Option<ShellMode> {
-        Some(ShellMode::Configuration)
     }
 }
 
@@ -97,14 +80,6 @@ impl ExecutableCommand for Set {
 
         editor.set_property_value(property, value)
     }
-
-    fn aliases(&self) -> Vec<&str> {
-        vec!["set"]
-    }
-
-    fn required_shell_mode(&self) -> Option<ShellMode> {
-        Some(ShellMode::Configuration)
-    }
 }
 
 impl ExecutableCommand for Remove {
@@ -120,13 +95,5 @@ impl ExecutableCommand for Remove {
         let value = arguments.get(1).map(|v| v.as_str());
 
         editor.remove_property_value(property, value)
-    }
-
-    fn aliases(&self) -> Vec<&str> {
-        vec!["remove"]
-    }
-
-    fn required_shell_mode(&self) -> Option<ShellMode> {
-        Some(ShellMode::Configuration)
     }
 }

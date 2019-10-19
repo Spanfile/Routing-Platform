@@ -1,6 +1,9 @@
-use super::{ExecutableCommand, Shell, ShellMode};
+use super::{ExecutableCommand, Shell};
 use crate::ConfigEditor;
+use command_metadata::command;
+use rp_common::{CommandMetadata, ShellMode};
 
+#[command(required_shell_mode = "Configuration")]
 #[derive(Debug)]
 pub struct Show;
 
@@ -13,13 +16,5 @@ impl ExecutableCommand for Show {
     ) -> anyhow::Result<()> {
         editor.pretty_print_current_node();
         Ok(())
-    }
-
-    fn aliases(&self) -> Vec<&str> {
-        vec!["show"]
-    }
-
-    fn required_shell_mode(&self) -> Option<ShellMode> {
-        Some(ShellMode::Configuration)
     }
 }

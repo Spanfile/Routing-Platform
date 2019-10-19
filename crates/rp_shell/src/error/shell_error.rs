@@ -1,4 +1,4 @@
-use crate::shell::ShellMode;
+use rp_common::ShellMode;
 use thiserror::Error;
 
 #[derive(Debug, Error)]

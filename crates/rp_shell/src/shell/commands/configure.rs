@@ -1,6 +1,9 @@
-use super::{ExecutableCommand, Shell, ShellMode};
+use super::{ExecutableCommand, Shell};
 use crate::ConfigEditor;
+use command_metadata::command;
+use rp_common::{CommandMetadata, ShellMode};
 
+#[command(required_shell_mode = "Operational")]
 #[derive(Debug)]
 pub struct Configure;
 
@@ -12,13 +15,5 @@ impl ExecutableCommand for Configure {
         _editor: &mut ConfigEditor,
     ) -> anyhow::Result<()> {
         shell.enter_mode()
-    }
-
-    fn aliases(&self) -> Vec<&str> {
-        vec!["configure"]
-    }
-
-    fn required_shell_mode(&self) -> Option<ShellMode> {
-        Some(ShellMode::Operational)
     }
 }
