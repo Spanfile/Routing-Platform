@@ -8,3 +8,5 @@ edition = "2018"
 rp_error = { path = "../rp_error" }
 regex-automata = "0.1.8"
 lazy_static = "1.4.0"
+anyhow = "1.0.15"
+thiserror = "1.0.3"

@@ -1,4 +1,4 @@
-use crate::{error, error::FormatError};
+use crate::error::FormatError;
 use lazy_static::lazy_static;
 use regex_automata::Regex;
 use std::{collections::HashMap, rc::Rc};
@@ -31,7 +31,7 @@ impl Context {
         self.values.insert(id, value);
     }
 
-    pub fn format(&self, text: String) -> error::Result<String> {
+    pub fn format(&self, text: String) -> anyhow::Result<String> {
         lazy_static! {
             static ref FORMAT_MATCHER: Regex =
                 Regex::new(r"\{[^\{\}]*\}").expect("couldn't compile format matcher regex");
@@ -43,18 +43,12 @@ impl Context {
             // right bound being one character away from the left bound means the format
             // string is empty
             if mat.0 == mat.1 - 1 {
-                return Err(FormatError::FormatStringEmpty { source: None }.into());
+                return Err(FormatError::FormatStringEmpty)?;
             } else {
                 let match_str = &text[mat.0 + 1..mat.1 - 1];
                 match &self.get_value(match_str) {
                     Some(value) => replacements.push((mat.0, mat.1, value.to_owned())),
-                    None => {
-                        return Err(FormatError::IdNotInContext {
-                            id: match_str.to_owned(),
-                            source: None,
-                        }
-                        .into())
-                    }
+                    None => return Err(FormatError::IdNotInContext(match_str.to_owned()))?,
                 };
             }
         }

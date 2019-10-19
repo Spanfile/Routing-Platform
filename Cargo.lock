@@ -174,9 +174,11 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 name = "rp_common"
 version = "0.1.0"
 dependencies = [
+ "anyhow 1.0.15 (registry+https://github.com/rust-lang/crates.io-index)",
  "lazy_static 1.4.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "regex-automata 0.1.8 (registry+https://github.com/rust-lang/crates.io-index)",
  "rp_error 0.1.0",
+ "thiserror 1.0.3 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
 
 [[package]]
