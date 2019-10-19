@@ -29,7 +29,7 @@ fn main() -> anyhow::Result<()> {
     let mut editor = ConfigEditor::new(&config, &schema);
     debug!("Config loaded in {}ms", start.elapsed().as_millis());
 
-    let mut shell = Shell::new();
+    let mut shell = Shell::new()?;
 
     while shell.running {
         if let Err(e) = process(&mut shell, &mut editor) {

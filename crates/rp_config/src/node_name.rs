@@ -1,5 +1,5 @@
-use rp_log::*;
-use rp_schema::Template;
+use anyhow::anyhow;
+use rp_schema::{Matches, Template};
 use std::rc::Weak;
 
 #[derive(Debug)]
@@ -9,13 +9,17 @@ pub enum NodeName {
 }
 
 impl NodeName {
-    pub fn matches(&self, name: &str) -> bool {
+    pub fn matches(&self, name: &str) -> anyhow::Result<bool> {
         match &self {
-            NodeName::Literal(s) => name == s,
-            NodeName::Multiple(_t) => {
-                // TODO: actually check the template
-                warn!("NodeName matching against a template not implemented yet");
-                true
+            NodeName::Literal(s) => Ok(name == s),
+            NodeName::Multiple(t) => {
+                if let Some(template) = t.upgrade() {
+                    template.matches(name)
+                } else {
+                    Err(anyhow!(
+                        "Weak template reference in NodeName failed upgrade"
+                    ))
+                }
             }
         }
     }

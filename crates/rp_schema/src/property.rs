@@ -3,6 +3,7 @@ use super::{
     Matches, Schema, Validate,
 };
 use crate::error;
+use anyhow::anyhow;
 use serde::{Deserialize, Serialize};
 
 #[derive(Serialize, Deserialize, Debug, Default)]
@@ -61,22 +62,21 @@ impl Validate for Property {
                                     }
                                 }
                                 Value::Template(template) => {
-                                    // by now it's guaranteed the specified template exists (it has
-                                    // been validated above)
                                     let templ =
-                                        schema.templates.get(template).unwrap_or_else(|| {
-                                            panic!(
-                                                "template {} not found after existence validation",
+                                        schema.templates.get(template).ok_or_else(|| {
+                                            anyhow!(
+                                                "Template {} not found after existence validation",
                                                 template
                                             )
-                                        });
-                                    if templ.matches(def) {
+                                        })?;
+
+                                    if templ.matches(def)? {
                                         match_found = true;
                                         break;
                                     }
                                 }
                                 Value::Range(range) => {
-                                    if range.matches(def) {
+                                    if range.matches(def)? {
                                         match_found = true;
                                         break;
                                     }

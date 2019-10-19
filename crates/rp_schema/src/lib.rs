@@ -33,7 +33,7 @@ pub struct Schema {
 }
 
 pub trait Matches {
-    fn matches(&self, value: &str) -> bool;
+    fn matches(&self, value: &str) -> anyhow::Result<bool>;
 }
 
 impl Schema {
@@ -101,7 +101,7 @@ impl Schema {
 
     fn load_regexes_from_cache(&self) -> anyhow::Result<()> {
         for (name, template) in &self.templates {
-            template.load_regex_from_cache(self.regex_cache.get(name));
+            template.load_regex_from_cache(self.regex_cache.get(name))?;
         }
 
         Ok(())

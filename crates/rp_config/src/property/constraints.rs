@@ -1,4 +1,5 @@
 use crate::error::ConstraintError;
+use anyhow::anyhow;
 use rp_schema::{Matches, Property, Schema, Value};
 
 #[derive(Debug)]
@@ -26,16 +27,15 @@ impl Constraints {
                     }
                 }
                 Value::Template(template) => {
-                    let schema_template = schema
-                        .templates
-                        .get(template)
-                        .expect("value template not found in schema templates");
-                    if schema_template.matches(value) {
+                    let schema_template = schema.templates.get(template).ok_or_else(|| {
+                        anyhow!("Value template '{}' not found in schema templates", v)
+                    })?;
+                    if schema_template.matches(value)? {
                         return Ok(());
                     }
                 }
                 Value::Range(range) => {
-                    if !range.matches(value) {
+                    if !range.matches(value)? {
                         continue;
                     }
 

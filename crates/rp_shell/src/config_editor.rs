@@ -71,26 +71,13 @@ impl<'a> ConfigEditor<'a> {
             Some(n) => n.get_available_node_names(),
             None => self.config.get_available_node_names(),
         } {
-            if node_name.matches(&name) {
-                if let Some(existing_match) = &matching_name {
-                    match existing_match {
-                        NodeName::Literal(_n) => {
-                            if let NodeName::Literal(_n) = node_name {
-                                return Err(
-                                    error::ConfigEditorError::AmbiguousNodeName(name).into()
-                                );
-                            }
-                        }
-                        NodeName::Multiple(_t) => {
-                            if let NodeName::Multiple(_t) = node_name {
-                                return Err(
-                                    error::ConfigEditorError::AmbiguousNodeName(name).into()
-                                );
-                            }
-                        }
+            if node_name.matches(&name)? {
+                match (matching_name, &node_name) {
+                    (Some(NodeName::Literal(_)), NodeName::Literal(_))
+                    | (Some(NodeName::Multiple(_)), NodeName::Multiple(_)) => {
+                        return Err(error::ConfigEditorError::AmbiguousNodeName(name).into())
                     }
-                } else {
-                    matching_name = Some(node_name)
+                    _ => matching_name = Some(node_name),
                 }
             }
         }

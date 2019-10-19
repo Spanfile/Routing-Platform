@@ -8,73 +8,41 @@ pub struct Range {
 }
 
 impl Matches for Range {
-    fn matches(&self, value: &str) -> bool {
-        match value.parse::<f64>() {
-            Ok(v) => {
-                (match self.lower {
-                    Bound::Inclusive(bound) => v >= bound,
-                    Bound::Exclusive(bound) => v > bound,
-                }) && (match self.upper {
-                    Bound::Inclusive(bound) => v <= bound,
-                    Bound::Exclusive(bound) => v < bound,
-                })
-            }
-            Err(_e) => false,
-        }
+    fn matches(&self, value: &str) -> anyhow::Result<bool> {
+        value
+            .parse::<f64>()
+            .map(|v| self.lower.match_against_with(self.upper, v))
+            .or(Ok(false))
     }
 }
 
 impl Validate for Range {
     fn validate(&self, _schema: &Schema) -> anyhow::Result<()> {
-        match self.lower {
-            Bound::Inclusive(lower_v) => match self.upper {
-                Bound::Inclusive(upper_v) => {
-                    if upper_v < lower_v {
-                        Err(error::SchemaValidationError::Range {
-                            lower: self.lower,
-                            upper: self.upper,
-                        }
-                        .into())
-                    } else {
-                        Ok(())
+        match (self.lower, self.upper) {
+            (Bound::Inclusive(lower_v), Bound::Inclusive(upper_v))
+            | (Bound::Exclusive(lower_v), Bound::Inclusive(upper_v)) => {
+                if lower_v > upper_v {
+                    Err(error::SchemaValidationError::Range {
+                        lower: self.lower,
+                        upper: self.upper,
                     }
+                    .into())
+                } else {
+                    Ok(())
                 }
-                Bound::Exclusive(upper_v) => {
-                    if upper_v < lower_v {
-                        Err(error::SchemaValidationError::Range {
-                            lower: self.lower,
-                            upper: self.upper,
-                        }
-                        .into())
-                    } else {
-                        Ok(())
+            }
+            (Bound::Inclusive(lower_v), Bound::Exclusive(upper_v))
+            | (Bound::Exclusive(lower_v), Bound::Exclusive(upper_v)) => {
+                if lower_v >= upper_v {
+                    Err(error::SchemaValidationError::Range {
+                        lower: self.lower,
+                        upper: self.upper,
                     }
+                    .into())
+                } else {
+                    Ok(())
                 }
-            },
-            Bound::Exclusive(lower_v) => match self.upper {
-                Bound::Inclusive(upper_v) => {
-                    if upper_v <= lower_v {
-                        Err(error::SchemaValidationError::Range {
-                            lower: self.lower,
-                            upper: self.upper,
-                        }
-                        .into())
-                    } else {
-                        Ok(())
-                    }
-                }
-                Bound::Exclusive(upper_v) => {
-                    if upper_v <= lower_v {
-                        Err(error::SchemaValidationError::Range {
-                            lower: self.lower,
-                            upper: self.upper,
-                        }
-                        .into())
-                    } else {
-                        Ok(())
-                    }
-                }
-            },
+            }
         }
     }
 }

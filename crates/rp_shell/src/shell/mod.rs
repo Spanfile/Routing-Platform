@@ -26,21 +26,17 @@ pub struct Shell {
 }
 
 impl Shell {
-    pub fn new() -> Self {
-        let stdout = io::stdout()
-            .into_raw_mode()
-            .expect("couldn't set stdout into raw mode");
-        stdout
-            .suspend_raw_mode()
-            .expect("couldn't suspend raw mode");
-        Shell {
+    pub fn new() -> anyhow::Result<Self> {
+        let stdout = io::stdout().into_raw_mode()?;
+        stdout.suspend_raw_mode()?;
+        Ok(Shell {
             running: true,
             mode: ShellMode::Operational,
             prompt: String::from(""),
             stdout,
             history: Vec::new(),
             history_index: None,
-        }
+        })
     }
 
     pub fn process_input(&mut self) -> anyhow::Result<(Command, Vec<String>)> {

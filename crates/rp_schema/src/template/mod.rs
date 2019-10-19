@@ -13,25 +13,28 @@ pub enum Template {
     Range(Range),
 }
 
-impl Template {
-    pub fn matches(&self, value: &str) -> bool {
+impl Matches for Template {
+    fn matches(&self, value: &str) -> anyhow::Result<bool> {
         match self {
             Template::Regex(regex) => regex.matches(value),
             Template::Range(range) => range.matches(value),
         }
     }
+}
 
-    pub fn load_regex_from_cache(&self, regex_cache: Option<&Vec<u8>>) {
+impl Template {
+    pub fn load_regex_from_cache(&self, regex_cache: Option<&Vec<u8>>) -> anyhow::Result<()> {
         if let Template::Regex(regex) = self {
             match regex_cache {
                 Some(cache) => regex.deserialise_regex(cache),
                 None => {
                     debug!("Missing cached regex for template, recompiling");
-                    regex.compile_regex();
+                    regex.compile_regex()
                 }
             }
         } else {
             warn!("Tried to load regex into non-regex template");
+            Ok(())
         }
     }
 

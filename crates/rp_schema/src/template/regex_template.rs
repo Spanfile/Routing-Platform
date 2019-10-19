@@ -1,4 +1,5 @@
 use crate::{error, Matches, Schema, Validate};
+use anyhow::anyhow;
 use regex_automata::{DenseDFA, DFA};
 use serde::{
     de::{self, Deserializer, Visitor},
@@ -15,28 +16,28 @@ pub struct RegexTemplate {
 
 impl RegexTemplate {
     pub fn serialise_regex(&self) -> anyhow::Result<Vec<u8>> {
-        self.compile_regex();
+        self.compile_regex()?;
         let bytes = self
             .compiled_regex
             .borrow()
             .as_ref()
-            .expect("compiled regex cache empty while serialising")
+            .ok_or_else(|| anyhow!("Compiled regex cache empty while serialising"))?
             .to_u16()?
             .to_bytes_native_endian()?;
         Ok(bytes)
     }
 
-    pub fn compile_regex(&self) {
+    pub fn compile_regex(&self) -> anyhow::Result<()> {
         if self.compiled_regex.borrow().is_none() {
-            *self.compiled_regex.borrow_mut() =
-                Some(DenseDFA::new(&self.regex).expect("regex compilation failed"));
+            *self.compiled_regex.borrow_mut() = Some(DenseDFA::new(&self.regex)?);
         }
+        Ok(())
     }
 
-    pub fn deserialise_regex(&self, bytes: &[u8]) {
+    pub fn deserialise_regex(&self, bytes: &[u8]) -> anyhow::Result<()> {
         let dfa: DenseDFA<Vec<u16>, u16> = unsafe { DenseDFA::from_bytes(bytes).to_owned() };
-        *self.compiled_regex.borrow_mut() =
-            Some(dfa.to_sized().expect("couldn't create new usize DFA"));
+        *self.compiled_regex.borrow_mut() = Some(dfa.to_sized()?);
+        Ok(())
     }
 
     pub fn compiled_regex_size(&self) -> usize {
@@ -48,13 +49,13 @@ impl RegexTemplate {
 }
 
 impl Matches for RegexTemplate {
-    fn matches(&self, value: &str) -> bool {
-        self.compile_regex();
+    fn matches(&self, value: &str) -> anyhow::Result<bool> {
+        self.compile_regex()?;
         let regex_option = self.compiled_regex.borrow();
         let regex = regex_option
             .as_ref()
-            .expect("compiled regex cache empty while checking match");
-        regex.is_match(value.as_bytes())
+            .ok_or_else(|| anyhow!("Compiled regex cache empty while checking match"))?;
+        Ok(regex.is_match(value.as_bytes()))
     }
 }
 
