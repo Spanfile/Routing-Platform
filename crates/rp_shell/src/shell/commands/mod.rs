@@ -11,7 +11,7 @@ use edit::{Edit, Remove, Set, Top, Up};
 use enum_dispatch::enum_dispatch;
 use exit::Exit;
 use history::History;
-use rp_common::CommandMetadata;
+use rp_common::{CommandFromArgs, CommandMetadata};
 use show::Show;
 
 #[enum_dispatch]

@@ -1,68 +1,21 @@
+mod argument;
+mod helpers;
+mod impls;
+mod macro_args;
+
 extern crate proc_macro;
 
+use argument::{ArgumentType, ArgumentWrapper};
 use darling::FromMeta;
-use proc_macro2::TokenStream;
-use quote::{quote, ToTokens};
-use rp_common::ShellMode;
-use syn::{
-    parse::{Parse, ParseStream},
-    parse_macro_input, AttributeArgs, Ident, ItemEnum, ItemStruct, Result, Token, Type,
-};
+use impls::*;
+use lazy_static::lazy_static;
+use macro_args::CommandMacroArgs;
+use quote::quote;
+use std::{collections::HashMap, sync::Mutex};
+use syn::{parse_macro_input, AttributeArgs, ItemEnum, ItemStruct};
 
-#[derive(Debug, FromMeta)]
-struct CommandMacroArgs {
-    #[darling(multiple, rename = "alias")]
-    extra_aliases: Vec<String>,
-    #[darling(map = "str_to_shellmode", default)]
-    required_shell_mode: Option<ShellMode>,
-}
-
-#[derive(Debug)]
-enum ArgumentType {
-    String,
-    Integer,
-    Float,
-    Boolean,
-}
-
-#[derive(Debug)]
-enum ArgumentWrapper {
-    Vec(ArgumentType),
-    Option(ArgumentType),
-    None(ArgumentType),
-}
-
-impl Parse for ArgumentWrapper {
-    fn parse(input: ParseStream) -> Result<Self> {
-        let ident = input.parse::<Ident>()?;
-        let lookahead = input.lookahead1();
-        if lookahead.peek(Token![<]) {
-            match ident.to_string().as_str() {
-                "Vec" => Ok(ArgumentWrapper::Vec(input.parse::<ArgumentType>()?)),
-                "Option" => Ok(ArgumentWrapper::Option(input.parse::<ArgumentType>()?)),
-                _ => Err(input.error("unknown argument wrapper type")),
-            }
-        } else {
-            Ok(ArgumentWrapper::None(syn::parse::<ArgumentType>(
-                ident.to_token_stream().into(),
-            )?))
-        }
-    }
-}
-
-impl Parse for ArgumentType {
-    fn parse(input: ParseStream) -> Result<Self> {
-        let _ = input.parse::<Token![<]>();
-        let ident = input.parse::<Ident>()?;
-        let _ = input.parse::<Token![>]>();
-        match ident.to_string().as_str() {
-            "String" => Ok(ArgumentType::String),
-            "i64" => Ok(ArgumentType::Integer),
-            "f64" => Ok(ArgumentType::Float),
-            "bool" => Ok(ArgumentType::Boolean),
-            _ => Err(input.error("unknown argument type")),
-        }
-    }
+lazy_static! {
+    static ref COMMAND_ALIASES: Mutex<HashMap<String, Vec<String>>> = Mutex::new(HashMap::new());
 }
 
 #[proc_macro_attribute]
@@ -80,66 +33,17 @@ pub fn command(
         }
     };
 
-    let name = item.ident.clone();
-    let mut aliases: Vec<String> = vec![item.ident.to_string().to_ascii_lowercase()];
-    aliases.extend(args.extra_aliases);
-    let mode_tokens = shellmode_to_tokens(args.required_shell_mode);
-
-    let mut initialisers = Vec::new();
-    let mut arg_index = 0;
-
-    for field in item.fields.iter() {
-        let ident = field.ident.clone();
-
-        let getter = if let Type::Path(type_path) = &field.ty {
-            let argument = syn::parse::<ArgumentWrapper>(type_path.path.to_token_stream().into())
-                .expect("failed to parse argument wrapper");
-
-            let g = match argument {
-                ArgumentWrapper::Vec(_t) => quote!(args),
-                ArgumentWrapper::Option(_t) => quote!(args.get(#arg_index)),
-                ArgumentWrapper::None(ArgumentType::String) => quote!(args.get(#arg_index)?),
-                ArgumentWrapper::None(ArgumentType::Integer) => {
-                    quote!(args.get(#arg_index).map(|v| v.parse::<i64>)?)
-                }
-                ArgumentWrapper::None(ArgumentType::Float) => {
-                    quote!(args.get(#arg_index).map(|v| v.parse::<f64>)?)
-                }
-                ArgumentWrapper::None(ArgumentType::Boolean) => {
-                    quote!(args.get(#arg_index).map(|v| v.parse::<bool>)?)
-                }
-            };
-
-            arg_index += 1;
-            g
-        } else {
-            panic!();
-        };
-
-        initialisers.push(quote!(
-            #ident: #getter
-        ));
-    }
+    let command_from_args_impl = generate_command_from_args(&item);
+    let (command_metadata_impl, aliases) = generate_command_metadata(item.ident.clone(), args);
+    COMMAND_ALIASES
+        .lock()
+        .unwrap()
+        .insert(item.ident.to_string(), aliases);
 
     quote!(
         #item
-        impl CommandMetadata for #name {
-            fn from_args(args: Vec<String>) -> anyhow::Result<Self> {
-                Ok(Self {
-                    #(#initialisers),*
-                })
-            }
-
-            fn aliases(&self) -> Vec<&str> {
-                let mut aliases = Vec::new();
-                #(aliases.push(#aliases);)*
-                aliases
-            }
-
-            fn required_shell_mode(&self) -> Option<ShellMode> {
-                #mode_tokens
-            }
-        }
+        #command_from_args_impl
+        #command_metadata_impl
     )
     .into()
 }
@@ -151,6 +55,7 @@ pub fn command_derive(item: proc_macro::TokenStream) -> proc_macro::TokenStream 
 
     let mut alias_arms = Vec::new();
     let mut shell_mode_arms = Vec::new();
+    let mut command_creation_arms = Vec::new();
 
     for variant in item.variants.iter() {
         let ident = variant.ident.clone();
@@ -162,9 +67,29 @@ pub fn command_derive(item: proc_macro::TokenStream) -> proc_macro::TokenStream 
         shell_mode_arms.push(quote!(
             #name::#ident(cmd) => cmd.required_shell_mode(),
         ));
+
+        let ident = variant.ident.clone();
+        let aliases = COMMAND_ALIASES
+            .lock()
+            .unwrap()
+            .get(&ident.to_string())
+            .unwrap()
+            .clone();
+        command_creation_arms.push(quote!(
+            #(#aliases)|* => Ok(#ident::from_args(args)?.into()),
+        ));
     }
 
     quote!(
+        impl #name {
+            pub fn new(command_name: &str, args: Vec<String>) -> anyhow::Result<Self> {
+                match command_name {
+                    #(#command_creation_arms)*
+                    _ => Err(rp_common::error::CommandError::NotFound(command_name.to_string()).into()),
+                }
+            }
+        }
+
         impl CommandMetadata for #name {
             fn aliases(&self) -> Vec<&str> {
                 match self {
@@ -180,23 +105,4 @@ pub fn command_derive(item: proc_macro::TokenStream) -> proc_macro::TokenStream 
         }
     )
     .into()
-}
-
-fn str_to_shellmode(s: String) -> Option<ShellMode> {
-    Some(s.parse().unwrap())
-}
-
-fn shellmode_to_tokens(mode: Option<ShellMode>) -> TokenStream {
-    if let Some(mode) = mode {
-        let begin = quote!(ShellMode::);
-        let name = match mode {
-            ShellMode::Operational => quote!(Operational),
-            ShellMode::Configuration => quote!(Configuration),
-        };
-        quote!(
-            Some(#begin#name)
-        )
-    } else {
-        quote!(None)
-    }
 }

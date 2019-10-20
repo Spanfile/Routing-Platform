@@ -6,7 +6,7 @@ use crate::error;
 use anyhow::anyhow;
 pub use commands::{Command, ExecutableCommand};
 use history::HistoryEntry;
-use rp_common::{CommandMetadata, ShellMode};
+use rp_common::ShellMode;
 use std::io::{self, Stdout, Write};
 use termion::{
     self, clear, cursor,
@@ -50,15 +50,15 @@ impl Shell {
         };
 
         let input_args = input.to_owned();
-        let args: Vec<String> = input_args
-            .split_whitespace()
-            .map(|s| s.to_string())
-            .collect();
+        let args: Vec<&str> = input_args.split_whitespace().collect();
 
-        if let Some(first) = args.first() {
+        if let Some(command_name) = args.first() {
             self.history.push(HistoryEntry::new(input));
             self.history_index = None;
-            Ok(Command::from_args(args.into_iter().skip(1).collect())?)
+            Ok(Command::new(
+                command_name,
+                args.iter().skip(1).map(|s| s.to_string()).collect(),
+            )?)
         } else {
             Err(anyhow!("Split returned no args"))
         }

@@ -41,6 +41,7 @@ name = "command_metadata"
 version = "0.1.0"
 dependencies = [
  "darling 0.10.1 (registry+https://github.com/rust-lang/crates.io-index)",
+ "lazy_static 1.4.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "proc-macro2 1.0.5 (registry+https://github.com/rust-lang/crates.io-index)",
  "quote 1.0.2 (registry+https://github.com/rust-lang/crates.io-index)",
  "rp_common 0.1.0",

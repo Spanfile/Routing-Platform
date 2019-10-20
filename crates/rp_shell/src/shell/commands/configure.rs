@@ -1,7 +1,7 @@
 use super::{ExecutableCommand, Shell};
 use crate::ConfigEditor;
 use command_metadata::command;
-use rp_common::{CommandMetadata, ShellMode};
+use rp_common::{CommandFromArgs, CommandMetadata, ShellMode};
 
 #[command(required_shell_mode = "Operational")]
 #[derive(Debug)]

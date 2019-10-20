@@ -1,7 +1,7 @@
 use super::{ExecutableCommand, Shell};
-use crate::{error, ConfigEditor};
+use crate::ConfigEditor;
 use command_metadata::command;
-use rp_common::{CommandMetadata, ShellMode};
+use rp_common::{CommandFromArgs, CommandMetadata, ShellMode};
 
 #[command]
 #[derive(Debug)]
@@ -11,13 +11,13 @@ pub struct History {
 
 impl ExecutableCommand for History {
     fn run(&self, shell: &mut Shell, _editor: &mut ConfigEditor) -> anyhow::Result<()> {
-        match self.clear {
+        match &self.clear {
             Some(s) => match s.as_str() {
                 "clear" => {
                     shell.clear_history();
                     Ok(())
                 }
-                _ => Err(error::CommandError::UnexpectedArgument(s.to_owned()).into()),
+                _ => Err(rp_common::error::CommandError::UnexpectedArgument(s.to_owned()).into()),
             },
             None => {
                 shell.print_history()?;

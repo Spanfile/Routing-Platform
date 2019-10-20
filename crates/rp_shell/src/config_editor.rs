@@ -52,7 +52,7 @@ impl<'a> ConfigEditor<'a> {
         names
     }
 
-    pub fn edit_node(&mut self, name: String) -> anyhow::Result<()> {
+    pub fn edit_node(&mut self, name: &str) -> anyhow::Result<()> {
         // match match self.node_stack.last() {
         //     Some(n) => &n.subnodes,
         //     None => &self.config.nodes,
@@ -75,7 +75,9 @@ impl<'a> ConfigEditor<'a> {
                 match (matching_name, &node_name) {
                     (Some(NodeName::Literal(_)), NodeName::Literal(_))
                     | (Some(NodeName::Multiple(_)), NodeName::Multiple(_)) => {
-                        return Err(error::ConfigEditorError::AmbiguousNodeName(name).into())
+                        return Err(
+                            error::ConfigEditorError::AmbiguousNodeName(name.to_string()).into(),
+                        )
                     }
                     _ => matching_name = Some(node_name),
                 }
@@ -89,7 +91,7 @@ impl<'a> ConfigEditor<'a> {
             });
             Ok(())
         } else {
-            Err(error::ConfigEditorError::NodeNotFound(name).into())
+            Err(error::ConfigEditorError::NodeNotFound(name.to_string()).into())
         }
     }
 

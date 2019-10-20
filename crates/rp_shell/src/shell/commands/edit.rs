@@ -1,7 +1,7 @@
 use super::{ExecutableCommand, Shell};
 use crate::ConfigEditor;
 use command_metadata::command;
-use rp_common::{CommandMetadata, ShellMode};
+use rp_common::{CommandFromArgs, CommandMetadata, ShellMode};
 
 #[command(required_shell_mode = "Configuration")]
 #[derive(Debug)]
@@ -33,7 +33,7 @@ pub struct Remove {
 
 impl ExecutableCommand for Edit {
     fn run(&self, _shell: &mut Shell, editor: &mut ConfigEditor) -> anyhow::Result<()> {
-        for arg in self.nodes {
+        for arg in &self.nodes {
             editor.edit_node(arg)?;
         }
 
