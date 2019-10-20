@@ -46,7 +46,7 @@ fn main() -> anyhow::Result<()> {
 
 fn process(shell: &mut Shell, editor: &mut ConfigEditor) -> anyhow::Result<()> {
     shell.prompt = get_prompt(shell, editor);
-    let (command, args) = shell.process_input()?;
+    let command = shell.process_input()?;
 
     if let Some(required_mode) = command.required_shell_mode() {
         if required_mode != shell.mode {
@@ -58,7 +58,7 @@ fn process(shell: &mut Shell, editor: &mut ConfigEditor) -> anyhow::Result<()> {
         }
     }
 
-    command.run(args, shell, editor)
+    command.run(shell, editor)
 }
 
 fn get_prompt(shell: &Shell, editor: &ConfigEditor) -> String {

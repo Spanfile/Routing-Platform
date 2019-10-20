@@ -6,7 +6,7 @@ use crate::error;
 use anyhow::anyhow;
 pub use commands::{Command, ExecutableCommand};
 use history::HistoryEntry;
-use rp_common::ShellMode;
+use rp_common::{CommandMetadata, ShellMode};
 use std::io::{self, Stdout, Write};
 use termion::{
     self, clear, cursor,
@@ -39,7 +39,7 @@ impl Shell {
         })
     }
 
-    pub fn process_input(&mut self) -> anyhow::Result<(Command, Vec<String>)> {
+    pub fn process_input(&mut self) -> anyhow::Result<Command> {
         let input = loop {
             self.print_prompt()?;
             let input = self.read_input()?;
@@ -50,15 +50,15 @@ impl Shell {
         };
 
         let input_args = input.to_owned();
-        let args: Vec<&str> = input_args.split_whitespace().collect();
+        let args: Vec<String> = input_args
+            .split_whitespace()
+            .map(|s| s.to_string())
+            .collect();
 
         if let Some(first) = args.first() {
             self.history.push(HistoryEntry::new(input));
             self.history_index = None;
-            Ok((
-                first.parse()?,
-                args.iter().skip(1).map(|s| s.to_string()).collect(),
-            ))
+            Ok(Command::from_args(args.into_iter().skip(1).collect())?)
         } else {
             Err(anyhow!("Split returned no args"))
         }

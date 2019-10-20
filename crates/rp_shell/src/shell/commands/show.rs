@@ -8,12 +8,7 @@ use rp_common::{CommandMetadata, ShellMode};
 pub struct Show;
 
 impl ExecutableCommand for Show {
-    fn run(
-        &self,
-        _arguments: Vec<String>,
-        _shell: &mut Shell,
-        editor: &mut ConfigEditor,
-    ) -> anyhow::Result<()> {
+    fn run(&self, _shell: &mut Shell, editor: &mut ConfigEditor) -> anyhow::Result<()> {
         editor.pretty_print_current_node();
         Ok(())
     }

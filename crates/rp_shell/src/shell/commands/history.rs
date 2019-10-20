@@ -5,16 +5,13 @@ use rp_common::{CommandMetadata, ShellMode};
 
 #[command]
 #[derive(Debug)]
-pub struct History;
+pub struct History {
+    clear: Option<String>,
+}
 
 impl ExecutableCommand for History {
-    fn run(
-        &self,
-        arguments: Vec<String>,
-        shell: &mut Shell,
-        _editor: &mut ConfigEditor,
-    ) -> anyhow::Result<()> {
-        match arguments.get(0) {
+    fn run(&self, shell: &mut Shell, _editor: &mut ConfigEditor) -> anyhow::Result<()> {
+        match self.clear {
             Some(s) => match s.as_str() {
                 "clear" => {
                     shell.clear_history();

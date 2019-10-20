@@ -8,12 +8,7 @@ use rp_common::{CommandMetadata, ShellMode};
 pub struct Exit;
 
 impl ExecutableCommand for Exit {
-    fn run(
-        &self,
-        _arguments: Vec<String>,
-        shell: &mut Shell,
-        _editor: &mut ConfigEditor,
-    ) -> anyhow::Result<()> {
+    fn run(&self, shell: &mut Shell, _editor: &mut ConfigEditor) -> anyhow::Result<()> {
         shell.exit_mode();
         Ok(())
     }
