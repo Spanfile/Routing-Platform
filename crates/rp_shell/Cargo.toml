@@ -11,11 +11,11 @@ rp_config = { path = "../rp_config" }
 rp_common = { path = "../rp_common" }
 rp_log = { path = "../rp_log" }
 command_metadata = { path = "../command_metadata" }
-enum_dispatch = "0.1.4"
-termion = "1.5.3"
-chrono = "0.4.9"
-anyhow = "1.0.15"
-thiserror = "1.0.3"
+enum_dispatch = "0.2"
+termion = "1.5"
+chrono = "0.4"
+anyhow = "1.0"
+thiserror = "1.0"
 
 [build-dependencies]
 rp_schema = { path = "../rp_schema" }

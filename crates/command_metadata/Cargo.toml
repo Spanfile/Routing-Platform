@@ -9,8 +9,8 @@ proc-macro = true
 
 [dependencies]
 rp_common = { path = "../rp_common" }
-syn = { version = "1.0.5", features = ["full"] }
+syn = { version = "1.0.7", features = ["full"] }
 quote = "1.0.2"
-proc-macro2 = "1.0.5"
-darling = "0.10.1"
+proc-macro2 = "1.0.6"
+darling = "0.10.2"
 lazy_static = "1.4.0"
