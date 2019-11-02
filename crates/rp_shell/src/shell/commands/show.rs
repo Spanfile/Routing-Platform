@@ -10,6 +10,7 @@ pub struct Show {
     args: Vec<String>,
 }
 
+#[strum(serialize_all = "lowercase")]
 #[derive(Debug, EnumString, EnumVariantNames)]
 enum ShowArgument {
     Configuration,
@@ -21,7 +22,10 @@ impl ExecutableCommand for Show {
         match shell.mode {
             ShellMode::Operational => match self.args.first() {
                 Some(a) => match a.parse()? {
-                    ShowArgument::Configuration => Ok(()),
+                    ShowArgument::Configuration => {
+                        editor.pretty_print_config();
+                        Ok(())
+                    }
                     ShowArgument::Schema => Ok(()),
                 },
                 None => Err(rp_common::error::CommandError::missing_argument(
