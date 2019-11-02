@@ -80,6 +80,7 @@ pub fn generate_command_from_args(item: &ItemStruct) -> TokenStream {
         impl CommandFromArgs for #name {
             fn from_args(mut args: Vec<String>) -> anyhow::Result<Self> {
                 rp_log::debug!("Command: {}{:?}", #name_str, args);
+                // TODO: check for proper amount of arguments
                 Ok(Self {
                     #(#initialisers),*
                 })

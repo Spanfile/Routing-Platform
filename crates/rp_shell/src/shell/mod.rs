@@ -35,7 +35,7 @@ impl Shell {
             prompt: String::from(""),
             stdout,
             history: Vec::new(),
-            history_index: None,
+            history_index: Some(0),
         })
     }
 
@@ -169,7 +169,11 @@ impl Shell {
                             }
                         };
 
-                        buffer = self.history.get(index).unwrap().command.chars().collect();
+                        buffer = if let Some(entry) = self.history.get(index) {
+                            entry.command.chars().collect()
+                        } else {
+                            continue;
+                        };
 
                         self.write(format_args!(
                             "{}{}",
@@ -188,6 +192,7 @@ impl Shell {
                         let index = match self.history_index {
                             Some(i) => {
                                 if i == self.history.len() - 1 {
+                                    // TODO: fix overflow
                                     self.history_index = None;
                                 } else {
                                     self.history_index = Some(i + 1);
@@ -204,7 +209,11 @@ impl Shell {
                         ))?;
 
                         if let Some(i) = index {
-                            buffer = self.history.get(i).unwrap().command.chars().collect();
+                            buffer = if let Some(entry) = self.history.get(i) {
+                                entry.command.chars().collect()
+                            } else {
+                                continue;
+                            };
 
                             for b in buffer.iter() {
                                 self.write(format_args!("{}", b))?;
