@@ -29,7 +29,7 @@ impl ExecutableCommand for Show {
                     ShowArgument::Schema => Ok(()),
                 },
                 None => Err(rp_common::error::CommandError::missing_argument(
-                    "show",
+                    "item",
                     rp_common::error::ExpectedValue::from_enum::<ShowArgument>(),
                 )),
             },
@@ -38,7 +38,7 @@ impl ExecutableCommand for Show {
     }
 }
 
-fn traverse(editor: &mut ConfigEditor, nodes: &Vec<String>) -> anyhow::Result<()> {
+fn traverse(editor: &mut ConfigEditor, nodes: &[String]) -> anyhow::Result<()> {
     if nodes.is_empty() {
         editor.pretty_print_current_node();
     } else {
@@ -47,7 +47,7 @@ fn traverse(editor: &mut ConfigEditor, nodes: &Vec<String>) -> anyhow::Result<()
                 .first()
                 .expect("no first node after checking emptyness"),
         )?;
-        traverse(editor, &nodes.iter().skip(1).cloned().collect())?;
+        traverse(editor, &nodes[1..])?;
         editor.go_up()?;
     }
     Ok(())
