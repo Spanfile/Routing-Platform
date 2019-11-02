@@ -1,4 +1,7 @@
 # Routing-Platform
+
+[![Build Status](https://api.travis-ci.org/Spanfile/Routing-Platform.svg?branch=master)](https://travis-ci.org/Spanfile/Routing-Platform)
+
 A software suite to configure and control a Linux-based router appliance. Built with Rust.
 
 ## Features
