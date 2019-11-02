@@ -35,7 +35,7 @@ impl Shell {
             prompt: String::from(""),
             stdout,
             history: Vec::new(),
-            history_index: Some(0),
+            history_index: None,
         })
     }
 
@@ -153,27 +153,46 @@ impl Shell {
                     }
                     Key::Up => {
                         let (cursor_x, cursor_y) = self.cursor_pos()?;
-                        let index = match self.history_index {
+                        if let Some(new_index) = match self.history_index {
                             Some(i) => {
                                 if i > 0 {
                                     self.history_index = Some(i - 1);
-                                    i - 1
+                                    Some(i - 1)
                                 } else {
-                                    i
+                                    Some(i)
                                 }
                             }
                             None => {
-                                let i = self.history.len() - 1;
-                                self.history_index = Some(i);
-                                i
+                                if !self.history.is_empty() {
+                                    let i = self.history.len() - 1;
+                                    self.history_index = Some(i);
+                                    Some(i)
+                                } else {
+                                    None
+                                }
                             }
-                        };
+                        } {
+                            buffer = if let Some(entry) = self.history.get(new_index) {
+                                entry.command.chars().collect()
+                            } else {
+                                continue;
+                            };
 
-                        buffer = if let Some(entry) = self.history.get(index) {
-                            entry.command.chars().collect()
-                        } else {
-                            continue;
-                        };
+                            self.write(format_args!(
+                                "{}{}",
+                                cursor::Goto(cursor_x - cursor_location as u16, cursor_y),
+                                clear::UntilNewline
+                            ))?;
+
+                            for b in buffer.iter() {
+                                self.write(format_args!("{}", b))?;
+                            }
+
+                            cursor_location = buffer.len();
+                        }
+                    }
+                    Key::Down => {
+                        let (cursor_x, cursor_y) = self.cursor_pos()?;
 
                         self.write(format_args!(
                             "{}{}",
@@ -181,18 +200,9 @@ impl Shell {
                             clear::UntilNewline
                         ))?;
 
-                        for b in buffer.iter() {
-                            self.write(format_args!("{}", b))?;
-                        }
-
-                        cursor_location = buffer.len();
-                    }
-                    Key::Down => {
-                        let (cursor_x, cursor_y) = self.cursor_pos()?;
-                        let index = match self.history_index {
+                        if let Some(new_index) = match self.history_index {
                             Some(i) => {
                                 if i == self.history.len() - 1 {
-                                    // TODO: fix overflow
                                     self.history_index = None;
                                 } else {
                                     self.history_index = Some(i + 1);
@@ -200,26 +210,18 @@ impl Shell {
                                 self.history_index
                             }
                             None => None,
-                        };
-
-                        self.write(format_args!(
-                            "{}{}",
-                            cursor::Goto(cursor_x - cursor_location as u16, cursor_y),
-                            clear::UntilNewline
-                        ))?;
-
-                        if let Some(i) = index {
-                            buffer = if let Some(entry) = self.history.get(i) {
+                        } {
+                            buffer = if let Some(entry) = self.history.get(new_index) {
                                 entry.command.chars().collect()
                             } else {
                                 continue;
                             };
-
-                            for b in buffer.iter() {
-                                self.write(format_args!("{}", b))?;
-                            }
                         } else {
                             buffer.clear();
+                        }
+
+                        for b in buffer.iter() {
+                            self.write(format_args!("{}", b))?;
                         }
 
                         cursor_location = buffer.len();
