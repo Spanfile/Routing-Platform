@@ -2,7 +2,7 @@ use super::{ExecutableCommand, Shell};
 use crate::ConfigEditor;
 use command_metadata::command;
 use rp_common::{CommandFromArgs, CommandMetadata, ShellMode};
-use strum::{EnumVariantNames, VariantNames};
+use strum::{EnumString, EnumVariantNames, VariantNames};
 
 #[command]
 #[derive(Debug)]
@@ -10,7 +10,7 @@ pub struct Show {
     args: Vec<String>,
 }
 
-#[derive(Debug, EnumVariantNames)]
+#[derive(Debug, EnumString, EnumVariantNames)]
 enum ShowArgument {
     Configuration,
     Schema,
@@ -20,7 +20,10 @@ impl ExecutableCommand for Show {
     fn run(&self, shell: &mut Shell, editor: &mut ConfigEditor) -> anyhow::Result<()> {
         match shell.mode {
             ShellMode::Operational => match self.args.first() {
-                Some(_) => Ok(()),
+                Some(a) => match a.parse()? {
+                    ShowArgument::Configuration => Ok(()),
+                    ShowArgument::Schema => Ok(()),
+                },
                 None => Err(rp_common::error::CommandError::missing_argument(
                     "show",
                     rp_common::error::ExpectedValue::from_enum::<ShowArgument>(),

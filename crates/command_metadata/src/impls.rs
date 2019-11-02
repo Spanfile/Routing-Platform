@@ -1,4 +1,4 @@
-use super::{helpers::*, ArgumentType, ArgumentWrapper, CommandMacroArgs};
+use super::{helpers::*, ArgumentWrapper, CommandMacroArgs};
 use proc_macro2::TokenStream;
 use quote::{quote, ToTokens};
 use syn::{Ident, ItemStruct, Type};
@@ -34,34 +34,37 @@ pub fn generate_command_from_args(item: &ItemStruct) -> TokenStream {
     let mut initialisers = Vec::new();
 
     for field in item.fields.iter() {
-        let ident_str = field.ident.clone().unwrap().to_string();
+        let field_name = field.ident.clone().unwrap().to_string();
 
         let getter = if let Type::Path(type_path) = &field.ty {
             let argument = syn::parse::<ArgumentWrapper>(type_path.path.to_token_stream().into())
                 .expect("failed to parse argument wrapper");
 
             match argument {
-                ArgumentWrapper::Vec(_t) => quote!(args),
-                ArgumentWrapper::Option(_t) => quote!(if args.len() > 0 {
-                    Some(args.remove(0))
-                } else {
-                    None
+                ArgumentWrapper::Vec(argument_type) => {
+                    let argument_ident = syn::parse_str::<Ident>(argument_type.as_ref())
+                        .expect("failed to parse argument type identifier");
+
+                    quote!({
+                        args.iter().map(|v| v.parse::<#argument_ident>()).collect::<Result<Vec<#argument_ident>, _>>()?
+                    })
                 }
-                .map(|v| v.to_string())),
-                ArgumentWrapper::None(ArgumentType::String) => quote!(if args.len() > 0 { Some(args
-                        .remove(0)) } else { None }
-                        .ok_or_else(|| {
-                            anyhow::Error::from(rp_common::error::CommandError::missing_argument(#ident_str, ExpectedValue::Literal(#ident_str)))
-                        })?),
-                ArgumentWrapper::None(ArgumentType::Integer) => {
-                    quote!(if args.len() > 0 { Some(args
-                        .remove(0)) } else { None }.map(|v| v.parse::<i64>)?)
+                ArgumentWrapper::Option(argument_type) => {
+                    let argument_ident = syn::parse_str::<Ident>(argument_type.as_ref())
+                        .expect("failed to parse argument type identifier");
+
+                    quote!(if args.len() > 0 {
+                        Some(args.remove(0).parse::<#argument_ident>()?)
+                    } else {
+                        None
+                    })
                 }
-                ArgumentWrapper::None(ArgumentType::Float) => quote!(if args.len() > 0 { Some(args
-                        .remove(0)) } else { None }.map(|v| v.parse::<f64>)?),
-                ArgumentWrapper::None(ArgumentType::Boolean) => {
-                    quote!(if args.len() > 0 { Some(args
-                        .remove(0)) } else { None }.map(|v| v.parse::<bool>)?)
+                ArgumentWrapper::None(argument_type) => {
+                    let argument_ident = syn::parse_str::<Ident>(argument_type.as_ref())
+                        .expect("failed to parse argument type identifier");
+
+                    quote!(if args.len() > 0 { Some(args.remove(0).parse::<#argument_ident>()?) } else { None }
+                        .ok_or_else(|| { rp_common::error::CommandError::missing_argument(#field_name, ExpectedValue::Literal(#argument_type)) })?)
                 }
             }
         } else {

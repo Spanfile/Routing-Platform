@@ -7,7 +7,7 @@ use strum::{EnumString, EnumVariantNames, VariantNames};
 #[command]
 #[derive(Debug)]
 pub struct History {
-    clear: Option<String>,
+    clear: Option<HistoryArgs>,
 }
 
 #[strum(serialize_all = "lowercase")]
@@ -20,7 +20,7 @@ impl ExecutableCommand for History {
     fn run(&self, shell: &mut Shell, _editor: &mut ConfigEditor) -> anyhow::Result<()> {
         match &self.clear {
             Some(s) => {
-                match s.parse()? {
+                match s {
                     HistoryArgs::Clear => shell.clear_history(),
                 }
                 Ok(())

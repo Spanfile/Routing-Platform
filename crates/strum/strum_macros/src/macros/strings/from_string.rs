@@ -1,8 +1,7 @@
 use proc_macro2::TokenStream;
 use syn;
 
-use crate::helpers::case_style::CaseStyle;
-use crate::helpers::{extract_meta, CaseStyleHelpers, MetaIteratorHelpers};
+use crate::helpers::{case_style::CaseStyle, extract_meta, CaseStyleHelpers, MetaIteratorHelpers};
 
 pub fn from_string_inner(ast: &syn::DeriveInput) -> TokenStream {
     let name = &ast.ident;
@@ -63,7 +62,7 @@ pub fn from_string_inner(ast: &syn::DeriveInput) -> TokenStream {
         }
 
         // If we don't have any custom variants, add the default serialized name.
-        if attrs.len() == 0 {
+        if attrs.is_empty() {
             attrs.push(ident.convert_case(case_style));
         }
 

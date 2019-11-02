@@ -5,7 +5,7 @@ mod macro_args;
 
 extern crate proc_macro;
 
-use argument::{ArgumentType, ArgumentWrapper};
+use argument::ArgumentWrapper;
 use darling::FromMeta;
 use impls::*;
 use lazy_static::lazy_static;
