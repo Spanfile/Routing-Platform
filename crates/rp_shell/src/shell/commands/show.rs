@@ -2,16 +2,32 @@ use super::{ExecutableCommand, Shell};
 use crate::ConfigEditor;
 use command_metadata::command;
 use rp_common::{CommandFromArgs, CommandMetadata, ShellMode};
+use strum::{EnumStr, EnumVariantNames};
 
-#[command(required_shell_mode = "Configuration")]
+#[command]
 #[derive(Debug)]
 pub struct Show {
-    nodes: Vec<String>,
+    args: Vec<String>,
+}
+
+#[derive(Debug, EnumStr, EnumVariantNames)]
+enum ShowArgument {
+    Configuration,
+    Schema,
 }
 
 impl ExecutableCommand for Show {
-    fn run(&self, _shell: &mut Shell, editor: &mut ConfigEditor) -> anyhow::Result<()> {
-        traverse(editor, &self.nodes)
+    fn run(&self, shell: &mut Shell, editor: &mut ConfigEditor) -> anyhow::Result<()> {
+        match shell.mode {
+            ShellMode::Operational => match self.args.first() {
+                Some(_) => Ok(()),
+                None => Err(rp_common::error::CommandError::missing_argument(
+                    String::from("show"),
+                    rp_common::error::ExpectedValue::OneOf(vec!["configuration", "schema"]),
+                )),
+            },
+            ShellMode::Configuration => traverse(editor, &self.args),
+        }
     }
 }
 

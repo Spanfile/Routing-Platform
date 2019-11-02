@@ -16,6 +16,8 @@ termion = "1.5"
 chrono = "0.4"
 anyhow = "1.0"
 thiserror = "1.0"
+strum = "0.16.0"
+strum_macros = "0.16.0"
 
 [build-dependencies]
 rp_schema = { path = "../rp_schema" }
