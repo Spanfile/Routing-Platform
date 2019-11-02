@@ -6,7 +6,7 @@ use rp_common::{error::ExpectedValue, CommandFromArgs, CommandMetadata, ShellMod
 #[command(required_shell_mode = "Configuration")]
 #[derive(Debug)]
 pub struct Edit {
-    nodes: Vec<String>,
+    nodes: Vec<&str>,
 }
 
 #[command(required_shell_mode = "Configuration")]
