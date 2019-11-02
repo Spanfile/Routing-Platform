@@ -1,4 +1,14 @@
 [workspace]
 members = [
-    "crates/*"
+    "crates/*",
+    "crates/strum/strum",
+    "crates/strum/strum_macros"
 ]
+
+exclude = [
+    "crates/strum"
+]
+
+[patch.crates-io]
+strum = { path = "crates/strum/strum" }
+strum_macros = { path = "crates/strum/strum_macros" }

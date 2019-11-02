@@ -2,7 +2,7 @@ use super::{ExecutableCommand, Shell};
 use crate::ConfigEditor;
 use command_metadata::command;
 use rp_common::{CommandFromArgs, CommandMetadata, ShellMode};
-use strum::{EnumStr, EnumVariantNames};
+use strum::{EnumVariantNames, VariantNames};
 
 #[command]
 #[derive(Debug)]
@@ -10,7 +10,7 @@ pub struct Show {
     args: Vec<String>,
 }
 
-#[derive(Debug, EnumStr, EnumVariantNames)]
+#[derive(Debug, EnumVariantNames)]
 enum ShowArgument {
     Configuration,
     Schema,
@@ -22,8 +22,8 @@ impl ExecutableCommand for Show {
             ShellMode::Operational => match self.args.first() {
                 Some(_) => Ok(()),
                 None => Err(rp_common::error::CommandError::missing_argument(
-                    String::from("show"),
-                    rp_common::error::ExpectedValue::OneOf(vec!["configuration", "schema"]),
+                    "show",
+                    rp_common::error::ExpectedValue::from_enum::<ShowArgument>(),
                 )),
             },
             ShellMode::Configuration => traverse(editor, &self.args),

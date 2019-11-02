@@ -11,8 +11,9 @@
 //!
 //! # Including Strum in Your Project
 //!
-//! Import strum and strum_macros into your project by adding the following lines to your
-//! Cargo.toml. Strum_macros contains the macros needed to derive all the traits in Strum.
+//! Import strum and strum_macros into your project by adding the following
+//! lines to your Cargo.toml. Strum_macros contains the macros needed to derive
+//! all the traits in Strum.
 //!
 //! ```toml
 //! [dependencies]
@@ -40,12 +41,13 @@
 //! | [Display] | Converts enum variants to strings |
 //! | [AsRefStr] | Converts enum variants to `&'static str` |
 //! | [IntoStaticStr] | Implements `From<MyEnum> for &'static str` on an enum |
-//! | [EnumVariantNames] | Adds a `variants` method returning an array of discriminant names |
-//! | [EnumIter] | Creates a new type that iterates of the variants of an enum. |
-//! | [EnumProperty] | Add custom properties to enum variants. |
-//! | [EnumMessage] | Add a verbose message to an enum variant. |
-//! | [EnumDiscriminants] | Generate a new type with only the discriminant names. |
-//! | [EnumCount] | Add a constant `usize` equal to the number of variants. |
+//! | [EnumVariantNames] | Adds a `variants` method returning an array of
+//! discriminant names | | [EnumIter] | Creates a new type that iterates of the
+//! variants of an enum. | | [EnumProperty] | Add custom properties to enum
+//! variants. | | [EnumMessage] | Add a verbose message to an enum variant. |
+//! | [EnumDiscriminants] | Generate a new type with only the discriminant
+//! names. | | [EnumCount] | Add a constant `usize` equal to the number of
+//! variants. |
 //!
 //! [EnumString]: https://github.com/Peternator7/strum/wiki/Derive-EnumString
 //! [Display]: https://github.com/Peternator7/strum/wiki/Derive-Display
@@ -160,11 +162,11 @@ pub trait EnumMessage {
     fn get_serializations(&self) -> &[&str];
 }
 
-/// EnumProperty is a trait that makes it possible to store additional information
-/// with enum variants. This trait is designed to be used with the macro of the same
-/// name in the `strum_macros` crate. Currently, the only string literals are supported
-/// in attributes, the other methods will be implemented as additional attribute types
-/// become stabilized.
+/// EnumProperty is a trait that makes it possible to store additional
+/// information with enum variants. This trait is designed to be used with the
+/// macro of the same name in the `strum_macros` crate. Currently, the only
+/// string literals are supported in attributes, the other methods will be
+/// implemented as additional attribute types become stabilized.
 ///
 /// # Example
 ///
@@ -204,7 +206,8 @@ pub trait EnumProperty {
 
 /// A cheap reference-to-reference conversion. Used to convert a value to a
 /// reference value with `'static` lifetime within generic code.
-/// #[deprecated(since="0.13.0", note="please use `#[derive(IntoStaticStr)]` instead")]
+/// #[deprecated(since="0.13.0", note="please use `#[derive(IntoStaticStr)]`
+/// instead")]
 pub trait AsStaticRef<T>
 where
     T: ?Sized,
@@ -212,10 +215,15 @@ where
     fn as_static(&self) -> &'static T;
 }
 
-/// A trait for capturing the number of variants in Enum. This trait can be autoderived by
-/// `strum_macros`.
+/// A trait for capturing the number of variants in Enum. This trait can be
+/// autoderived by `strum_macros`.
 pub trait EnumCount {
     fn count() -> usize;
+}
+
+/// A trait for retrieving the names of each variant in Enum
+pub trait VariantNames {
+    fn variants() -> &'static [&'static str];
 }
 
 #[cfg(feature = "derive")]

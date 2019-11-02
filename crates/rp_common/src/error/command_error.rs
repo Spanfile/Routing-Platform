@@ -1,5 +1,5 @@
 use std::fmt;
-use strum_macros::EnumVariantNames;
+use strum::VariantNames;
 use thiserror::Error;
 
 #[derive(Debug, Error)]
@@ -7,15 +7,15 @@ pub enum CommandError {
     #[error("No such command: '{0}'")]
     NotFound(String),
     #[error("Missing argument: {0}, expected {1}")]
-    MissingArgument(String, ExpectedValue),
+    MissingArgument(&'static str, ExpectedValue),
     #[error("Unexpected argument: {0}, expected {1}")]
     UnexpectedArgument(String, ExpectedValue),
 }
 
 #[derive(Debug)]
 pub enum ExpectedValue {
-    Literal(String),
-    OneOf(Vec<String>),
+    Literal(&'static str),
+    OneOf(&'static [&'static str]),
 }
 
 impl CommandError {
@@ -23,17 +23,19 @@ impl CommandError {
         Self::NotFound(command).into()
     }
 
-    pub fn missing_argument(command: String, expected: ExpectedValue) -> anyhow::Error {
-        Self::MissingArgument(command, expected).into()
+    pub fn missing_argument(argument: &'static str, expected: ExpectedValue) -> anyhow::Error {
+        Self::MissingArgument(argument, expected).into()
     }
 
-    pub fn unexpected_argument(command: String, expected: ExpectedValue) -> anyhow::Error {
-        Self::UnexpectedArgument(command, expected).into()
+    pub fn unexpected_argument(argument: String, expected: ExpectedValue) -> anyhow::Error {
+        Self::UnexpectedArgument(argument, expected).into()
     }
 }
 
 impl ExpectedValue {
-    pub fn from_enum<T>() -> ExpectedValue {}
+    pub fn from_enum<T: VariantNames>() -> ExpectedValue {
+        Self::OneOf(T::variants())
+    }
 }
 
 impl fmt::Display for ExpectedValue {

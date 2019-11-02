@@ -51,7 +51,7 @@ pub fn generate_command_from_args(item: &ItemStruct) -> TokenStream {
                 ArgumentWrapper::None(ArgumentType::String) => quote!(if args.len() > 0 { Some(args
                         .remove(0)) } else { None }
                         .ok_or_else(|| {
-                            anyhow::Error::from(rp_common::error::CommandError::MissingArgument(String::from(#ident_str)))
+                            anyhow::Error::from(rp_common::error::CommandError::missing_argument(#ident_str, ExpectedValue::Literal(#ident_str)))
                         })?),
                 ArgumentWrapper::None(ArgumentType::Integer) => {
                     quote!(if args.len() > 0 { Some(args
