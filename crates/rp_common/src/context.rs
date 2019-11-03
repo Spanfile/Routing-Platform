@@ -79,3 +79,35 @@ impl Context {
         Ok(text)
     }
 }
+
+#[test]
+fn get_set_value() {
+    let mut context = Context::new(None);
+    context.set_value(String::from("id"), String::from("value"));
+    let existent_value = context.get_value("id");
+    let nonexistent_value = context.get_value("nonexistent");
+
+    assert_eq!(existent_value, Some(String::from("value")));
+    assert_eq!(nonexistent_value, None);
+}
+
+#[test]
+fn format() -> anyhow::Result<()> {
+    let mut context = Context::new(None);
+    context.set_value(String::from("id"), String::from("value"));
+
+    let formatted = context.format(String::from("{id}"))?;
+    assert_eq!(formatted, "value");
+    Ok(())
+}
+
+#[test]
+fn parents() -> anyhow::Result<()> {
+    let mut parent = Context::new(None);
+    parent.set_value(String::from("id"), String::from("value"));
+    let child = Context::new(Some(Rc::new(parent)));
+
+    let formatted = child.format(String::from("{id}"))?;
+    assert_eq!(formatted, "value");
+    Ok(())
+}
