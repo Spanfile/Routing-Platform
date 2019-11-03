@@ -33,11 +33,15 @@ fn main() -> anyhow::Result<()> {
 
     while shell.running {
         if let Err(e) = process(&mut shell, &mut editor) {
-            if let Some(error::ShellError::Abort) = e.downcast_ref() {
-                println!();
-                continue;
+            match e.downcast_ref() {
+                Some(error::ShellError::Abort) => {
+                    println!();
+                }
+                Some(error::ShellError::AmbiguousCompletion { .. }) => {
+                    println!("\n{}", e);
+                }
+                _ => error!("{}", e),
             }
-            error!("{}", e);
         }
     }
 

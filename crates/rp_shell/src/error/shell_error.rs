@@ -7,4 +7,6 @@ pub enum ShellError {
     CannotEnterMode(ShellMode),
     #[error("Abort")]
     Abort,
+    #[error("{}", .0.join(" "))]
+    AmbiguousCompletion(Vec<&'static str>),
 }

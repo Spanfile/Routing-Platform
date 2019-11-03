@@ -1,7 +1,7 @@
 use crate::ShellMode;
 
 pub trait CommandMetadata {
-    fn aliases(&self) -> Vec<&str>;
+    fn aliases(&self) -> Vec<&'static str>;
     fn required_shell_mode(&self) -> Option<ShellMode>;
 }
 

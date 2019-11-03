@@ -15,7 +15,7 @@ pub fn generate_command_metadata(
     Ok((
         quote!(
             impl CommandMetadata for #name {
-                fn aliases(&self) -> Vec<&str> {
+                fn aliases(&self) -> Vec<&'static str> {
                     let mut aliases = Vec::new();
                     #(aliases.push(#aliases);)*
                     aliases

@@ -5,6 +5,7 @@ mod history;
 use crate::error;
 use anyhow::anyhow;
 pub use commands::{Command, ExecutableCommand};
+use completions::Completions;
 use history::HistoryEntry;
 use rp_common::ShellMode;
 use std::io::{self, Stdout, Write};
@@ -23,6 +24,7 @@ pub struct Shell {
     stdout: RawTerminal<Stdout>,
     history: Vec<HistoryEntry>,
     history_index: Option<usize>,
+    completions: Completions,
 }
 
 impl Shell {
@@ -36,6 +38,7 @@ impl Shell {
             stdout,
             history: Vec::new(),
             history_index: None,
+            completions: Completions::new(),
         })
     }
 
@@ -265,7 +268,24 @@ impl Shell {
                         reading = false;
                     }
                     Key::Char('\t') => {
-                        continue;
+                        let completions = self.completions.get(buffer.iter().collect())?;
+                        match completions.len() {
+                            0 => continue,
+                            1 => {
+                                let completed = completions.first().unwrap();
+                                buffer = completed.chars().collect();
+
+                                for b in buffer[cursor_location..].iter() {
+                                    self.write(format_args!("{}", b))?;
+                                }
+                            }
+                            _ => {
+                                self.suspend_raw_mode()?;
+                                return Err(
+                                    error::ShellError::AmbiguousCompletion(completions).into()
+                                );
+                            }
+                        };
                     }
                     Key::Char(c) => {
                         self.write(format_args!("{}", c))?;

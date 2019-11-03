@@ -90,10 +90,15 @@ pub fn command_derive(item: proc_macro::TokenStream) -> proc_macro::TokenStream 
                     _ => Err(rp_common::error::CommandError::not_found(String::from(command_name))),
                 }
             }
+
+            pub fn all_aliases() -> Vec<&'static str> {
+                // TODO
+                vec![]
+            }
         }
 
         impl CommandMetadata for #name {
-            fn aliases(&self) -> Vec<&str> {
+            fn aliases(&self) -> Vec<&'static str> {
                 match self {
                     #(#alias_arms)*
                 }
