@@ -37,6 +37,7 @@ pub fn command(
         generate_command_from_args(&item).expect("failed to create CommandFromArgs impl");
     let (command_metadata_impl, aliases) = generate_command_metadata(item.ident.clone(), args)
         .expect("failed to create CommandMetadata impl");
+
     COMMAND_ALIASES
         .lock()
         .unwrap()
@@ -58,6 +59,7 @@ pub fn command_derive(item: proc_macro::TokenStream) -> proc_macro::TokenStream 
     let mut alias_arms = Vec::new();
     let mut shell_mode_arms = Vec::new();
     let mut command_creation_arms = Vec::new();
+    let mut alias_names = Vec::new();
 
     for variant in item.variants.iter() {
         let ident = variant.ident.clone();
@@ -80,6 +82,10 @@ pub fn command_derive(item: proc_macro::TokenStream) -> proc_macro::TokenStream 
         command_creation_arms.push(quote!(
             #(#aliases)|* => Ok(#ident::from_args(args)?.into()),
         ));
+
+        alias_names.push(quote!(
+            #(#aliases), *
+        ));
     }
 
     quote!(
@@ -92,8 +98,7 @@ pub fn command_derive(item: proc_macro::TokenStream) -> proc_macro::TokenStream 
             }
 
             pub fn all_aliases() -> Vec<&'static str> {
-                // TODO
-                vec![]
+                vec![#(#alias_names), *]
             }
         }
 

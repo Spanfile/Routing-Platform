@@ -308,6 +308,7 @@ dependencies = [
  "chrono 0.4.9 (registry+https://github.com/rust-lang/crates.io-index)",
  "command_metadata 0.1.0",
  "enum_dispatch 0.2.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "lazy_static 1.4.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "rp_common 0.1.0",
  "rp_config 0.1.0",
  "rp_log 0.1.0",

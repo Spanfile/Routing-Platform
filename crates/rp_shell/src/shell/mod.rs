@@ -1,18 +1,22 @@
 mod commands;
 mod completions;
 mod history;
+mod key_handlers;
 
 use crate::error;
 use anyhow::anyhow;
 pub use commands::{Command, ExecutableCommand};
 use completions::Completions;
 use history::HistoryEntry;
+use key_handlers::KeyResult;
 use rp_common::ShellMode;
-use std::io::{self, Stdout, Write};
+use std::{
+    cell::RefCell,
+    io::{self, Stdout, Write},
+};
 use termion::{
-    self, clear, cursor,
+    self,
     cursor::DetectCursorPos,
-    event::Key,
     input::TermRead,
     raw::{IntoRawMode, RawTerminal},
 };
@@ -21,10 +25,12 @@ pub struct Shell {
     pub running: bool,
     pub mode: ShellMode,
     pub prompt: String,
-    stdout: RawTerminal<Stdout>,
+    stdout: RefCell<RawTerminal<Stdout>>,
     history: Vec<HistoryEntry>,
     history_index: Option<usize>,
     completions: Completions,
+    buffer: Vec<char>,
+    cursor_location: usize,
 }
 
 impl Shell {
@@ -35,10 +41,12 @@ impl Shell {
             running: true,
             mode: ShellMode::Operational,
             prompt: String::from(""),
-            stdout,
+            stdout: RefCell::new(stdout),
             history: Vec::new(),
             history_index: None,
-            completions: Completions::new(),
+            completions: Completions::new(Command::all_aliases()),
+            buffer: Vec::new(),
+            cursor_location: 0,
         })
     }
 
@@ -86,7 +94,7 @@ impl Shell {
 
     pub fn print_history(&mut self) -> anyhow::Result<()> {
         for entry in &self.history {
-            writeln!(self.stdout, "{}", entry)?;
+            self.write(format_args!("{}\n", entry))?;
         }
         Ok(())
     }
@@ -97,27 +105,27 @@ impl Shell {
 }
 
 impl Shell {
-    fn write(&mut self, args: std::fmt::Arguments) -> anyhow::Result<()> {
-        write!(self.stdout, "{}", args)?;
+    fn write(&self, args: std::fmt::Arguments) -> anyhow::Result<()> {
+        write!(self.stdout.try_borrow_mut()?, "{}", args)?;
         Ok(())
     }
 
-    fn flush(&mut self) -> anyhow::Result<()> {
-        self.stdout.lock().flush()?;
+    fn flush(&self) -> anyhow::Result<()> {
+        self.stdout.try_borrow_mut()?.lock().flush()?;
         Ok(())
     }
 
-    fn cursor_pos(&mut self) -> anyhow::Result<(u16, u16)> {
-        Ok(self.stdout.cursor_pos()?)
+    fn cursor_pos(&self) -> anyhow::Result<(u16, u16)> {
+        Ok(self.stdout.try_borrow_mut()?.cursor_pos()?)
     }
 
-    fn activate_raw_mode(&mut self) -> anyhow::Result<()> {
-        self.stdout.activate_raw_mode()?;
+    fn activate_raw_mode(&self) -> anyhow::Result<()> {
+        self.stdout.try_borrow_mut()?.activate_raw_mode()?;
         Ok(())
     }
 
-    fn suspend_raw_mode(&mut self) -> anyhow::Result<()> {
-        self.stdout.suspend_raw_mode()?;
+    fn suspend_raw_mode(&self) -> anyhow::Result<()> {
+        self.stdout.try_borrow_mut()?.suspend_raw_mode()?;
         Ok(())
     }
 
@@ -129,185 +137,17 @@ impl Shell {
 
     fn read_input(&mut self) -> anyhow::Result<String> {
         let mut stdin = io::stdin().keys();
-        let mut buffer = Vec::new();
-        let mut cursor_location: usize = 0;
         let mut reading = true;
 
         self.activate_raw_mode()?;
 
         while reading {
             if let Some(Ok(key)) = stdin.next() {
-                match key {
-                    Key::Ctrl('c') => {
-                        self.suspend_raw_mode()?;
-                        return Err(error::ShellError::Abort.into());
-                    }
-                    Key::Left => {
-                        if cursor_location > 0 {
-                            self.write(format_args!("{}", cursor::Left(1)))?;
-                            cursor_location -= 1;
-                        }
-                    }
-                    Key::Right => {
-                        if cursor_location < buffer.len() {
-                            self.write(format_args!("{}", cursor::Right(1)))?;
-                            cursor_location += 1;
-                        }
-                    }
-                    Key::Up => {
-                        let (cursor_x, cursor_y) = self.cursor_pos()?;
-                        if let Some(new_index) = match self.history_index {
-                            Some(i) => {
-                                if i > 0 {
-                                    self.history_index = Some(i - 1);
-                                    Some(i - 1)
-                                } else {
-                                    Some(i)
-                                }
-                            }
-                            None => {
-                                if !self.history.is_empty() {
-                                    let i = self.history.len() - 1;
-                                    self.history_index = Some(i);
-                                    Some(i)
-                                } else {
-                                    None
-                                }
-                            }
-                        } {
-                            buffer = if let Some(entry) = self.history.get(new_index) {
-                                entry.command.chars().collect()
-                            } else {
-                                continue;
-                            };
-
-                            self.write(format_args!(
-                                "{}{}",
-                                cursor::Goto(cursor_x - cursor_location as u16, cursor_y),
-                                clear::UntilNewline
-                            ))?;
-
-                            for b in buffer.iter() {
-                                self.write(format_args!("{}", b))?;
-                            }
-
-                            cursor_location = buffer.len();
-                        }
-                    }
-                    Key::Down => {
-                        let (cursor_x, cursor_y) = self.cursor_pos()?;
-
-                        self.write(format_args!(
-                            "{}{}",
-                            cursor::Goto(cursor_x - cursor_location as u16, cursor_y),
-                            clear::UntilNewline
-                        ))?;
-
-                        if let Some(new_index) = match self.history_index {
-                            Some(i) => {
-                                if i == self.history.len() - 1 {
-                                    self.history_index = None;
-                                } else {
-                                    self.history_index = Some(i + 1);
-                                }
-                                self.history_index
-                            }
-                            None => None,
-                        } {
-                            buffer = if let Some(entry) = self.history.get(new_index) {
-                                entry.command.chars().collect()
-                            } else {
-                                continue;
-                            };
-                        } else {
-                            buffer.clear();
-                        }
-
-                        for b in buffer.iter() {
-                            self.write(format_args!("{}", b))?;
-                        }
-
-                        cursor_location = buffer.len();
-                    }
-                    Key::Backspace => {
-                        if cursor_location > 0 {
-                            buffer.remove(cursor_location - 1);
-                            let (cursor_x, cursor_y) = self.cursor_pos()?;
-
-                            self.write(format_args!(
-                                "{}{}",
-                                cursor::Goto(cursor_x - cursor_location as u16, cursor_y),
-                                clear::UntilNewline
-                            ))?;
-
-                            for b in buffer.iter() {
-                                self.write(format_args!("{}", b))?;
-                            }
-
-                            self.write(format_args!("{}", cursor::Goto(cursor_x - 1, cursor_y)))?;
-
-                            cursor_location -= 1;
-                        }
-                    }
-                    Key::Delete => {
-                        if cursor_location < buffer.len() {
-                            buffer.remove(cursor_location);
-                            let (cursor_x, cursor_y) = self.cursor_pos()?;
-
-                            self.write(format_args!("{}", clear::UntilNewline))?;
-
-                            for b in buffer.iter() {
-                                self.write(format_args!("{}", b))?;
-                            }
-
-                            self.write(format_args!("{}", cursor::Goto(cursor_x, cursor_y)))?;
-                        }
-                    }
-                    Key::Char('\n') => {
-                        self.write(format_args!("\n\r"))?;
-                        reading = false;
-                    }
-                    Key::Char('\t') => {
-                        let completions = self.completions.get(buffer.iter().collect())?;
-                        match completions.len() {
-                            0 => continue,
-                            1 => {
-                                let completed = completions.first().unwrap();
-                                buffer = completed.chars().collect();
-
-                                for b in buffer[cursor_location..].iter() {
-                                    self.write(format_args!("{}", b))?;
-                                }
-                            }
-                            _ => {
-                                self.suspend_raw_mode()?;
-                                return Err(
-                                    error::ShellError::AmbiguousCompletion(completions).into()
-                                );
-                            }
-                        };
-                    }
-                    Key::Char(c) => {
-                        self.write(format_args!("{}", c))?;
-
-                        if cursor_location == buffer.len() {
-                            buffer.push(c);
-                        } else {
-                            buffer.insert(cursor_location, c);
-
-                            for b in buffer[cursor_location + 1..].iter() {
-                                self.write(format_args!("{}", b))?;
-                            }
-
-                            self.write(format_args!(
-                                "{}",
-                                cursor::Left((buffer.len() - cursor_location - 1) as u16)
-                            ))?;
-                        }
-
-                        cursor_location += 1;
-                    }
-                    _ => continue,
+                let result = key_handlers::get(key)?(key, self)?;
+                match result {
+                    KeyResult::Stop => reading = false,
+                    KeyResult::Skip => continue,
+                    _ => (),
                 }
 
                 self.flush()?;
@@ -315,6 +155,11 @@ impl Shell {
         }
 
         self.suspend_raw_mode()?;
-        Ok(buffer.into_iter().collect())
+
+        let result = self.buffer.iter().collect();
+        self.buffer.clear();
+        self.cursor_location = 0;
+
+        Ok(result)
     }
 }

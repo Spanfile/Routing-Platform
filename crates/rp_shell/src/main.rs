@@ -1,5 +1,4 @@
-#![feature(inner_deref)]
-#![feature(backtrace)]
+#![feature(inner_deref, backtrace, box_syntax)]
 
 mod config_editor;
 mod error;
