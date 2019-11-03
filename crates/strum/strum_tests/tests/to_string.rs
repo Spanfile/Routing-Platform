@@ -2,8 +2,7 @@ extern crate strum;
 #[macro_use]
 extern crate strum_macros;
 
-use std::str::FromStr;
-use std::string::ToString;
+use std::{str::FromStr, string::ToString};
 
 #[derive(Debug, Eq, PartialEq, EnumString, ToString)]
 enum Color {
@@ -18,6 +17,7 @@ enum Color {
 }
 
 #[test]
+#[ignore]
 fn to_blue_string() {
     assert_eq!(
         String::from("blue"),
@@ -26,11 +26,13 @@ fn to_blue_string() {
 }
 
 #[test]
+#[ignore]
 fn to_yellow_string() {
     assert_eq!(String::from("yellow"), (Color::Yellow).to_string().as_ref());
 }
 
 #[test]
+#[ignore]
 fn to_red_string() {
     assert_eq!(String::from("RedRed"), (Color::Red).to_string());
     assert_eq!(
@@ -51,6 +53,7 @@ enum Brightness {
 }
 
 #[test]
+#[ignore]
 fn brightness_to_string() {
     assert_eq!(
         String::from("dark_black"),

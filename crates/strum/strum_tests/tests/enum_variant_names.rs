@@ -5,6 +5,7 @@ extern crate structopt;
 extern crate strum;
 
 #[test]
+#[ignore]
 fn simple() {
     #[allow(dead_code)]
     #[derive(EnumVariantNames)]
@@ -18,6 +19,7 @@ fn simple() {
 }
 
 #[test]
+#[ignore]
 fn plain_kebab() {
     #[allow(dead_code)]
     #[derive(EnumVariantNames)]
@@ -36,6 +38,7 @@ fn plain_kebab() {
 }
 
 #[test]
+#[ignore]
 fn non_plain_camel() {
     #[allow(dead_code)]
     #[derive(EnumVariantNames)]
@@ -54,6 +57,7 @@ fn non_plain_camel() {
 }
 
 #[test]
+#[ignore]
 fn clap_and_structopt() {
     #[derive(Debug, EnumString, EnumVariantNames)]
     #[strum(serialize_all = "kebab_case")]

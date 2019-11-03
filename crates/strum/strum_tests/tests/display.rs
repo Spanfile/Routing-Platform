@@ -15,16 +15,19 @@ enum Color {
 }
 
 #[test]
+#[ignore]
 fn to_blue_string() {
     assert_eq!(String::from("blue"), format!("{}", Color::Blue { hue: 0 }));
 }
 
 #[test]
+#[ignore]
 fn to_yellow_string() {
     assert_eq!(String::from("yellow"), format!("{}", Color::Yellow));
 }
 
 #[test]
+#[ignore]
 fn to_red_string() {
     assert_eq!(String::from("RedRed"), format!("{}", Color::Red));
 }
@@ -41,6 +44,7 @@ enum Brightness {
 }
 
 #[test]
+#[ignore]
 fn brightness_to_string() {
     assert_eq!(
         String::from("dark_black"),

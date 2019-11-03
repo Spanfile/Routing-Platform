@@ -13,6 +13,7 @@ enum Simple {
 }
 
 #[test]
+#[ignore]
 fn simple_test() {
     let discriminants = SimpleDiscriminants::iter().collect::<Vec<_>>();
     let expected = vec![SimpleDiscriminants::Variant0, SimpleDiscriminants::Variant1];
@@ -32,6 +33,7 @@ enum WithFields {
 }
 
 #[test]
+#[ignore]
 fn fields_test() {
     let discriminants = WithFieldsDiscriminants::iter().collect::<Vec<_>>();
     let expected = vec![
@@ -58,6 +60,7 @@ enum Complicated<U: Foo, V: Bar> {
 }
 
 #[test]
+#[ignore]
 fn complicated_test() {
     let discriminants = ComplicatedDiscriminants::iter().collect::<Vec<_>>();
     let expected = vec![
@@ -69,9 +72,10 @@ fn complicated_test() {
     assert_eq!(expected, discriminants);
 }
 
-// This test exists to ensure that we do not copy across the `#[strum(default = "true")]` meta
-// attribute. If we do without deriving any `strum` derivations on the generated discriminant enum,
-// Rust will generate a compiler error saying it doesn't understand the `strum` attribute.
+// This test exists to ensure that we do not copy across the `#[strum(default =
+// "true")]` meta attribute. If we do without deriving any `strum` derivations
+// on the generated discriminant enum, Rust will generate a compiler error
+// saying it doesn't understand the `strum` attribute.
 #[allow(dead_code)]
 #[derive(Debug, EnumDiscriminants)]
 enum WithDefault {
@@ -81,6 +85,7 @@ enum WithDefault {
 }
 
 #[test]
+#[ignore]
 fn with_default_test() {
     assert!(WithDefaultDiscriminants::A != WithDefaultDiscriminants::B);
 }
@@ -94,6 +99,7 @@ enum Renamed {
 }
 
 #[test]
+#[ignore]
 fn renamed_test() {
     let discriminants = EnumBoo::iter().collect::<Vec<_>>();
     let expected = vec![EnumBoo::Variant0, EnumBoo::Variant1];
@@ -111,6 +117,7 @@ enum SplitAttributes {
 }
 
 #[test]
+#[ignore]
 fn split_attributes_test() {
     let discriminants = SplitAttributesBoo::iter().collect::<Vec<_>>();
     let expected = vec![SplitAttributesBoo::Variant0, SplitAttributesBoo::Variant1];
@@ -132,6 +139,7 @@ enum PassThrough {
 }
 
 #[test]
+#[ignore]
 fn arbitrary_attributes_pass_through() {
     use std::str::FromStr;
 
@@ -153,12 +161,14 @@ enum EnumInto {
 }
 
 #[test]
+#[ignore]
 fn from_test() {
     assert_eq!(EnumIntoDiscriminants::A, EnumInto::A(true).into());
     assert_eq!(EnumIntoDiscriminants::B, EnumInto::B(1).into());
 }
 
 #[test]
+#[ignore]
 fn from_ref_test() {
     assert_eq!(EnumIntoDiscriminants::A, (&EnumInto::A(true)).into());
     assert_eq!(EnumIntoDiscriminants::B, (&EnumInto::B(1)).into());
@@ -174,12 +184,14 @@ enum EnumIntoComplex<'a, T: 'a> {
 }
 
 #[test]
+#[ignore]
 fn from_test_complex() {
     let rara = Rara;
     assert_eq!(EnumIntoComplexVars::A, EnumIntoComplex::A(&rara).into());
 }
 
 #[test]
+#[ignore]
 fn from_ref_test_complex() {
     let rara = Rara;
     assert_eq!(EnumIntoComplexVars::A, (&EnumIntoComplex::A(&rara)).into());

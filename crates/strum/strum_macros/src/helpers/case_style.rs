@@ -85,6 +85,7 @@ impl CaseStyleHelpers for syn::Ident {
 }
 
 #[test]
+#[ignore]
 fn test_convert_case() {
     let id = syn::Ident::new("test_me", proc_macro2::Span::call_site());
     assert_eq!("testMe", id.convert_case(Some(CaseStyle::CamelCase)));

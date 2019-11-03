@@ -19,27 +19,32 @@ enum Color {
 }
 
 #[test]
+#[ignore]
 fn color_simple() {
     assert_eq!(Color::Red, Color::from_str("Red").unwrap());
 }
 
 #[test]
+#[ignore]
 fn color_value() {
     assert_eq!(Color::Blue { hue: 0 }, Color::from_str("Blue").unwrap());
 }
 
 #[test]
+#[ignore]
 fn color_serialize() {
     assert_eq!(Color::Yellow, Color::from_str("y").unwrap());
     assert_eq!(Color::Yellow, Color::from_str("yellow").unwrap());
 }
 
 #[test]
+#[ignore]
 fn color_to_string() {
     assert_eq!(Color::Purple, Color::from_str("purp").unwrap());
 }
 
 #[test]
+#[ignore]
 fn color_default() {
     assert_eq!(
         Color::Green(String::from("not found")),
@@ -59,6 +64,7 @@ enum Brightness {
 }
 
 #[test]
+#[ignore]
 fn brightness_serialize_all() {
     assert_eq!(
         Brightness::DarkBlack,
@@ -86,6 +92,7 @@ enum Week {
 }
 
 #[test]
+#[ignore]
 fn week_not_found() {
     assert_eq!(
         Result::Err(::strum::ParseError::VariantNotFound),
@@ -94,6 +101,7 @@ fn week_not_found() {
 }
 
 #[test]
+#[ignore]
 fn week_found() {
     assert_eq!(Result::Ok(Week::Sunday), Week::from_str("Sunday"));
     assert_eq!(Result::Ok(Week::Monday), Week::from_str("Monday"));
@@ -111,6 +119,7 @@ enum Lifetime<'a> {
 }
 
 #[test]
+#[ignore]
 fn lifetime_test() {
     assert_eq!(Lifetime::Life(""), Lifetime::from_str("Life").unwrap());
 }
@@ -122,6 +131,7 @@ enum Generic<T: Default> {
 }
 
 #[test]
+#[ignore]
 fn generic_test() {
     assert_eq!(Generic::Gen(""), Generic::from_str("Gen").unwrap());
 }

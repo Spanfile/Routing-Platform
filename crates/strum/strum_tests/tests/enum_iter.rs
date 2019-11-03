@@ -16,6 +16,7 @@ enum Week {
 }
 
 #[test]
+#[ignore]
 fn simple_test() {
     let results = Week::iter().collect::<Vec<_>>();
     let expected = vec![
@@ -39,6 +40,7 @@ enum Complicated<U: Default, V: Default> {
 }
 
 #[test]
+#[ignore]
 fn complicated_test() {
     let results = Complicated::iter().collect::<Vec<_>>();
     let expected = vec![
@@ -51,6 +53,7 @@ fn complicated_test() {
 }
 
 #[test]
+#[ignore]
 fn len_test() {
     let mut i = Complicated::<(), ()>::iter();
     assert_eq!(3, i.len());
@@ -66,6 +69,7 @@ fn len_test() {
 }
 
 #[test]
+#[ignore]
 fn clone_test() {
     let mut i = Week::iter();
     i.next();
@@ -84,6 +88,7 @@ fn clone_test() {
 }
 
 #[test]
+#[ignore]
 fn cycle_test() {
     let results = Week::iter().cycle().take(10).collect::<Vec<_>>();
     let expected = vec![

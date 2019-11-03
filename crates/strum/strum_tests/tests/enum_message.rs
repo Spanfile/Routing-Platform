@@ -20,12 +20,14 @@ enum Pets {
 }
 
 #[test]
+#[ignore]
 fn simple_message() {
     assert_eq!("I'm a dog", (Pets::Dog).get_message().unwrap());
     assert_eq!("I'm a dog", (Pets::Dog).get_detailed_message().unwrap());
 }
 
 #[test]
+#[ignore]
 fn detailed_message() {
     assert_eq!("I'm a cat", (Pets::Cat).get_message().unwrap());
     assert_eq!(
@@ -35,6 +37,7 @@ fn detailed_message() {
 }
 
 #[test]
+#[ignore]
 fn only_detailed_message() {
     assert_eq!(None, (Pets::Fish).get_message());
     assert_eq!(
@@ -44,12 +47,14 @@ fn only_detailed_message() {
 }
 
 #[test]
+#[ignore]
 fn no_message() {
     assert_eq!(None, (Pets::Bird).get_message());
     assert_eq!(None, (Pets::Bird).get_detailed_message());
 }
 
 #[test]
+#[ignore]
 fn disabled_message() {
     assert_eq!(None, (Pets::Hamster).get_message());
     assert_eq!(None, (Pets::Hamster).get_detailed_message());
