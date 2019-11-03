@@ -260,30 +260,32 @@ impl Shell {
                             self.write(format_args!("{}", cursor::Goto(cursor_x, cursor_y)))?;
                         }
                     }
+                    Key::Char('\n') => {
+                        self.write(format_args!("\n\r"))?;
+                        reading = false;
+                    }
+                    Key::Char('\t') => {
+                        continue;
+                    }
                     Key::Char(c) => {
-                        if c == '\n' {
-                            self.write(format_args!("\n\r"))?;
-                            reading = false;
+                        self.write(format_args!("{}", c))?;
+
+                        if cursor_location == buffer.len() {
+                            buffer.push(c);
                         } else {
-                            self.write(format_args!("{}", c))?;
+                            buffer.insert(cursor_location, c);
 
-                            if cursor_location == buffer.len() {
-                                buffer.push(c);
-                            } else {
-                                buffer.insert(cursor_location, c);
-
-                                for b in buffer[cursor_location + 1..].iter() {
-                                    self.write(format_args!("{}", b))?;
-                                }
-
-                                self.write(format_args!(
-                                    "{}",
-                                    cursor::Left((buffer.len() - cursor_location - 1) as u16)
-                                ))?;
+                            for b in buffer[cursor_location + 1..].iter() {
+                                self.write(format_args!("{}", b))?;
                             }
 
-                            cursor_location += 1;
+                            self.write(format_args!(
+                                "{}",
+                                cursor::Left((buffer.len() - cursor_location - 1) as u16)
+                            ))?;
                         }
+
+                        cursor_location += 1;
                     }
                     _ => continue,
                 }
