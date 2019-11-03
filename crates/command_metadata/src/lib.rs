@@ -33,8 +33,10 @@ pub fn command(
         }
     };
 
-    let command_from_args_impl = generate_command_from_args(&item);
-    let (command_metadata_impl, aliases) = generate_command_metadata(item.ident.clone(), args);
+    let command_from_args_impl =
+        generate_command_from_args(&item).expect("failed to create CommandFromArgs impl");
+    let (command_metadata_impl, aliases) = generate_command_metadata(item.ident.clone(), args)
+        .expect("failed to create CommandMetadata impl");
     COMMAND_ALIASES
         .lock()
         .unwrap()

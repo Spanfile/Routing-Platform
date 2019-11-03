@@ -1,18 +1,18 @@
 use super::{helpers::*, ArgumentWrapper, CommandMacroArgs};
 use proc_macro2::TokenStream;
 use quote::{quote, ToTokens};
-use syn::{Ident, ItemStruct, Type};
+use syn::{Ident, ItemStruct};
 
 pub fn generate_command_metadata(
     ident: Ident,
     args: CommandMacroArgs,
-) -> (TokenStream, Vec<String>) {
+) -> anyhow::Result<(TokenStream, Vec<String>)> {
     let name = ident.clone();
     let mut aliases: Vec<String> = vec![ident.to_string().to_ascii_lowercase()];
     aliases.extend(args.extra_aliases);
     let mode_tokens = shellmode_to_tokens(args.required_shell_mode);
 
-    (
+    Ok((
         quote!(
             impl CommandMetadata for #name {
                 fn aliases(&self) -> Vec<&str> {
@@ -27,48 +27,36 @@ pub fn generate_command_metadata(
             }
         ),
         aliases,
-    )
+    ))
 }
 
-pub fn generate_command_from_args(item: &ItemStruct) -> TokenStream {
+pub fn generate_command_from_args(item: &ItemStruct) -> anyhow::Result<TokenStream> {
     let mut initialisers = Vec::new();
 
     for field in item.fields.iter() {
         let field_name = field.ident.clone().unwrap().to_string();
+        let argument = syn::parse::<ArgumentWrapper>(field.ty.to_token_stream().into())?;
 
-        let getter = if let Type::Path(type_path) = &field.ty {
-            let argument = syn::parse::<ArgumentWrapper>(type_path.path.to_token_stream().into())
-                .expect("failed to parse argument wrapper");
-
-            match argument {
-                ArgumentWrapper::Vec(argument_type) => {
-                    let argument_ident = syn::parse_str::<Ident>(argument_type.as_ref())
-                        .expect("failed to parse argument type identifier");
-
-                    quote!({
-                        args.iter().map(|v| v.parse::<#argument_ident>()).collect::<Result<Vec<#argument_ident>, _>>()?
-                    })
-                }
-                ArgumentWrapper::Option(argument_type) => {
-                    let argument_ident = syn::parse_str::<Ident>(argument_type.as_ref())
-                        .expect("failed to parse argument type identifier");
-
-                    quote!(if args.len() > 0 {
-                        Some(args.remove(0).parse::<#argument_ident>()?)
-                    } else {
-                        None
-                    })
-                }
-                ArgumentWrapper::None(argument_type) => {
-                    let argument_ident = syn::parse_str::<Ident>(argument_type.as_ref())
-                        .expect("failed to parse argument type identifier");
-
-                    quote!(if args.len() > 0 { Some(args.remove(0).parse::<#argument_ident>()?) } else { None }
-                        .ok_or_else(|| { rp_common::error::CommandError::missing_argument(#field_name, ExpectedValue::Literal(#argument_type)) })?)
-                }
+        let getter = match argument {
+            ArgumentWrapper::Vec(argument_type) => {
+                let argument_ident = create_ident(&argument_type)?;
+                quote!({
+                    args.iter().map(|v| v.parse::<#argument_ident>()).collect::<Result<Vec<#argument_ident>, _>>()?
+                })
             }
-        } else {
-            panic!();
+            ArgumentWrapper::Option(argument_type) => {
+                let argument_ident = create_ident(&argument_type)?;
+                quote!(if args.len() > 0 {
+                    Some(args.remove(0).parse::<#argument_ident>()?)
+                } else {
+                    None
+                })
+            }
+            ArgumentWrapper::None(argument_type) => {
+                let argument_ident = create_ident(&argument_type)?;
+                quote!(if args.len() > 0 { Some(args.remove(0).parse::<#argument_ident>()?) } else { None }
+                    .ok_or_else(|| { rp_common::error::CommandError::missing_argument(#field_name, ExpectedValue::Literal(#argument_type)) })?)
+            }
         };
 
         let ident = field.ident.clone();
@@ -79,7 +67,7 @@ pub fn generate_command_from_args(item: &ItemStruct) -> TokenStream {
 
     let name = item.ident.clone();
     let name_str = name.to_string();
-    quote!(
+    Ok(quote!(
         impl CommandFromArgs for #name {
             fn from_args(mut args: Vec<String>) -> anyhow::Result<Self> {
                 rp_log::debug!("Command: {}{:?}", #name_str, args);
@@ -89,5 +77,9 @@ pub fn generate_command_from_args(item: &ItemStruct) -> TokenStream {
                 })
             }
         }
-    )
+    ))
+}
+
+fn create_ident(ident_str: &str) -> anyhow::Result<Ident> {
+    Ok(syn::parse_str::<Ident>(ident_str)?)
 }

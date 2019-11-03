@@ -1,6 +1,7 @@
+use quote::ToTokens;
 use syn::{
     parse::{Parse, ParseStream},
-    Ident, Result, Token,
+    GenericArgument, PathArguments, Result, Type,
 };
 
 #[derive(Debug)]
@@ -12,20 +13,36 @@ pub enum ArgumentWrapper {
 
 impl Parse for ArgumentWrapper {
     fn parse(input: ParseStream) -> Result<Self> {
-        let ident = input.parse::<Ident>()?;
-        let lookahead = input.lookahead1();
-        if lookahead.peek(Token![<]) {
-            let _open_br = input.parse::<Token![<]>()?;
-            let argument_type = input.parse::<Ident>()?;
-            let _close_br = input.parse::<Token![>]>()?;
+        let typ = input.parse::<Type>()?;
 
-            match ident.to_string().as_str() {
-                "Vec" => Ok(ArgumentWrapper::Vec(argument_type.to_string())),
-                "Option" => Ok(ArgumentWrapper::Option(argument_type.to_string())),
-                _ => Err(input.error("unknown argument wrapper type")),
+        match typ {
+            Type::Path(path) => {
+                if let Some(last) = path.path.segments.last() {
+                    if let PathArguments::AngleBracketed(generic_args) = &last.arguments {
+                        if generic_args.args.len() != 1 {
+                            Err(input.error("expected exactly one generic argument"))
+                        } else {
+                            if let Some(GenericArgument::Type(generic_type)) =
+                                generic_args.args.first()
+                            {
+                                let type_string = generic_type.to_token_stream().to_string();
+                                match last.ident.to_string().as_ref() {
+                                    "Vec" => Ok(ArgumentWrapper::Vec(type_string)),
+                                    "Option" => Ok(ArgumentWrapper::Option(type_string)),
+                                    _ => Err(input.error("invalid wrapper type")),
+                                }
+                            } else {
+                                Err(input.error("invalid generic parameter type"))
+                            }
+                        }
+                    } else {
+                        Ok(ArgumentWrapper::None(last.ident.to_string()))
+                    }
+                } else {
+                    Err(input.error("empty path"))
+                }
             }
-        } else {
-            Ok(ArgumentWrapper::None(ident.to_string()))
+            _ => Err(input.error("unknown pattern")),
         }
     }
 }
