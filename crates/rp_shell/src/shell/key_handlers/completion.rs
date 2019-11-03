@@ -21,9 +21,10 @@ pub fn tab(_key: Key, shell: &mut Shell) -> Result {
             for b in shell.buffer[shell.cursor_location..].iter() {
                 shell.write(format_args!("{}", b))?;
             }
+
+            shell.cursor_location = shell.buffer.len();
         }
         _ => {
-            shell.suspend_raw_mode()?;
             return Err(error::ShellError::AmbiguousCompletion(completions).into());
         }
     };

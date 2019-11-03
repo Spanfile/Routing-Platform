@@ -106,13 +106,11 @@ impl Shell {
 
 impl Shell {
     fn write(&self, args: std::fmt::Arguments) -> anyhow::Result<()> {
-        write!(self.stdout.try_borrow_mut()?, "{}", args)?;
-        Ok(())
+        Ok(write!(self.stdout.try_borrow_mut()?, "{}", args)?)
     }
 
     fn flush(&self) -> anyhow::Result<()> {
-        self.stdout.try_borrow_mut()?.lock().flush()?;
-        Ok(())
+        Ok(self.stdout.try_borrow_mut()?.lock().flush()?)
     }
 
     fn cursor_pos(&self) -> anyhow::Result<(u16, u16)> {
@@ -120,19 +118,23 @@ impl Shell {
     }
 
     fn activate_raw_mode(&self) -> anyhow::Result<()> {
-        self.stdout.try_borrow_mut()?.activate_raw_mode()?;
-        Ok(())
+        Ok(self.stdout.try_borrow_mut()?.activate_raw_mode()?)
     }
 
     fn suspend_raw_mode(&self) -> anyhow::Result<()> {
-        self.stdout.try_borrow_mut()?.suspend_raw_mode()?;
-        Ok(())
+        Ok(self.stdout.try_borrow_mut()?.suspend_raw_mode()?)
     }
 
     fn print_prompt(&mut self) -> anyhow::Result<()> {
         self.write(format_args!("{}", self.prompt.to_owned()))?;
-        self.flush()?;
-        Ok(())
+
+        if !self.buffer.is_empty() {
+            for b in self.buffer.iter() {
+                self.write(format_args!("{}", b))?;
+            }
+        }
+
+        self.flush()
     }
 
     fn read_input(&mut self) -> anyhow::Result<String> {
