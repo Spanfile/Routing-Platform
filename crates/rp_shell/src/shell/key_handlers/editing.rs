@@ -1,8 +1,18 @@
-use super::{KeyResult, Result, Shell};
+use super::{KeyResult, MatcherResult, Result, Shell};
 use anyhow::anyhow;
 use termion::{clear, cursor, event::Key};
 
-pub fn backspace(_key: Key, shell: &mut Shell) -> Result {
+pub fn matcher(key: Key) -> MatcherResult {
+    match key {
+        Key::Backspace => Some(box backspace),
+        Key::Delete => Some(box delete),
+        Key::Char('\n') => Some(box enter),
+        Key::Char(_) => Some(box any_char),
+        _ => None,
+    }
+}
+
+fn backspace(_key: Key, shell: &mut Shell) -> Result {
     if shell.cursor_location > 0 {
         shell.buffer.remove(shell.cursor_location - 1);
         let (cursor_x, cursor_y) = shell.cursor_pos()?;
@@ -25,7 +35,7 @@ pub fn backspace(_key: Key, shell: &mut Shell) -> Result {
     Ok(KeyResult::Ok)
 }
 
-pub fn delete(_key: Key, shell: &mut Shell) -> Result {
+fn delete(_key: Key, shell: &mut Shell) -> Result {
     if shell.cursor_location < shell.buffer.len() {
         shell.buffer.remove(shell.cursor_location);
         let (cursor_x, cursor_y) = shell.cursor_pos()?;
@@ -42,12 +52,12 @@ pub fn delete(_key: Key, shell: &mut Shell) -> Result {
     Ok(KeyResult::Ok)
 }
 
-pub fn enter(_key: Key, shell: &mut Shell) -> Result {
+fn enter(_key: Key, shell: &mut Shell) -> Result {
     shell.write(format_args!("\n\r"))?;
     Ok(KeyResult::Stop)
 }
 
-pub fn key(key: Key, shell: &mut Shell) -> Result {
+fn any_char(key: Key, shell: &mut Shell) -> Result {
     if let Key::Char(c) = key {
         shell.write(format_args!("{}", c))?;
 

@@ -1,7 +1,17 @@
-use super::{KeyResult, Result, Shell};
+use super::{KeyResult, MatcherResult, Result, Shell};
 use termion::{clear, cursor, event::Key};
 
-pub fn left(_key: Key, shell: &mut Shell) -> Result {
+pub fn matcher(key: Key) -> MatcherResult {
+    match key {
+        Key::Left => Some(box left),
+        Key::Right => Some(box right),
+        Key::Up => Some(box up),
+        Key::Down => Some(box down),
+        _ => None,
+    }
+}
+
+fn left(_key: Key, shell: &mut Shell) -> Result {
     if shell.cursor_location > 0 {
         shell.write(format_args!("{}", cursor::Left(1)))?;
         shell.cursor_location -= 1;
@@ -10,7 +20,7 @@ pub fn left(_key: Key, shell: &mut Shell) -> Result {
     Ok(KeyResult::Ok)
 }
 
-pub fn right(_key: Key, shell: &mut Shell) -> Result {
+fn right(_key: Key, shell: &mut Shell) -> Result {
     if shell.cursor_location < shell.buffer.len() {
         shell.write(format_args!("{}", cursor::Right(1)))?;
         shell.cursor_location += 1;
@@ -19,7 +29,7 @@ pub fn right(_key: Key, shell: &mut Shell) -> Result {
     Ok(KeyResult::Ok)
 }
 
-pub fn up(_key: Key, shell: &mut Shell) -> Result {
+fn up(_key: Key, shell: &mut Shell) -> Result {
     let (cursor_x, cursor_y) = shell.cursor_pos()?;
 
     if let Some(new_index) = match shell.history_index {
@@ -63,7 +73,7 @@ pub fn up(_key: Key, shell: &mut Shell) -> Result {
     Ok(KeyResult::Ok)
 }
 
-pub fn down(_key: Key, shell: &mut Shell) -> Result {
+fn down(_key: Key, shell: &mut Shell) -> Result {
     let (cursor_x, cursor_y) = shell.cursor_pos()?;
 
     shell.write(format_args!(

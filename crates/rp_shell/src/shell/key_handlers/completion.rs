@@ -1,6 +1,14 @@
-use super::{KeyResult, Result, Shell};
+use super::{KeyResult, MatcherResult, Result, Shell};
 use crate::error;
 use termion::event::Key;
+
+pub fn matcher(key: Key) -> MatcherResult {
+    if let Key::Char('\t') = key {
+        Some(box tab)
+    } else {
+        None
+    }
+}
 
 pub fn tab(_key: Key, shell: &mut Shell) -> Result {
     let completions = shell.completions.get(shell.buffer.iter().collect())?;

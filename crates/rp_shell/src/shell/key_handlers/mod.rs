@@ -6,29 +6,22 @@ use super::Shell;
 use crate::error;
 use anyhow::anyhow;
 use lazy_static::lazy_static;
-use std::collections::HashMap;
 use termion::event::Key;
 
 type Result = anyhow::Result<KeyResult>;
+type MatcherResult = Option<KeyPredicate>;
+type KeyPredicate = Box<dyn (Fn(Key, &mut Shell) -> Result) + Send + Sync + 'static>;
+type MatcherPredicate = Box<dyn (Fn(Key) -> MatcherResult) + Send + Sync + 'static>;
 
 lazy_static! {
-    static ref KEYS: HashMap<Key, Box<dyn (Fn(Key, &mut Shell) -> Result) + Send + Sync + 'static>> = {
-        let mut m = HashMap::new();
-        m.insert(
-            Key::Ctrl('c'),
+    static ref KEYS: Vec<MatcherPredicate> = {
+        vec![
             // this cast turns the function into the proper type while also implicitly causing the rest to be cast as well
-            box terminate as Box<dyn (Fn(Key, &mut Shell) -> Result) + Send + Sync + 'static>,
-        );
-        m.insert(Key::Char('\t'), box completion::tab);
-        m.insert(Key::Left, box navigation::left);
-        m.insert(Key::Right, box navigation::right);
-        m.insert(Key::Up, box navigation::up);
-        m.insert(Key::Down, box navigation::down);
-        m.insert(Key::Backspace, box editing::backspace);
-        m.insert(Key::Delete, box editing::delete);
-        m.insert(Key::Char('\n'), box editing::enter);
-        // m.insert(Key::Char(), box editing::key);
-        m
+            box terminate_matcher as MatcherPredicate,
+            box completion::matcher,
+            box navigation::matcher,
+            box editing::matcher,
+        ]
     };
 }
 
@@ -38,15 +31,20 @@ pub enum KeyResult {
     Stop,
 }
 
-pub fn get(
-    key: Key,
-) -> anyhow::Result<&'static (dyn (Fn(Key, &mut Shell) -> Result) + Send + Sync + 'static)> {
-    Ok(KEYS
-        .get(&key)
-        .ok_or(anyhow!("no handler for key {:?}", key))?)
+pub fn get(key: Key) -> anyhow::Result<KeyPredicate> {
+    KEYS.iter()
+        .find_map(|matcher| matcher(key))
+        .ok_or_else(|| anyhow!("no key handler for key {:?}", key))
 }
 
-fn terminate(_key: Key, shell: &mut Shell) -> Result {
-    shell.suspend_raw_mode()?;
+fn terminate_matcher(key: Key) -> MatcherResult {
+    if let Key::Ctrl('c') = key {
+        Some(box terminate)
+    } else {
+        None
+    }
+}
+
+fn terminate(_key: Key, _shell: &mut Shell) -> Result {
     Err(error::ShellError::Abort.into())
 }

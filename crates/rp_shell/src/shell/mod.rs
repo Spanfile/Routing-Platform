@@ -143,11 +143,16 @@ impl Shell {
 
         while reading {
             if let Some(Ok(key)) = stdin.next() {
-                let result = key_handlers::get(key)?(key, self)?;
-                match result {
-                    KeyResult::Stop => reading = false,
-                    KeyResult::Skip => continue,
-                    _ => (),
+                match key_handlers::get(key)?(key, self) {
+                    Ok(result) => match result {
+                        KeyResult::Stop => reading = false,
+                        KeyResult::Skip => continue,
+                        _ => (),
+                    },
+                    Err(e) => {
+                        self.suspend_raw_mode()?;
+                        return Err(e);
+                    }
                 }
 
                 self.flush()?;
