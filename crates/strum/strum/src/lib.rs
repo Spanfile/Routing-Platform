@@ -1,3 +1,5 @@
+#![allow(clippy::all)]
+
 //! # Strum
 //!
 //! [![Build Status](https://travis-ci.org/Peternator7/strum.svg?branch=master)](https://travis-ci.org/Peternator7/strum)

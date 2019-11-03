@@ -57,7 +57,7 @@ impl Shell {
             self.history_index = None;
             Ok(Command::new(
                 command_name,
-                args.iter().skip(1).map(|s| s.to_string()).collect(),
+                args.iter().skip(1).map(|s| (*s).to_string()).collect(),
             )?)
         } else {
             Err(anyhow!("Split returned no args"))

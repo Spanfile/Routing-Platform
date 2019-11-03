@@ -21,19 +21,17 @@ impl Parse for ArgumentWrapper {
                     if let PathArguments::AngleBracketed(generic_args) = &last.arguments {
                         if generic_args.args.len() != 1 {
                             Err(input.error("expected exactly one generic argument"))
-                        } else {
-                            if let Some(GenericArgument::Type(generic_type)) =
-                                generic_args.args.first()
-                            {
-                                let type_string = generic_type.to_token_stream().to_string();
-                                match last.ident.to_string().as_ref() {
-                                    "Vec" => Ok(ArgumentWrapper::Vec(type_string)),
-                                    "Option" => Ok(ArgumentWrapper::Option(type_string)),
-                                    _ => Err(input.error("invalid wrapper type")),
-                                }
-                            } else {
-                                Err(input.error("invalid generic parameter type"))
+                        } else if let Some(GenericArgument::Type(generic_type)) =
+                            generic_args.args.first()
+                        {
+                            let type_string = generic_type.to_token_stream().to_string();
+                            match last.ident.to_string().as_ref() {
+                                "Vec" => Ok(ArgumentWrapper::Vec(type_string)),
+                                "Option" => Ok(ArgumentWrapper::Option(type_string)),
+                                _ => Err(input.error("invalid wrapper type")),
                             }
+                        } else {
+                            Err(input.error("invalid generic parameter type"))
                         }
                     } else {
                         Ok(ArgumentWrapper::None(last.ident.to_string()))

@@ -1,3 +1,5 @@
+#![allow(clippy::all)]
+
 //! # Strum
 //!
 //! Strum is a set of macros and traits for working with

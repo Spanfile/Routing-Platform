@@ -19,7 +19,7 @@ impl Context {
 
     pub fn get_value(&self, id: &str) -> Option<String> {
         match &self.values.get(id) {
-            Some(value) => Some(value.to_string()),
+            Some(value) => Some((*value).to_string()),
             None => match &self.parent {
                 Some(p) => p.get_value(id),
                 None => None,
