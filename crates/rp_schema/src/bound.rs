@@ -19,3 +19,22 @@ impl Bound {
         })
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn match_against() {
+        let lower_inclusive = Bound::Inclusive(1.0);
+        let lower_exclusive = Bound::Exclusive(1.0);
+        let upper_inclusive = Bound::Inclusive(2.0);
+        let upper_exclusive = Bound::Exclusive(2.0);
+
+        assert!(lower_inclusive.match_against_with(upper_inclusive, 1.0));
+        assert!(lower_inclusive.match_against_with(upper_exclusive, 1.0));
+
+        assert!(lower_exclusive.match_against_with(upper_inclusive, 1.5));
+        assert!(lower_exclusive.match_against_with(upper_exclusive, 1.5));
+    }
+}
