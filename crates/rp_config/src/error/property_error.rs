@@ -6,4 +6,6 @@ pub enum PropertyError {
     ConstraintNotMet,
     #[error("No value set")]
     NoValueSet,
+    #[error("No such value: {0}")]
+    NoSuchValue(String),
 }

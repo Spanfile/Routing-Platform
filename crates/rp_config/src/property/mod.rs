@@ -73,8 +73,14 @@ impl Property {
         }
 
         let mut values = self.values.borrow_mut();
+        let orig_len = values.len();
+
         if let Some(value) = value {
             values.retain(|v| *v != value);
+
+            if values.len() == orig_len {
+                return Err(PropertyError::NoSuchValue(value.to_string()).into());
+            }
         } else {
             values.clear();
         }
