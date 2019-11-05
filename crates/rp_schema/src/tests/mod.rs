@@ -1,4 +1,5 @@
 mod common;
+mod property;
 mod template;
 
 use super::*;
@@ -29,16 +30,6 @@ fn invalid_regex_cache() -> anyhow::Result<()> {
         Ok(())
     } else {
         Err(anyhow!("invalid regex template serialised succesfully"))
-    }
-}
-
-#[test]
-fn invalid_value() -> anyhow::Result<()> {
-    let mut schema = common::get_invalid_node_schema()?;
-    if schema.validate().is_err() {
-        Ok(())
-    } else {
-        Err(anyhow!("invalid value validated succesfully"))
     }
 }
 
