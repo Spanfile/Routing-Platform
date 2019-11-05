@@ -30,18 +30,7 @@ impl Validate for Property {
         }
 
         for value in &self.values {
-            match value {
-                Value::Template(template) => {
-                    if !schema.templates.contains_key(template) {
-                        return Err(error::SchemaValidationError::MissingTemplate(
-                            template.to_owned(),
-                        )
-                        .into());
-                    }
-                }
-                Value::Range(range) => range.validate(schema)?,
-                _ => (),
-            };
+            value.validate(schema)?;
         }
 
         if !self.default.is_empty() {
