@@ -27,7 +27,7 @@ pub struct Set {
 #[command(required_shell_mode = "Configuration")]
 #[derive(Debug)]
 pub struct Remove {
-    property: String,
+    item: String,
     value: Option<String>,
 }
 
@@ -61,6 +61,14 @@ impl ExecutableCommand for Set {
 
 impl ExecutableCommand for Remove {
     fn run(&self, _shell: &mut Shell, editor: &mut ConfigEditor) -> anyhow::Result<()> {
-        editor.remove_property_value(&self.property, self.value.as_deref())
+        // it's more efficient to check for an existent property instead of an existent
+        // node
+        if let Some(properties) = editor.get_available_properties() {
+            if properties.contains(&self.item) {
+                return editor.remove_property_value(&self.item, self.value.as_deref());
+            }
+        }
+
+        editor.remove_node(&self.item)
     }
 }

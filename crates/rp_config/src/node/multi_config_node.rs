@@ -21,7 +21,7 @@ pub struct MultiConfigNode {
 #[derive(Debug)]
 enum NewNodeCreationAllowed {
     No,
-    Yes(String),
+    Yes { template: String },
 }
 
 impl Node for MultiConfigNode {
@@ -33,7 +33,7 @@ impl Node for MultiConfigNode {
         let schema = self.schema.upgrade().expect("schema dropped");
         let mut names = vec![];
 
-        if let NewNodeCreationAllowed::Yes(template) = &self.new_node_creation_allowed {
+        if let NewNodeCreationAllowed::Yes { template } = &self.new_node_creation_allowed {
             names.push(NodeName::Multiple(Rc::downgrade(
                 schema.templates.get(template).expect("template not found"),
             )));
@@ -91,6 +91,26 @@ impl Node for MultiConfigNode {
             println!("{:indent$}}}", "", indent = indent * 4);
         }
     }
+
+    fn remove_subnode(&self, node: &str) -> anyhow::Result<()> {
+        // if new nodes aren't allowed to be created, existing ones can't be removed
+        // either
+        match self.new_node_creation_allowed {
+            NewNodeCreationAllowed::Yes { .. } => {
+                let mut nodes = self.nodes.borrow_mut();
+                nodes
+                    .remove(node)
+                    .ok_or(rp_common::error::NodeRemovalError {
+                        node: String::from(node),
+                    })?;
+                Ok(())
+            }
+            NewNodeCreationAllowed::No => Err(rp_common::error::NodeRemovalError {
+                node: String::from(node),
+            }
+            .into()),
+        }
+    }
 }
 
 impl FromSchemaNode<MultiSchemaNode> for MultiConfigNode {
@@ -119,9 +139,9 @@ impl FromSchemaNode<MultiSchemaNode> for MultiConfigNode {
                 }
                 NewNodeCreationAllowed::No
             }
-            MultiSchemaNodeSource::Template(template) => {
-                NewNodeCreationAllowed::Yes(template.to_owned())
-            }
+            MultiSchemaNodeSource::Template(template) => NewNodeCreationAllowed::Yes {
+                template: template.to_owned(),
+            },
         };
 
         Ok(MultiConfigNode {

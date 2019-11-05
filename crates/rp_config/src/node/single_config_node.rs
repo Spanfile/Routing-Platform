@@ -72,6 +72,13 @@ impl Node for SingleConfigNode {
             property.pretty_print(indent);
         }
     }
+
+    fn remove_subnode(&self, node: &str) -> anyhow::Result<()> {
+        Err(rp_common::error::NodeRemovalError {
+            node: String::from(node),
+        }
+        .into())
+    }
 }
 
 impl FromSchemaNode<SingleSchemaNode> for SingleConfigNode {

@@ -92,3 +92,59 @@ fn remove_nonexistent_property_value() -> anyhow::Result<()> {
         }
     }
 }
+
+#[test]
+fn remove_node() -> anyhow::Result<()> {
+    let (schema, config) = common::get_schema_and_config()?;
+    let mut editor = ConfigEditor::new(&config, schema.as_ref());
+
+    editor.edit_node("multinode")?;
+    editor.edit_node("0")?;
+    editor.go_up()?;
+    editor.remove_node("0")?;
+
+    if editor.get_available_nodes().contains(&String::from("0")) {
+        Err(anyhow!("node not removed after removal"))
+    } else {
+        Ok(())
+    }
+}
+
+#[test]
+fn remove_nonexistent_node() -> anyhow::Result<()> {
+    let (schema, config) = common::get_schema_and_config()?;
+    let mut editor = ConfigEditor::new(&config, schema.as_ref());
+
+    editor.edit_node("multinode")?;
+    let result = editor.remove_node("nonexistent");
+
+    match result {
+        Ok(_) => Err(anyhow!("nonexistent node removal succeeded")),
+        Err(e) => {
+            if let Some(rp_common::error::NodeRemovalError { .. }) = e.downcast_ref() {
+                Ok(())
+            } else {
+                Err(e)
+            }
+        }
+    }
+}
+
+#[test]
+fn remove_top_level_node() -> anyhow::Result<()> {
+    let (schema, config) = common::get_schema_and_config()?;
+    let editor = ConfigEditor::new(&config, schema.as_ref());
+
+    let result = editor.remove_node("singlenode");
+
+    match result {
+        Ok(_) => Err(anyhow!("top-level node removal succeeded")),
+        Err(e) => {
+            if let Some(rp_common::error::NodeRemovalError { .. }) = e.downcast_ref() {
+                Ok(())
+            } else {
+                Err(e)
+            }
+        }
+    }
+}

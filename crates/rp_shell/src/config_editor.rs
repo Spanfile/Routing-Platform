@@ -140,6 +140,17 @@ impl<'a> ConfigEditor<'a> {
         property.remove(value)?;
         Ok(())
     }
+
+    pub fn remove_node(&self, node: &str) -> anyhow::Result<()> {
+        if let Some(current) = self.node_stack.last() {
+            current.remove_subnode(node)
+        } else {
+            Err(rp_common::error::NodeRemovalError {
+                node: String::from(node),
+            }
+            .into())
+        }
+    }
 }
 
 impl<'a> ConfigEditor<'a> {
