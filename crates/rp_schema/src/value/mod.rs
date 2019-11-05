@@ -1,8 +1,8 @@
+mod default_value;
 pub mod range;
 
-use super::query::Query;
+pub use default_value::DefaultValue;
 use range::Range;
-use rp_common::Context;
 use serde::{Deserialize, Serialize};
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
@@ -13,23 +13,6 @@ pub enum Value {
     Template(String),
     #[serde(rename = "range")]
     Range(Range),
-}
-
-#[derive(Serialize, Deserialize, Debug, Clone)]
-pub enum DefaultValue {
-    #[serde(rename = "literal")]
-    Literal(String),
-    #[serde(rename = "query")]
-    Query(Query),
-}
-
-impl DefaultValue {
-    pub fn resolve(&self, context: &Context) -> anyhow::Result<Vec<String>> {
-        match self {
-            DefaultValue::Literal(literal) => Ok(vec![literal.to_owned()]),
-            DefaultValue::Query(query) => query.run(context),
-        }
-    }
 }
 
 impl std::fmt::Display for Value {
