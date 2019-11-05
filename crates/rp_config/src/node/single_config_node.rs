@@ -98,7 +98,12 @@ impl FromSchemaNode<SingleSchemaNode> for SingleConfigNode {
         }
 
         for (key, property) in &schema_node.properties {
-            let prop = Property::from_schema_property(Rc::clone(&context), &key, property)?;
+            let prop = Property::from_schema_property(
+                Rc::clone(&context),
+                &key,
+                property,
+                Weak::clone(&schema),
+            )?;
             properties.insert(key.to_owned(), prop);
         }
 

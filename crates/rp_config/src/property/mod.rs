@@ -1,10 +1,14 @@
 mod constraints;
 
 use crate::error::PropertyError;
+use anyhow::anyhow;
 use constraints::Constraints;
 use rp_common::Context;
-use rp_schema;
-use std::{cell::RefCell, rc::Rc};
+use rp_schema::Schema;
+use std::{
+    cell::RefCell,
+    rc::{Rc, Weak},
+};
 
 #[derive(Debug)]
 pub struct Property {
@@ -19,22 +23,31 @@ impl Property {
         context: Rc<Context>,
         key: &str,
         property: &rp_schema::Property,
+        schema: Weak<Schema>,
     ) -> anyhow::Result<Property> {
         let mut values = Vec::new();
+        let constraints = Constraints::from_schema_property(property);
 
-        for default in &property.default {
-            values.extend(default.resolve(&context)?);
-        }
+        if let Some(schema) = schema.upgrade() {
+            for default in &property.default {
+                for v in default.resolve(&context)? {
+                    constraints.matches(&v, schema.as_ref())?;
+                    values.push(v);
+                }
+            }
 
-        if !property.multiple && values.len() > 1 {
-            Err(PropertyError::ConstraintNotMet.into())
+            if !property.multiple && values.len() > 1 {
+                Err(PropertyError::ConstraintNotMet.into())
+            } else {
+                Ok(Property {
+                    key: key.to_owned(),
+                    default_values: values.iter().map(|s| s.to_owned()).collect(),
+                    values: RefCell::new(values),
+                    constraints,
+                })
+            }
         } else {
-            Ok(Property {
-                key: key.to_owned(),
-                default_values: values.iter().map(|s| s.to_owned()).collect(),
-                values: RefCell::new(values),
-                constraints: Constraints::from_schema_property(property),
-            })
+            Err(anyhow!("schema weak pointer upgrade failed"))
         }
     }
 
