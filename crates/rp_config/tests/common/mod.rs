@@ -1,3 +1,5 @@
+#![allow(dead_code)]
+
 use rp_schema::Schema;
 use std::io::{Seek, SeekFrom, Write};
 use tempfile::tempfile;

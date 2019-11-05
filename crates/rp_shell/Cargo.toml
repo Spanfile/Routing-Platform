@@ -22,3 +22,6 @@ lazy_static = "1.4.0"
 
 [build-dependencies]
 rp_schema = { path = "../rp_schema" }
+
+[dev-dependencies]
+tempfile = "3.1.0"
