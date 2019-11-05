@@ -1,17 +1,17 @@
 #[derive(Debug)]
 pub struct Completions {
-    completions: Vec<&'static str>,
+    commands: Vec<&'static str>,
 }
 
 impl Completions {
-    pub fn new(completions: Vec<&'static str>) -> Self {
-        rp_log::debug!("Completions: {:?}", completions);
-        Completions { completions }
+    pub fn new(commands: Vec<&'static str>) -> Self {
+        rp_log::debug!("Completions: commands: {:?}", commands);
+        Completions { commands }
     }
 
     pub fn get(&self, input: String) -> anyhow::Result<Vec<&'static str>> {
         Ok(self
-            .completions
+            .commands
             .iter()
             .filter_map(|comp| {
                 if comp.starts_with(&input) {
