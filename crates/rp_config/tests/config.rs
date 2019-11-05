@@ -1,76 +1,27 @@
 mod common;
 
-use anyhow::anyhow;
 use rp_config::Config;
-use std::rc::Rc;
+use rp_schema::Schema;
+use std::{
+    io::{Read, Seek, SeekFrom},
+    rc::Rc,
+};
+use tempfile::tempfile;
 
 #[test]
-fn nonexistent_default_cat_query() -> anyhow::Result<()> {
-    let schema = Rc::new(common::get_nonexistent_default_cat_query_schema()?);
-    let result = Config::from_schema(Rc::downgrade(&schema));
+fn complete_schema() -> anyhow::Result<()> {
+    let mut schema = common::get_valid_schema()?;
+    schema.build_regex_cache()?;
 
-    match result {
-        Ok(_) => Err(anyhow!("config creation succeeded")),
-        Err(e) => {
-            if let Some(std::io::Error { .. }) = e.downcast_ref() {
-                Ok(())
-            } else {
-                Err(e)
-            }
-        }
-    }
-}
+    let mut file = tempfile()?;
+    schema.to_binary_file(&mut file)?;
 
-#[test]
-fn invalid_default_cat_query() -> anyhow::Result<()> {
-    println!("{:?}", std::env::current_dir()?);
-    let schema = Rc::new(common::get_invalid_default_cat_query_schema()?);
-    let result = Config::from_schema(Rc::downgrade(&schema));
+    file.seek(SeekFrom::Start(0))?;
 
-    match result {
-        Ok(_) => Err(anyhow!("config creation succeeded")),
-        Err(e) => {
-            if let Some(rp_config::error::ConstraintError { .. }) = e.downcast_ref() {
-                Ok(())
-            } else {
-                Err(e)
-            }
-        }
-    }
-}
+    let mut buf = Vec::new();
+    file.read_to_end(&mut buf)?;
+    let schema = Rc::new(Schema::from_binary(&buf)?);
 
-#[test]
-fn nonexistent_default_ls_query() -> anyhow::Result<()> {
-    println!("{:?}", std::env::current_dir()?);
-    let schema = Rc::new(common::get_nonexistent_default_ls_query_schema()?);
-    let result = Config::from_schema(Rc::downgrade(&schema));
-
-    match result {
-        Ok(_) => Err(anyhow!("config creation succeeded")),
-        Err(e) => {
-            if let Some(std::io::Error { .. }) = e.downcast_ref() {
-                Ok(())
-            } else {
-                Err(e)
-            }
-        }
-    }
-}
-
-#[test]
-fn invalid_default_ls_query() -> anyhow::Result<()> {
-    println!("{:?}", std::env::current_dir()?);
-    let schema = Rc::new(common::get_invalid_default_ls_query_schema()?);
-    let result = Config::from_schema(Rc::downgrade(&schema));
-
-    match result {
-        Ok(_) => Err(anyhow!("config creation succeeded")),
-        Err(e) => {
-            if let Some(rp_config::error::PropertyError::ConstraintNotMet) = e.downcast_ref() {
-                Ok(())
-            } else {
-                Err(e)
-            }
-        }
-    }
+    Config::from_schema(Rc::downgrade(&schema))?;
+    Ok(())
 }
