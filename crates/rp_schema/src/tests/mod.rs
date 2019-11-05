@@ -1,4 +1,5 @@
 mod common;
+mod template;
 
 use super::*;
 use anyhow::anyhow;
@@ -23,21 +24,11 @@ fn valid_regex_cache() -> anyhow::Result<()> {
 
 #[test]
 fn invalid_regex_cache() -> anyhow::Result<()> {
-    let mut schema = common::get_invalid_template_schema()?;
+    let mut schema = common::get_invalid_regex_template_schema()?;
     if schema.build_regex_cache().is_err() {
         Ok(())
     } else {
         Err(anyhow!("invalid regex template serialised succesfully"))
-    }
-}
-
-#[test]
-fn invalid_template() -> anyhow::Result<()> {
-    let mut schema = common::get_invalid_template_schema()?;
-    if schema.validate().is_err() {
-        Ok(())
-    } else {
-        Err(anyhow!("invalid template validated succesfully"))
     }
 }
 

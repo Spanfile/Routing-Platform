@@ -59,3 +59,37 @@ impl std::fmt::Display for Range {
         }
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use anyhow::anyhow;
+
+    #[test]
+    fn matches() -> anyhow::Result<()> {
+        if !(Range {
+            lower: Bound::Inclusive(0.0),
+            upper: Bound::Inclusive(1.0),
+        })
+        .matches("0.5")?
+        {
+            Err(anyhow!("valid value doesn't match"))
+        } else if (Range {
+            lower: Bound::Inclusive(0.0),
+            upper: Bound::Inclusive(1.0),
+        })
+        .matches("-1.0")?
+        {
+            Err(anyhow!("invalid lower value matches"))
+        } else if (Range {
+            lower: Bound::Inclusive(0.0),
+            upper: Bound::Inclusive(1.0),
+        })
+        .matches("2.0")?
+        {
+            Err(anyhow!("invalid higher value matches"))
+        } else {
+            Ok(())
+        }
+    }
+}
