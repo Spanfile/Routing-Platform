@@ -15,3 +15,6 @@ enum_dispatch = "0.2.0"
 regex-automata = "0.1.8"
 anyhow = "1.0.18"
 thiserror = "1.0.4"
+
+[dev-dependencies]
+tempfile = "3.1.0"

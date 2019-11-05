@@ -6,6 +6,8 @@ mod node;
 mod property;
 mod query;
 mod template;
+#[cfg(test)]
+mod tests;
 mod validate;
 mod value;
 
