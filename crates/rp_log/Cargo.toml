@@ -7,5 +7,5 @@ edition = "2018"
 [dependencies]
 fern = "0.5.9"
 log = "0.4.8"
-anyhow = "1.0.18"
+anyhow = "1.0.19"
 chrono = "0.4.9"
