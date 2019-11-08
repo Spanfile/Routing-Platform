@@ -15,6 +15,7 @@ pub struct Show {
 enum ShowArgument {
     Configuration,
     Schema,
+    Logs,
 }
 
 impl ExecutableCommand for Show {
@@ -26,7 +27,10 @@ impl ExecutableCommand for Show {
                         editor.pretty_print_config();
                         Ok(())
                     }
-                    ShowArgument::Schema => Ok(()),
+                    _ => Err(rp_common::error::NotImplemented {
+                        description: format!("{:?}", a),
+                    }
+                    .into()),
                 },
                 None => Err(rp_common::error::CommandError::missing_argument(
                     "item",
