@@ -1,14 +1,8 @@
 [workspace]
 members = [
-    "crates/*",
-    "crates/strum/strum",
-    "crates/strum/strum_macros"
-]
-
-exclude = [
-    "crates/strum"
+    "crates/*"
 ]
 
 [patch.crates-io]
-strum = { path = "crates/strum/strum" }
-strum_macros = { path = "crates/strum/strum_macros" }
+strum = { git = "https://github.com/Spanfile/strum.git" }
+strum_macros = { git = "https://github.com/Spanfile/strum.git" }

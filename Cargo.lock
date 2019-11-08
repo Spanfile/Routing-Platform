@@ -325,8 +325,8 @@ dependencies = [
  "anyhow 1.0.19 (registry+https://github.com/rust-lang/crates.io-index)",
  "lazy_static 1.4.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "regex-automata 0.1.8 (registry+https://github.com/rust-lang/crates.io-index)",
- "strum 0.16.0",
- "strum_macros 0.16.0",
+ "strum 0.16.0 (git+https://github.com/Spanfile/strum.git)",
+ "strum_macros 0.16.0 (git+https://github.com/Spanfile/strum.git)",
  "thiserror 1.0.4 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
 
@@ -383,8 +383,8 @@ dependencies = [
  "rp_config 0.1.0",
  "rp_log 0.1.0",
  "rp_schema 0.1.0",
- "strum 0.16.0",
- "strum_macros 0.16.0",
+ "strum 0.16.0 (git+https://github.com/Spanfile/strum.git)",
+ "strum_macros 0.16.0 (git+https://github.com/Spanfile/strum.git)",
  "tempfile 3.1.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "termion 1.5.3 (registry+https://github.com/rust-lang/crates.io-index)",
  "thiserror 1.0.4 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -442,13 +442,15 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 [[package]]
 name = "strum"
 version = "0.16.0"
+source = "git+https://github.com/Spanfile/strum.git#8c48263b244b57e19558e11b37fbcab59076c2c7"
 dependencies = [
- "strum_macros 0.16.0",
+ "strum_macros 0.16.0 (git+https://github.com/Spanfile/strum.git)",
 ]
 
 [[package]]
 name = "strum_macros"
 version = "0.16.0"
+source = "git+https://github.com/Spanfile/strum.git#8c48263b244b57e19558e11b37fbcab59076c2c7"
 dependencies = [
  "heck 0.3.1 (registry+https://github.com/rust-lang/crates.io-index)",
  "proc-macro2 1.0.6 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -613,6 +615,8 @@ dependencies = [
 "checksum serde_json 1.0.41 (registry+https://github.com/rust-lang/crates.io-index)" = "2f72eb2a68a7dc3f9a691bfda9305a1c017a6215e5a4545c258500d2099a37c2"
 "checksum serde_yaml 0.8.11 (registry+https://github.com/rust-lang/crates.io-index)" = "691b17f19fc1ec9d94ec0b5864859290dff279dbd7b03f017afda54eb36c3c35"
 "checksum strsim 0.9.2 (registry+https://github.com/rust-lang/crates.io-index)" = "032c03039aae92b350aad2e3779c352e104d919cb192ba2fabbd7b831ce4f0f6"
+"checksum strum 0.16.0 (git+https://github.com/Spanfile/strum.git)" = "<none>"
+"checksum strum_macros 0.16.0 (git+https://github.com/Spanfile/strum.git)" = "<none>"
 "checksum syn 1.0.7 (registry+https://github.com/rust-lang/crates.io-index)" = "0e7bedb3320d0f3035594b0b723c8a28d7d336a3eda3881db79e61d676fb644c"
 "checksum tempfile 3.1.0 (registry+https://github.com/rust-lang/crates.io-index)" = "7a6e24d9338a0a5be79593e2fa15a648add6138caa803e2d5bc782c371732ca9"
 "checksum termion 1.5.3 (registry+https://github.com/rust-lang/crates.io-index)" = "6a8fb22f7cde82c8220e5aeacb3258ed7ce996142c77cba193f203515e26c330"
