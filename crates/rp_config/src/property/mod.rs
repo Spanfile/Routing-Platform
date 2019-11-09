@@ -85,7 +85,7 @@ impl Property {
                 let old_value = values
                     .keys()
                     .nth(0)
-                    .map(|k| k.clone())
+                    .cloned()
                     .ok_or_else(|| anyhow!("values empty after check"))?;
                 values.remove(&old_value);
                 values.insert(value.to_string(), PropertyChange::Edited { old_value });
