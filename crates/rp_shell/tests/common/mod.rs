@@ -26,17 +26,23 @@ nodes:
           - literal: a
   "singlenode":
     subnodes:
-      "subnode":
-        properties:
-          "simple":
-            values:
-            - template: digit
-          "default":
-            default:
-            - literal: "0"
-            values:
-            - template: digit
+      "subnode": {}
     properties:
+      "simple":
+        values:
+        - template: digit
+      "default":
+        default:
+        - literal: "0"
+        values:
+        - template: digit
+      "multiple":
+        multiple: true
+        default:
+        - literal: "0"
+        - literal: "1"
+        values:
+        - template: digit
       "query_default":
         default:
           - query:

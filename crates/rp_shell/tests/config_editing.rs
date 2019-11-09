@@ -40,7 +40,6 @@ fn set_new_property_value() -> anyhow::Result<()> {
     let mut editor = ConfigEditor::new(&config, schema.as_ref());
 
     editor.edit_node("singlenode")?;
-    editor.edit_node("subnode")?;
     editor.set_property_value("simple", "1")?;
 
     if editor.is_clean() {
@@ -57,7 +56,6 @@ fn discard_changes() -> anyhow::Result<()> {
     let mut editor = ConfigEditor::new(&config, schema.as_ref());
 
     editor.edit_node("singlenode")?;
-    editor.edit_node("subnode")?;
     editor.set_property_value("default", "1")?;
 
     if editor.is_clean() {
@@ -79,7 +77,6 @@ fn edit_existing_property_value() -> anyhow::Result<()> {
     let mut editor = ConfigEditor::new(&config, schema.as_ref());
 
     editor.edit_node("singlenode")?;
-    editor.edit_node("subnode")?;
     editor.set_property_value("default", "1")?;
 
     if editor.is_clean() {
@@ -96,13 +93,13 @@ fn remove_existing_property_value() -> anyhow::Result<()> {
     let mut editor = ConfigEditor::new(&config, schema.as_ref());
 
     editor.edit_node("singlenode")?;
-    editor.remove_property_value("query_default", Some("a"))?;
+    editor.remove_property_value("multiple", Some("0"))?;
 
     if editor.is_clean() {
         Err(anyhow!("config clean after change"))
     } else {
         editor.apply_changes()?;
-        assert_property(&editor, "query_default", None)
+        assert_property(&editor, "multiple", Some("1"))
     }
 }
 

@@ -107,28 +107,18 @@ impl Property {
                 if let Some(value) = value {
                     if value == existing {
                         match_made = true;
-
-                        match change {
-                            PropertyChange::New => None,
-                            PropertyChange::Edited { old_value } => {
-                                Some((old_value.clone(), PropertyChange::Removed))
-                            }
-                            PropertyChange::Unchanged | PropertyChange::Removed => {
-                                Some((existing.clone(), PropertyChange::Removed))
-                            }
-                        }
                     } else {
-                        Some((existing.clone(), change.clone()))
+                        return Some((existing.clone(), change.clone()));
                     }
-                } else {
-                    match change {
-                        PropertyChange::New => None,
-                        PropertyChange::Edited { old_value } => {
-                            Some((old_value.clone(), PropertyChange::Removed))
-                        }
-                        PropertyChange::Unchanged | PropertyChange::Removed => {
-                            Some((existing.clone(), PropertyChange::Removed))
-                        }
+                }
+
+                match change {
+                    PropertyChange::New => None,
+                    PropertyChange::Edited { old_value } => {
+                        Some((old_value.clone(), PropertyChange::Removed))
+                    }
+                    PropertyChange::Unchanged | PropertyChange::Removed => {
+                        Some((existing.clone(), PropertyChange::Removed))
                     }
                 }
             })
