@@ -139,18 +139,25 @@ impl Changeable for MultiConfigNode {
     }
 
     fn apply_changes(&self) -> anyhow::Result<()> {
-        let new_nodes: HashMap<String, (Rc<ConfigNode>, NodeChange)> = self
+        let new_nodes: HashMap<String, (Rc<ConfigNode>, NodeChange)> = match self
             .nodes
             .try_borrow()?
             .iter()
             .filter_map(|(name, (node, change))| match change {
                 NodeChange::Unchanged | NodeChange::New => {
-                    node.apply_changes();
-                    Some((name.clone(), (Rc::clone(node), NodeChange::Unchanged)))
+                    if let Err(e) = node.apply_changes() {
+                        Some(Err(e))
+                    } else {
+                        Some(Ok((name.clone(), (Rc::clone(node), NodeChange::Unchanged))))
+                    }
                 }
                 NodeChange::Removed => None,
             })
-            .collect();
+            .collect()
+        {
+            Ok(n) => n,
+            Err(e) => return Err(e),
+        };
 
         self.nodes.replace(new_nodes);
 
