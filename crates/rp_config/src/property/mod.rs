@@ -98,30 +98,60 @@ impl Property {
     }
 
     pub fn remove(&self, value: Option<&str>) -> anyhow::Result<()> {
-        if self.values.borrow().is_empty() {
-            return Err(PropertyError::NoValueSet.into());
-        }
+        let mut match_made = false;
+        let values: HashMap<String, PropertyChange> = self
+            .values
+            .try_borrow()?
+            .iter()
+            .filter_map(|(existing, change)| {
+                if let Some(value) = value {
+                    if value == existing {
+                        match_made = true;
 
-        let mut values = self.values.try_borrow_mut()?;
+                        match change {
+                            PropertyChange::New => None,
+                            PropertyChange::Edited { old_value } => {
+                                Some((old_value.clone(), PropertyChange::Removed))
+                            }
+                            PropertyChange::Unchanged | PropertyChange::Removed => {
+                                Some((existing.clone(), PropertyChange::Removed))
+                            }
+                        }
+                    } else {
+                        Some((existing.clone(), change.clone()))
+                    }
+                } else {
+                    match change {
+                        PropertyChange::New => None,
+                        PropertyChange::Edited { old_value } => {
+                            Some((old_value.clone(), PropertyChange::Removed))
+                        }
+                        PropertyChange::Unchanged | PropertyChange::Removed => {
+                            Some((existing.clone(), PropertyChange::Removed))
+                        }
+                    }
+                }
+            })
+            .collect();
 
         if let Some(value) = value {
-            // TODO: handle case when removing non-unchanged value
-            *values
-                .get_mut(value)
-                .ok_or_else(|| PropertyError::NoSuchValue(value.to_string()))? =
-                PropertyChange::Removed;
-        } else {
-            for change in values.values_mut() {
-                *change = PropertyChange::Removed;
+            if !match_made {
+                return Err(PropertyError::NoSuchValue(value.to_string()).into());
             }
         }
 
-        // TODO: test this
-        // if values.is_empty() && !self.constraints.deletable {
-        //     *values = self.default_values.clone();
-        // }
+        if values.is_empty() {
+            Err(PropertyError::NoValueSet.into())
+        } else {
+            self.values.replace(values);
 
-        Ok(())
+            // TODO: test this
+            // if values.is_empty() && !self.constraints.deletable {
+            //     *values = self.default_values.clone();
+            // }
+
+            Ok(())
+        }
     }
 }
 
