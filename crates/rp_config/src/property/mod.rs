@@ -14,7 +14,7 @@ use std::{
 };
 
 #[derive(Debug, PartialEq, Clone)]
-pub enum PropertyChange {
+enum PropertyChange {
     Unchanged,
     New,
     Removed,
