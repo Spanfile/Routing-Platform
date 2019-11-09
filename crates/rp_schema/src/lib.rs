@@ -2,6 +2,7 @@
 
 mod bound;
 mod error;
+mod matches;
 mod node;
 mod property;
 mod query;
@@ -13,6 +14,7 @@ mod value;
 
 pub use bound::Bound;
 use flate2::{read::ZlibDecoder, write::ZlibEncoder, Compression};
+pub use matches::Matches;
 pub use node::{
     MultiSchemaNode, MultiSchemaNodeSource, NodeLocator, SchemaNode, SchemaNodeTrait,
     SingleSchemaNode,
@@ -36,10 +38,6 @@ pub struct Schema {
     pub nodes: HashMap<String, Box<SchemaNode>>,
     #[serde(default)]
     regex_cache: HashMap<String, Vec<u8>>,
-}
-
-pub trait Matches {
-    fn matches(&self, value: &str) -> anyhow::Result<bool>;
 }
 
 impl Schema {
