@@ -10,8 +10,30 @@ fn set_property_value() -> anyhow::Result<()> {
 
     editor.edit_node("singlenode")?;
     editor.edit_node("subnode")?;
+    editor.set_property_value("simple", "1")?;
 
-    editor.set_property_value("simple", "1")
+    if editor.is_clean() {
+        Err(anyhow!("config clean after change"))
+    } else {
+        editor.apply_changes()?;
+
+        if let Some(values) = editor.get_property_values(Some(String::from("simple"))) {
+            if let Some(values) = values.get("simple") {
+                if !values.contains(&String::from("1")) {
+                    Err(anyhow!("set value not in property values: {:?}", values))
+                } else {
+                    Ok(())
+                }
+            } else {
+                Err(anyhow!(
+                    "get_property_values returned without the property: {:?}",
+                    values
+                ))
+            }
+        } else {
+            Err(anyhow!("get_property_values returned None"))
+        }
+    }
 }
 
 #[test]
@@ -22,24 +44,30 @@ fn remove_existing_property_value() -> anyhow::Result<()> {
     editor.edit_node("singlenode")?;
     editor.remove_property_value("query_default", Some("a"))?;
 
-    if let Some(values) = editor.get_property_values(Some(String::from("query_default"))) {
-        if let Some(values) = values.get("query_default") {
-            if !values.is_empty() {
+    if editor.is_clean() {
+        Err(anyhow!("config clean after change"))
+    } else {
+        editor.apply_changes()?;
+
+        if let Some(values) = editor.get_property_values(Some(String::from("query_default"))) {
+            if let Some(values) = values.get("query_default") {
+                if !values.is_empty() {
+                    Err(anyhow!(
+                        "property value removal left some values: {:?}",
+                        values
+                    ))
+                } else {
+                    Ok(())
+                }
+            } else {
                 Err(anyhow!(
-                    "property value removal left some values: {:?}",
+                    "get_property_values returned without the property: {:?}",
                     values
                 ))
-            } else {
-                Ok(())
             }
         } else {
-            Err(anyhow!(
-                "get_property_values returned without the property: {:?}",
-                values
-            ))
+            Err(anyhow!("get_property_values returned None"))
         }
-    } else {
-        Err(anyhow!("get_property_values returned None"))
     }
 }
 
@@ -51,24 +79,30 @@ fn remove_all_property_values() -> anyhow::Result<()> {
     editor.edit_node("singlenode")?;
     editor.remove_property_value("query_default", None)?;
 
-    if let Some(values) = editor.get_property_values(Some(String::from("query_default"))) {
-        if let Some(values) = values.get("query_default") {
-            if !values.is_empty() {
+    if editor.is_clean() {
+        Err(anyhow!("config clean after change"))
+    } else {
+        editor.apply_changes()?;
+
+        if let Some(values) = editor.get_property_values(Some(String::from("query_default"))) {
+            if let Some(values) = values.get("query_default") {
+                if !values.is_empty() {
+                    Err(anyhow!(
+                        "all property value removal left some values: {:?}",
+                        values
+                    ))
+                } else {
+                    Ok(())
+                }
+            } else {
                 Err(anyhow!(
-                    "all property value removal left some values: {:?}",
+                    "get_property_values returned without the property: {:?}",
                     values
                 ))
-            } else {
-                Ok(())
             }
         } else {
-            Err(anyhow!(
-                "get_property_values returned without the property: {:?}",
-                values
-            ))
+            Err(anyhow!("get_property_values returned None"))
         }
-    } else {
-        Err(anyhow!("get_property_values returned None"))
     }
 }
 

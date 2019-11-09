@@ -1,5 +1,5 @@
 use crate::error;
-use rp_config::{Config, ConfigNode, Node, NodeName, Property};
+use rp_config::{Changeable, Config, ConfigNode, Node, NodeName, Property};
 use rp_schema::Schema;
 use std::{collections::HashMap, rc::Rc};
 
@@ -150,6 +150,14 @@ impl<'a> ConfigEditor<'a> {
             }
             .into())
         }
+    }
+
+    pub fn is_clean(&self) -> bool {
+        self.config.is_clean()
+    }
+
+    pub fn apply_changes(&self) -> anyhow::Result<()> {
+        self.config.apply_changes()
     }
 }
 

@@ -1,7 +1,7 @@
 mod multi_config_node;
 mod single_config_node;
 
-use super::{NodeName, Property};
+use super::{Changeable, NodeName, Property};
 use enum_dispatch::enum_dispatch;
 use multi_config_node::MultiConfigNode;
 use rp_common::Context;
@@ -13,7 +13,7 @@ use std::{
 };
 
 #[enum_dispatch]
-pub trait Node {
+pub trait Node: Changeable {
     fn name(&self) -> String;
 
     fn get_available_node_names(&self) -> Vec<NodeName>;
@@ -60,6 +60,22 @@ impl FromSchemaNode<SchemaNode> for ConfigNode {
             SchemaNode::MultiSchemaNode(node) => Ok(MultiConfigNode::from_schema_node(
                 context, name, schema, node,
             )?),
+        }
+    }
+}
+
+impl Changeable for ConfigNode {
+    fn is_clean(&self) -> bool {
+        match self {
+            Self::SingleConfigNode(node) => node.is_clean(),
+            Self::MultiConfigNode(node) => node.is_clean(),
+        }
+    }
+
+    fn apply_changes(&self) -> anyhow::Result<()> {
+        match self {
+            Self::SingleConfigNode(node) => node.apply_changes(),
+            Self::MultiConfigNode(node) => node.apply_changes(),
         }
     }
 }

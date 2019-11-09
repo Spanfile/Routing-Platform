@@ -343,6 +343,7 @@ name = "rp_config"
 version = "0.1.0"
 dependencies = [
  "anyhow 1.0.19 (registry+https://github.com/rust-lang/crates.io-index)",
+ "colored 1.8.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "enum_dispatch 0.2.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "rp_common 0.1.0",
  "rp_log 0.1.0",

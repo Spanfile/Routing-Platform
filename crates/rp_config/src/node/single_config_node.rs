@@ -1,4 +1,4 @@
-use super::{ConfigNode, FromSchemaNode, Node, NodeName};
+use super::{Changeable, ConfigNode, FromSchemaNode, Node, NodeName};
 use crate::Property;
 use rp_common::Context;
 use rp_schema::{Schema, SingleSchemaNode};
@@ -78,6 +78,17 @@ impl Node for SingleConfigNode {
             node: String::from(node),
         }
         .into())
+    }
+}
+
+impl Changeable for SingleConfigNode {
+    fn is_clean(&self) -> bool {
+        self.properties.values().all(|prop| prop.is_clean())
+            && self.subnodes.values().all(|node| node.is_clean())
+    }
+
+    fn apply_changes(&self) -> anyhow::Result<()> {
+        unimplemented!()
     }
 }
 

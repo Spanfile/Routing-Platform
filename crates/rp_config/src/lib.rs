@@ -1,9 +1,11 @@
+mod changeable;
 pub mod error;
 mod node;
 mod node_name;
 mod property;
 
 use anyhow::anyhow;
+pub use changeable::Changeable;
 pub use node::{ConfigNode, FromSchemaNode, Node};
 pub use node_name::NodeName;
 pub use property::Property;
@@ -17,6 +19,16 @@ use std::{
 #[derive(Debug)]
 pub struct Config {
     pub nodes: HashMap<String, Rc<ConfigNode>>,
+}
+
+impl Changeable for Config {
+    fn is_clean(&self) -> bool {
+        self.nodes.values().all(|node| node.is_clean())
+    }
+
+    fn apply_changes(&self) -> anyhow::Result<()> {
+        unimplemented!()
+    }
 }
 
 impl Config {

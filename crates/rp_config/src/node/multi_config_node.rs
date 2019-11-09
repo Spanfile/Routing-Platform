@@ -1,4 +1,4 @@
-use super::{ConfigNode, FromSchemaNode, Node, NodeName};
+use super::{Changeable, ConfigNode, FromSchemaNode, Node, NodeName};
 use crate::Property;
 use rp_common::Context;
 use rp_schema::{MultiSchemaNode, MultiSchemaNodeSource, NodeLocator, Schema, SchemaNodeTrait};
@@ -110,6 +110,16 @@ impl Node for MultiConfigNode {
             }
             .into()),
         }
+    }
+}
+
+impl Changeable for MultiConfigNode {
+    fn is_clean(&self) -> bool {
+        self.nodes.borrow().values().all(|node| node.is_clean())
+    }
+
+    fn apply_changes(&self) -> anyhow::Result<()> {
+        unimplemented!()
     }
 }
 

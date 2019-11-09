@@ -2,13 +2,22 @@ mod constraints;
 
 use crate::error::PropertyError;
 use anyhow::anyhow;
+use colored::Colorize;
 use constraints::Constraints;
 use rp_common::Context;
 use rp_schema::Schema;
 use std::{
     cell::RefCell,
+    collections::HashMap,
     rc::{Rc, Weak},
 };
+
+#[derive(Debug)]
+pub enum PropertyChange {
+    New,
+    Removed,
+    Edited { old_value: String },
+}
 
 #[derive(Debug)]
 pub struct Property {
@@ -16,6 +25,7 @@ pub struct Property {
     values: RefCell<Vec<String>>,
     default_values: Vec<String>, // this is pretty horrible just look it up from the schema or smth
     constraints: Constraints,
+    changes: RefCell<HashMap<String, PropertyChange>>,
 }
 
 impl Property {
@@ -44,6 +54,7 @@ impl Property {
                     default_values: values.iter().map(|s| s.to_owned()).collect(),
                     values: RefCell::new(values),
                     constraints,
+                    changes: RefCell::new(HashMap::new()),
                 })
             }
         } else {
@@ -58,11 +69,23 @@ impl Property {
     pub fn set(&self, value: &str, schema: &rp_schema::Schema) -> anyhow::Result<()> {
         self.constraints.matches(&value, schema)?;
 
-        let mut values = self.values.borrow_mut();
+        let mut changes = self.changes.try_borrow_mut()?;
         if !self.constraints.multiple {
-            values.clear();
+            for v in self.values.try_borrow()?.iter() {
+                changes.insert(
+                    v.to_owned(),
+                    if v == value {
+                        PropertyChange::Edited {
+                            old_value: v.to_owned(),
+                        }
+                    } else {
+                        PropertyChange::Removed
+                    },
+                );
+            }
+        } else {
+            changes.insert(value.to_string(), PropertyChange::New);
         }
-        values.push(value.to_string());
 
         Ok(())
     }
@@ -72,31 +95,81 @@ impl Property {
             return Err(PropertyError::NoValueSet.into());
         }
 
-        let mut values = self.values.borrow_mut();
-        let orig_len = values.len();
+        let mut changes = self.changes.try_borrow_mut()?;
 
         if let Some(value) = value {
-            values.retain(|v| *v != value);
-
-            if values.len() == orig_len {
+            if !self.values.borrow().iter().any(|v| v == value) {
                 return Err(PropertyError::NoSuchValue(value.to_string()).into());
             }
+
+            changes.insert(value.to_owned(), PropertyChange::Removed);
         } else {
-            values.clear();
+            for v in self.values.try_borrow()?.iter() {
+                changes.insert(v.to_owned(), PropertyChange::Removed);
+            }
         }
 
-        if values.is_empty() && !self.constraints.deletable {
-            *values = self.default_values.clone();
-        }
+        // TODO: test this
+        // if values.is_empty() && !self.constraints.deletable {
+        //     *values = self.default_values.clone();
+        // }
 
         Ok(())
+    }
+
+    pub fn is_clean(&self) -> bool {
+        self.changes.borrow().is_empty()
+    }
+
+    pub fn apply_changes(&self) -> anyhow::Result<()> {
+        unimplemented!()
     }
 }
 
 impl Property {
     pub fn pretty_print(&self, indent: usize) {
+        let changes = self.changes.borrow();
+
         for value in self.values.borrow().iter() {
-            println!("{:indent$}{} {}", "", self.key, value, indent = indent * 4);
+            match changes.get(value) {
+                Some(PropertyChange::New) => println!(
+                    "{:indent$}{}{} {}",
+                    "",
+                    "+".green(),
+                    self.key.green(),
+                    value.green(),
+                    indent = indent * 4
+                ),
+                Some(PropertyChange::Removed) => println!(
+                    "{:indent$}{}{} {}",
+                    "",
+                    "-".red(),
+                    self.key.red(),
+                    value.red(),
+                    indent = indent * 4
+                ),
+                Some(PropertyChange::Edited { old_value }) => {
+                    println!(
+                        "{:indent$}{}{} {}",
+                        "",
+                        "-".red(),
+                        self.key.red(),
+                        old_value.red(),
+                        indent = indent * 4
+                    );
+                    println!(
+                        "{:indent$}{}{} {}",
+                        "",
+                        "-".red(),
+                        self.key.red(),
+                        value.red(),
+                        indent = indent * 4
+                    )
+                }
+                None => {
+                    println!("{:indent$}{} {}", "", self.key, value, indent = indent * 4);
+                }
+            }
         }
     }
 }
