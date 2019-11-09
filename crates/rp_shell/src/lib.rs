@@ -61,7 +61,10 @@ fn process(shell: &mut Shell, editor: &mut ConfigEditor) -> anyhow::Result<()> {
         }
     }
 
-    command.run(shell, editor)
+    let start = Instant::now();
+    let result = command.run(shell, editor);
+    debug!("Command execution took {}ms", start.elapsed().as_millis());
+    result
 }
 
 fn get_prompt(shell: &Shell, editor: &ConfigEditor) -> String {
