@@ -147,7 +147,7 @@ impl Schema {
         sum
     }
 
-    pub fn find_node(&self, locator: Rc<NodeLocator>) -> Option<&Box<SchemaNode>> {
+    pub fn find_node(&self, locator: Rc<NodeLocator>) -> Option<&SchemaNode> {
         let mut locator_stack = Vec::new();
         let mut current = Some(locator);
 
@@ -165,7 +165,7 @@ impl Schema {
 
         // find the first node in schema
         let mut current = if let Some(name) = &locator_stack.pop() {
-            self.nodes.get(name)
+            self.nodes.get(name).map(|n| &**n)
         } else {
             None
         };
@@ -176,8 +176,8 @@ impl Schema {
 
         while let Some(n) = &name {
             current = if let Some(c) = current {
-                match &**c {
-                    SchemaNode::SingleSchemaNode(single) => single.subnodes.get(n),
+                match c {
+                    SchemaNode::SingleSchemaNode(single) => single.subnodes.get(n).map(|n| &**n),
                     SchemaNode::MultiSchemaNode(multi) => Some(&multi.node),
                 }
             } else {
