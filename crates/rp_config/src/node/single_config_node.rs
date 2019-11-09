@@ -88,7 +88,15 @@ impl Changeable for SingleConfigNode {
     }
 
     fn apply_changes(&self) -> anyhow::Result<()> {
-        unimplemented!()
+        for prop in self.properties.values() {
+            prop.apply_changes()?;
+        }
+
+        for node in self.subnodes.values() {
+            node.apply_changes()?;
+        }
+
+        Ok(())
     }
 }
 

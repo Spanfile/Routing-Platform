@@ -4,7 +4,7 @@ use anyhow::anyhow;
 use rp_shell::ConfigEditor;
 
 #[test]
-fn set_property_value() -> anyhow::Result<()> {
+fn set_new_property_value() -> anyhow::Result<()> {
     let (schema, config) = common::get_schema_and_config()?;
     let mut editor = ConfigEditor::new(&config, schema.as_ref());
 
@@ -19,6 +19,39 @@ fn set_property_value() -> anyhow::Result<()> {
 
         if let Some(values) = editor.get_property_values(Some(String::from("simple"))) {
             if let Some(values) = values.get("simple") {
+                if !values.contains(&String::from("1")) {
+                    Err(anyhow!("set value not in property values: {:?}", values))
+                } else {
+                    Ok(())
+                }
+            } else {
+                Err(anyhow!(
+                    "get_property_values returned without the property: {:?}",
+                    values
+                ))
+            }
+        } else {
+            Err(anyhow!("get_property_values returned None"))
+        }
+    }
+}
+
+#[test]
+fn edit_existing_property_value() -> anyhow::Result<()> {
+    let (schema, config) = common::get_schema_and_config()?;
+    let mut editor = ConfigEditor::new(&config, schema.as_ref());
+
+    editor.edit_node("singlenode")?;
+    editor.edit_node("subnode")?;
+    editor.set_property_value("default", "1")?;
+
+    if editor.is_clean() {
+        Err(anyhow!("config clean after change"))
+    } else {
+        editor.apply_changes()?;
+
+        if let Some(values) = editor.get_property_values(Some(String::from("default"))) {
+            if let Some(values) = values.get("default") {
                 if !values.contains(&String::from("1")) {
                     Err(anyhow!("set value not in property values: {:?}", values))
                 } else {

@@ -31,6 +31,11 @@ nodes:
           "simple":
             values:
             - template: digit
+          "default":
+            default:
+            - literal: "0"
+            values:
+            - template: digit
     properties:
       "query_default":
         default:

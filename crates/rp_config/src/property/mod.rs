@@ -71,10 +71,13 @@ impl Property {
 
         let mut changes = self.changes.try_borrow_mut()?;
         if !self.constraints.multiple {
+            let mut old_changed = false;
+
             for v in self.values.try_borrow()?.iter() {
                 changes.insert(
                     v.to_owned(),
                     if v == value {
+                        old_changed = true;
                         PropertyChange::Edited {
                             old_value: v.to_owned(),
                         }
@@ -82,6 +85,10 @@ impl Property {
                         PropertyChange::Removed
                     },
                 );
+            }
+
+            if !old_changed {
+                changes.insert(value.to_string(), PropertyChange::New);
             }
         } else {
             changes.insert(value.to_string(), PropertyChange::New);
@@ -122,7 +129,24 @@ impl Property {
     }
 
     pub fn apply_changes(&self) -> anyhow::Result<()> {
-        unimplemented!()
+        let mut values = self.values.try_borrow_mut()?;
+        for (node, change) in self.changes.try_borrow()?.iter() {
+            match change {
+                PropertyChange::New => values.push(node.to_owned()),
+                PropertyChange::Removed => {
+                    values
+                        .remove_item(node)
+                        .ok_or_else(|| anyhow!("removed value not in values"))?;
+                }
+                PropertyChange::Edited { old_value } => {
+                    values
+                        .remove_item(old_value)
+                        .ok_or_else(|| anyhow!("changed old value not in values"))?;
+                    values.push(node.to_owned());
+                }
+            }
+        }
+        Ok(())
     }
 }
 

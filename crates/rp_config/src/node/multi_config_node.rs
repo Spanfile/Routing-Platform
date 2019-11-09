@@ -119,7 +119,11 @@ impl Changeable for MultiConfigNode {
     }
 
     fn apply_changes(&self) -> anyhow::Result<()> {
-        unimplemented!()
+        for node in self.nodes.try_borrow()?.values() {
+            node.apply_changes()?;
+        }
+
+        Ok(())
     }
 }
 

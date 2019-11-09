@@ -1,3 +1,5 @@
+#![feature(vec_remove_item)]
+
 mod changeable;
 pub mod error;
 mod node;
@@ -27,7 +29,11 @@ impl Changeable for Config {
     }
 
     fn apply_changes(&self) -> anyhow::Result<()> {
-        unimplemented!()
+        for node in self.nodes.values() {
+            node.apply_changes()?;
+        }
+
+        Ok(())
     }
 }
 
