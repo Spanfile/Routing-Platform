@@ -22,6 +22,7 @@ pub fn setup_logging() -> anyhow::Result<()> {
             ))
         })
         .level(log::LevelFilter::Debug)
+        .chain(std::io::stdout())
         .apply()?;
     Ok(())
 }
