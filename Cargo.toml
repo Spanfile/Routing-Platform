@@ -6,3 +6,6 @@ members = [
 [patch.crates-io]
 strum = { git = "https://github.com/Spanfile/strum.git" }
 strum_macros = { git = "https://github.com/Spanfile/strum.git" }
+
+[profile.release]
+lto = true
