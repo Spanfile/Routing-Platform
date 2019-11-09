@@ -165,9 +165,19 @@ impl Changeable for MultiConfigNode {
     }
 
     fn discard_changes(&self) {
-        for (node, _) in self.nodes.borrow().values() {
-            node.discard_changes();
-        }
+        let new_nodes: HashMap<String, (Rc<ConfigNode>, NodeChange)> = self
+            .nodes
+            .borrow()
+            .iter()
+            .filter_map(|(name, (node, change))| match change {
+                NodeChange::New => None,
+                NodeChange::Removed | NodeChange::Unchanged => {
+                    Some((name.clone(), (Rc::clone(node), NodeChange::Unchanged)))
+                }
+            })
+            .collect();
+
+        self.nodes.replace(new_nodes);
     }
 }
 
