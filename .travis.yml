@@ -1,6 +1,9 @@
 language: rust
 rust:
   - nightly
+before_install:
+  - sudo apt update
+  - sudo apt-get -y install libnftnl-dev libmnl-dev
 script:
   - cargo build --verbose --all
   - cargo test
