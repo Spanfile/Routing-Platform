@@ -35,6 +35,12 @@ impl Changeable for Config {
 
         Ok(())
     }
+
+    fn discard_changes(&self) {
+        for node in self.nodes.values() {
+            node.discard_changes();
+        }
+    }
 }
 
 impl Config {

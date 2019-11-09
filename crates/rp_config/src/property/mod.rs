@@ -1,5 +1,6 @@
 mod constraints;
 
+use super::Changeable;
 use crate::error::PropertyError;
 use anyhow::anyhow;
 use colored::Colorize;
@@ -123,14 +124,18 @@ impl Property {
 
         Ok(())
     }
+}
 
-    pub fn is_clean(&self) -> bool {
+impl Changeable for Property {
+    fn is_clean(&self) -> bool {
         self.changes.borrow().is_empty()
     }
 
-    pub fn apply_changes(&self) -> anyhow::Result<()> {
+    fn apply_changes(&self) -> anyhow::Result<()> {
         let mut values = self.values.try_borrow_mut()?;
-        for (node, change) in self.changes.try_borrow()?.iter() {
+        let mut changes = self.changes.try_borrow_mut()?;
+
+        for (node, change) in changes.iter() {
             match change {
                 PropertyChange::New => values.push(node.to_owned()),
                 PropertyChange::Removed => {
@@ -146,7 +151,14 @@ impl Property {
                 }
             }
         }
+
+        changes.clear();
+
         Ok(())
+    }
+
+    fn discard_changes(&self) {
+        self.changes.borrow_mut().clear();
     }
 }
 

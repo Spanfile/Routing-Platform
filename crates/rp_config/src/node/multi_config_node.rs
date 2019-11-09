@@ -125,6 +125,12 @@ impl Changeable for MultiConfigNode {
 
         Ok(())
     }
+
+    fn discard_changes(&self) {
+        for node in self.nodes.borrow().values() {
+            node.discard_changes();
+        }
+    }
 }
 
 impl FromSchemaNode<MultiSchemaNode> for MultiConfigNode {

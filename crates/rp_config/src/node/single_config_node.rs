@@ -98,6 +98,16 @@ impl Changeable for SingleConfigNode {
 
         Ok(())
     }
+
+    fn discard_changes(&self) {
+        for prop in self.properties.values() {
+            prop.discard_changes();
+        }
+
+        for node in self.subnodes.values() {
+            node.discard_changes();
+        }
+    }
 }
 
 impl FromSchemaNode<SingleSchemaNode> for SingleConfigNode {

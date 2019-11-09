@@ -1,3 +1,4 @@
+mod apply;
 mod configure;
 mod edit;
 mod exit;
@@ -5,6 +6,7 @@ mod history;
 mod show;
 
 use super::{super::ConfigEditor, Shell, ShellMode};
+use apply::{Apply, Discard};
 use command_metadata::CommandEnum;
 use configure::Configure;
 use edit::{Edit, Remove, Set, Top, Up};
@@ -31,4 +33,6 @@ pub enum Command {
     Set,
     Remove,
     History,
+    Apply,
+    Discard,
 }

@@ -78,4 +78,11 @@ impl Changeable for ConfigNode {
             Self::MultiConfigNode(node) => node.apply_changes(),
         }
     }
+
+    fn discard_changes(&self) {
+        match self {
+            Self::SingleConfigNode(node) => node.discard_changes(),
+            Self::MultiConfigNode(node) => node.discard_changes(),
+        }
+    }
 }
