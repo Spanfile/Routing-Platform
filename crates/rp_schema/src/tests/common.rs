@@ -1,9 +1,12 @@
 use super::Schema;
-use std::io::{Seek, SeekFrom, Write};
-use tempfile::tempfile;
+use std::io::{Cursor, Seek, SeekFrom, Write};
+
+fn buffer() -> Cursor<Vec<u8>> {
+    Cursor::new(Vec::new())
+}
 
 pub fn get_valid_schema() -> anyhow::Result<Schema> {
-    let mut temp = tempfile()?;
+    let mut buf = buffer();
     let schema = r#"---
 templates:
   "string":
@@ -27,28 +30,28 @@ nodes:
             values:
               - template: string"#;
 
-    write!(temp, "{}", schema)?;
-    temp.seek(SeekFrom::Start(0))?;
+    write!(buf, "{}", schema)?;
+    buf.seek(SeekFrom::Start(0))?;
 
-    Schema::from_yaml_file(&temp)
+    Schema::from_yaml_file(buf)
 }
 
 pub fn get_invalid_regex_template_schema() -> anyhow::Result<Schema> {
-    let mut temp = tempfile()?;
+    let mut buf = buffer();
     let schema = r#"---
 templates:
   "string":
     regex: "*"
 nodes: {}"#;
 
-    write!(temp, "{}", schema)?;
-    temp.seek(SeekFrom::Start(0))?;
+    write!(buf, "{}", schema)?;
+    buf.seek(SeekFrom::Start(0))?;
 
-    Schema::from_yaml_file(&temp)
+    Schema::from_yaml_file(buf)
 }
 
 pub fn get_invalid_incl_incl_range_template_schema() -> anyhow::Result<Schema> {
-    let mut temp = tempfile()?;
+    let mut buf = buffer();
     let schema = r#"---
 templates:
   "value":
@@ -59,14 +62,14 @@ templates:
         inclusive: 0
 nodes: {}"#;
 
-    write!(temp, "{}", schema)?;
-    temp.seek(SeekFrom::Start(0))?;
+    write!(buf, "{}", schema)?;
+    buf.seek(SeekFrom::Start(0))?;
 
-    Schema::from_yaml_file(&temp)
+    Schema::from_yaml_file(buf)
 }
 
 pub fn get_invalid_excl_incl_range_template_schema() -> anyhow::Result<Schema> {
-    let mut temp = tempfile()?;
+    let mut buf = buffer();
     let schema = r#"---
 templates:
   "value":
@@ -77,14 +80,14 @@ templates:
         inclusive: 0
 nodes: {}"#;
 
-    write!(temp, "{}", schema)?;
-    temp.seek(SeekFrom::Start(0))?;
+    write!(buf, "{}", schema)?;
+    buf.seek(SeekFrom::Start(0))?;
 
-    Schema::from_yaml_file(&temp)
+    Schema::from_yaml_file(buf)
 }
 
 pub fn get_invalid_incl_excl_range_template_schema() -> anyhow::Result<Schema> {
-    let mut temp = tempfile()?;
+    let mut buf = buffer();
     let schema = r#"---
 templates:
   "value":
@@ -95,14 +98,14 @@ templates:
         exclusive: 0
 nodes: {}"#;
 
-    write!(temp, "{}", schema)?;
-    temp.seek(SeekFrom::Start(0))?;
+    write!(buf, "{}", schema)?;
+    buf.seek(SeekFrom::Start(0))?;
 
-    Schema::from_yaml_file(&temp)
+    Schema::from_yaml_file(buf)
 }
 
 pub fn get_invalid_excl_excl_range_template_schema() -> anyhow::Result<Schema> {
-    let mut temp = tempfile()?;
+    let mut buf = buffer();
     let schema = r#"---
 templates:
   "value":
@@ -113,14 +116,14 @@ templates:
         exclusive: 0
 nodes: {}"#;
 
-    write!(temp, "{}", schema)?;
-    temp.seek(SeekFrom::Start(0))?;
+    write!(buf, "{}", schema)?;
+    buf.seek(SeekFrom::Start(0))?;
 
-    Schema::from_yaml_file(&temp)
+    Schema::from_yaml_file(buf)
 }
 
 pub fn get_invalid_singlenode_prop_no_values_schema() -> anyhow::Result<Schema> {
-    let mut temp = tempfile()?;
+    let mut buf = buffer();
     let schema = r#"---
 templates: {}
 nodes:
@@ -129,14 +132,14 @@ nodes:
       "invalid":
         values: []"#;
 
-    write!(temp, "{}", schema)?;
-    temp.seek(SeekFrom::Start(0))?;
+    write!(buf, "{}", schema)?;
+    buf.seek(SeekFrom::Start(0))?;
 
-    Schema::from_yaml_file(&temp)
+    Schema::from_yaml_file(buf)
 }
 
 pub fn get_invalid_singlenode_prop_value_template_schema() -> anyhow::Result<Schema> {
-    let mut temp = tempfile()?;
+    let mut buf = buffer();
     let schema = r#"---
 templates: {}
 nodes:
@@ -146,14 +149,14 @@ nodes:
         values:
           - template: nonexistent"#;
 
-    write!(temp, "{}", schema)?;
-    temp.seek(SeekFrom::Start(0))?;
+    write!(buf, "{}", schema)?;
+    buf.seek(SeekFrom::Start(0))?;
 
-    Schema::from_yaml_file(&temp)
+    Schema::from_yaml_file(buf)
 }
 
 pub fn get_invalid_singlenode_prop_value_range_schema() -> anyhow::Result<Schema> {
-    let mut temp = tempfile()?;
+    let mut buf = buffer();
     let schema = r#"---
 templates: {}
 nodes:
@@ -167,14 +170,14 @@ nodes:
             upper:
               inclusive: 1.0"#;
 
-    write!(temp, "{}", schema)?;
-    temp.seek(SeekFrom::Start(0))?;
+    write!(buf, "{}", schema)?;
+    buf.seek(SeekFrom::Start(0))?;
 
-    Schema::from_yaml_file(&temp)
+    Schema::from_yaml_file(buf)
 }
 
 pub fn get_invalid_singlenode_prop_multiple_defaults() -> anyhow::Result<Schema> {
-    let mut temp = tempfile()?;
+    let mut buf = buffer();
     let schema = r#"---
 templates: {}
 nodes:
@@ -187,14 +190,14 @@ nodes:
         values:
           - literal: string"#;
 
-    write!(temp, "{}", schema)?;
-    temp.seek(SeekFrom::Start(0))?;
+    write!(buf, "{}", schema)?;
+    buf.seek(SeekFrom::Start(0))?;
 
-    Schema::from_yaml_file(&temp)
+    Schema::from_yaml_file(buf)
 }
 
 pub fn get_invalid_singlenode_prop_invalid_default_literal() -> anyhow::Result<Schema> {
-    let mut temp = tempfile()?;
+    let mut buf = buffer();
     let schema = r#"---
 templates: {}
 nodes:
@@ -206,14 +209,14 @@ nodes:
         values:
           - literal: b"#;
 
-    write!(temp, "{}", schema)?;
-    temp.seek(SeekFrom::Start(0))?;
+    write!(buf, "{}", schema)?;
+    buf.seek(SeekFrom::Start(0))?;
 
-    Schema::from_yaml_file(&temp)
+    Schema::from_yaml_file(buf)
 }
 
 pub fn get_invalid_singlenode_prop_invalid_default_template() -> anyhow::Result<Schema> {
-    let mut temp = tempfile()?;
+    let mut buf = buffer();
     let schema = r#"---
 templates:
   "digit":
@@ -227,14 +230,14 @@ nodes:
         values:
           - template: digit"#;
 
-    write!(temp, "{}", schema)?;
-    temp.seek(SeekFrom::Start(0))?;
+    write!(buf, "{}", schema)?;
+    buf.seek(SeekFrom::Start(0))?;
 
-    Schema::from_yaml_file(&temp)
+    Schema::from_yaml_file(buf)
 }
 
 pub fn get_invalid_singlenode_prop_invalid_default_range() -> anyhow::Result<Schema> {
-    let mut temp = tempfile()?;
+    let mut buf = buffer();
     let schema = r#"---
 templates:
   "digit":
@@ -252,8 +255,8 @@ nodes:
               upper:
                 inclusive: 2.0"#;
 
-    write!(temp, "{}", schema)?;
-    temp.seek(SeekFrom::Start(0))?;
+    write!(buf, "{}", schema)?;
+    buf.seek(SeekFrom::Start(0))?;
 
-    Schema::from_yaml_file(&temp)
+    Schema::from_yaml_file(buf)
 }

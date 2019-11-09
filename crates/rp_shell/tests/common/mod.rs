@@ -1,13 +1,16 @@
 use rp_config::Config;
 use rp_schema::Schema;
 use std::{
-    io::{Read, Seek, SeekFrom, Write},
+    io::{Cursor, Read, Seek, SeekFrom, Write},
     rc::Rc,
 };
-use tempfile::tempfile;
+
+fn buffer() -> Cursor<Vec<u8>> {
+    Cursor::new(Vec::new())
+}
 
 pub fn get_schema_and_config() -> anyhow::Result<(Rc<Schema>, Config)> {
-    let mut temp = tempfile()?;
+    let mut buf = buffer();
     let schema = r#"---
 templates:
   "digit":
@@ -38,20 +41,20 @@ nodes:
         values:
           - literal: a"#;
 
-    write!(temp, "{}", schema)?;
-    temp.seek(SeekFrom::Start(0))?;
+    write!(buf, "{}", schema)?;
+    buf.seek(SeekFrom::Start(0))?;
 
-    let mut schema = Schema::from_yaml_file(&temp)?;
+    let mut schema = Schema::from_yaml_file(buf)?;
     schema.build_regex_cache()?;
 
-    let mut file = tempfile()?;
-    schema.to_binary_file(&mut file)?;
+    let mut buf = buffer();
+    schema.to_binary_file(&mut buf)?;
 
-    file.seek(SeekFrom::Start(0))?;
+    buf.seek(SeekFrom::Start(0))?;
 
-    let mut buf = Vec::new();
-    file.read_to_end(&mut buf)?;
-    let schema = Rc::new(Schema::from_binary(&buf)?);
+    let mut bytes = Vec::new();
+    buf.read_to_end(&mut bytes)?;
+    let schema = Rc::new(Schema::from_binary(&bytes)?);
 
     Ok((
         Rc::clone(&schema),

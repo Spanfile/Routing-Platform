@@ -3,24 +3,27 @@ mod common;
 use rp_config::Config;
 use rp_schema::Schema;
 use std::{
-    io::{Read, Seek, SeekFrom},
+    io::{Cursor, Read, Seek, SeekFrom},
     rc::Rc,
 };
-use tempfile::tempfile;
+
+fn buffer() -> Cursor<Vec<u8>> {
+    Cursor::new(Vec::new())
+}
 
 #[test]
 fn complete_schema() -> anyhow::Result<()> {
     let mut schema = common::get_valid_schema()?;
     schema.build_regex_cache()?;
 
-    let mut file = tempfile()?;
-    schema.to_binary_file(&mut file)?;
+    let mut buf = buffer();
+    schema.to_binary_file(&mut buf)?;
 
-    file.seek(SeekFrom::Start(0))?;
+    buf.seek(SeekFrom::Start(0))?;
 
-    let mut buf = Vec::new();
-    file.read_to_end(&mut buf)?;
-    let schema = Rc::new(Schema::from_binary(&buf)?);
+    let mut bytes = Vec::new();
+    buf.read_to_end(&mut bytes)?;
+    let schema = Rc::new(Schema::from_binary(&bytes)?);
 
     Config::from_schema(Rc::downgrade(&schema))?;
     Ok(())

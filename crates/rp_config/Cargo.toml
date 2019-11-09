@@ -11,6 +11,3 @@ rp_log = { path = "../rp_log" }
 enum_dispatch = "0.2.0"
 anyhow = "1.0.19"
 thiserror = "1.0.4"
-
-[dev-dependencies]
-tempfile = "3.1.0"

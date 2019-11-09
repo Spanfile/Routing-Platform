@@ -1,11 +1,14 @@
 #![allow(dead_code)]
 
 use rp_schema::Schema;
-use std::io::{Seek, SeekFrom, Write};
-use tempfile::tempfile;
+use std::io::{Cursor, Seek, SeekFrom, Write};
+
+fn buffer() -> Cursor<Vec<u8>> {
+    Cursor::new(Vec::new())
+}
 
 pub fn get_valid_schema() -> anyhow::Result<Schema> {
-    let mut temp = tempfile()?;
+    let mut temp = buffer();
     let schema = r#"---
 templates:
  "string":
@@ -25,11 +28,11 @@ nodes:
     write!(temp, "{}", schema)?;
     temp.seek(SeekFrom::Start(0))?;
 
-    Schema::from_yaml_file(&temp)
+    Schema::from_yaml_file(temp)
 }
 
 pub fn get_nonexistent_default_cat_query_schema() -> anyhow::Result<Schema> {
-    let mut temp = tempfile()?;
+    let mut temp = buffer();
     let schema = r#"---
 templates: {}
 nodes:
@@ -47,11 +50,11 @@ nodes:
     write!(temp, "{}", schema)?;
     temp.seek(SeekFrom::Start(0))?;
 
-    Schema::from_yaml_file(&temp)
+    Schema::from_yaml_file(temp)
 }
 
 pub fn get_invalid_default_cat_query_schema() -> anyhow::Result<Schema> {
-    let mut temp = tempfile()?;
+    let mut temp = buffer();
     let schema = r#"---
 templates:
  "digit":
@@ -71,11 +74,11 @@ nodes:
     write!(temp, "{}", schema)?;
     temp.seek(SeekFrom::Start(0))?;
 
-    Schema::from_yaml_file(&temp)
+    Schema::from_yaml_file(temp)
 }
 
 pub fn get_nonexistent_default_ls_query_schema() -> anyhow::Result<Schema> {
-    let mut temp = tempfile()?;
+    let mut temp = buffer();
     let schema = r#"---
 templates:
  "digit":
@@ -95,11 +98,11 @@ nodes:
     write!(temp, "{}", schema)?;
     temp.seek(SeekFrom::Start(0))?;
 
-    Schema::from_yaml_file(&temp)
+    Schema::from_yaml_file(temp)
 }
 
 pub fn get_invalid_default_ls_query_schema() -> anyhow::Result<Schema> {
-    let mut temp = tempfile()?;
+    let mut temp = buffer();
     let schema = r#"---
 templates:
  "string":
@@ -119,5 +122,5 @@ nodes:
     write!(temp, "{}", schema)?;
     temp.seek(SeekFrom::Start(0))?;
 
-    Schema::from_yaml_file(&temp)
+    Schema::from_yaml_file(temp)
 }

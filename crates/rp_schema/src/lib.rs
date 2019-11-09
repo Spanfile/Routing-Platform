@@ -21,7 +21,11 @@ pub use property::Property;
 pub use query::Query;
 use rp_log::*;
 use serde::{Deserialize, Serialize};
-use std::{collections::HashMap, fs::File, io::BufReader, rc::Rc};
+use std::{
+    collections::HashMap,
+    io::{BufReader, Read, Write},
+    rc::Rc,
+};
 pub use template::Template;
 pub use validate::Validate;
 pub use value::{DefaultValue, Value};
@@ -39,14 +43,14 @@ pub trait Matches {
 }
 
 impl Schema {
-    pub fn to_binary_file(&self, file: &mut File) -> anyhow::Result<()> {
-        let encoder = ZlibEncoder::new(file, Compression::best());
+    pub fn to_binary_file<W: Write>(&self, writer: &mut W) -> anyhow::Result<()> {
+        let encoder = ZlibEncoder::new(writer, Compression::best());
         Ok(serde_json::to_writer(encoder, &self)?)
     }
 
-    pub fn from_yaml_file(file: &File) -> anyhow::Result<Schema> {
-        let reader = BufReader::new(file);
-        Ok(serde_yaml::from_reader(reader)?)
+    pub fn from_yaml_file<R: Read>(reader: R) -> anyhow::Result<Schema> {
+        let buf_reader = BufReader::new(reader);
+        Ok(serde_yaml::from_reader(buf_reader)?)
     }
 
     pub fn from_binary(binary: &[u8]) -> anyhow::Result<Schema> {
