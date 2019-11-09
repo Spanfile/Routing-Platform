@@ -3,6 +3,37 @@ mod common;
 use anyhow::anyhow;
 use rp_shell::ConfigEditor;
 
+fn assert_property(
+    editor: &ConfigEditor,
+    property: &str,
+    expected: Option<&str>,
+) -> anyhow::Result<()> {
+    if let Some(values) = editor.get_property_values(Some(String::from(property))) {
+        if let Some(values) = values.get(property) {
+            if let Some(expected) = expected {
+                if !values.contains(&String::from(expected)) {
+                    Err(anyhow!("set value not in property values: {:?}", values))
+                } else {
+                    Ok(())
+                }
+            } else {
+                if !values.is_empty() {
+                    Err(anyhow!("values not empty: {:?}", values))
+                } else {
+                    Ok(())
+                }
+            }
+        } else {
+            Err(anyhow!(
+                "get_property_values returned without the property: {:?}",
+                values
+            ))
+        }
+    } else {
+        Err(anyhow!("get_property_values returned None"))
+    }
+}
+
 #[test]
 fn set_new_property_value() -> anyhow::Result<()> {
     let (schema, config) = common::get_schema_and_config()?;
@@ -16,22 +47,28 @@ fn set_new_property_value() -> anyhow::Result<()> {
         Err(anyhow!("config clean after change"))
     } else {
         editor.apply_changes()?;
+        assert_property(&editor, "simple", Some("1"))
+    }
+}
 
-        if let Some(values) = editor.get_property_values(Some(String::from("simple"))) {
-            if let Some(values) = values.get("simple") {
-                if !values.contains(&String::from("1")) {
-                    Err(anyhow!("set value not in property values: {:?}", values))
-                } else {
-                    Ok(())
-                }
-            } else {
-                Err(anyhow!(
-                    "get_property_values returned without the property: {:?}",
-                    values
-                ))
-            }
+#[test]
+fn discard_changes() -> anyhow::Result<()> {
+    let (schema, config) = common::get_schema_and_config()?;
+    let mut editor = ConfigEditor::new(&config, schema.as_ref());
+
+    editor.edit_node("singlenode")?;
+    editor.edit_node("subnode")?;
+    editor.set_property_value("default", "1")?;
+
+    if editor.is_clean() {
+        Err(anyhow!("config clean after change"))
+    } else {
+        editor.discard_changes();
+
+        if !editor.is_clean() {
+            Err(anyhow!("configuration dirty after discard"))
         } else {
-            Err(anyhow!("get_property_values returned None"))
+            assert_property(&editor, "default", Some("0"))
         }
     }
 }
@@ -49,23 +86,7 @@ fn edit_existing_property_value() -> anyhow::Result<()> {
         Err(anyhow!("config clean after change"))
     } else {
         editor.apply_changes()?;
-
-        if let Some(values) = editor.get_property_values(Some(String::from("default"))) {
-            if let Some(values) = values.get("default") {
-                if !values.contains(&String::from("1")) {
-                    Err(anyhow!("set value not in property values: {:?}", values))
-                } else {
-                    Ok(())
-                }
-            } else {
-                Err(anyhow!(
-                    "get_property_values returned without the property: {:?}",
-                    values
-                ))
-            }
-        } else {
-            Err(anyhow!("get_property_values returned None"))
-        }
+        assert_property(&editor, "default", Some("1"))
     }
 }
 
@@ -81,26 +102,7 @@ fn remove_existing_property_value() -> anyhow::Result<()> {
         Err(anyhow!("config clean after change"))
     } else {
         editor.apply_changes()?;
-
-        if let Some(values) = editor.get_property_values(Some(String::from("query_default"))) {
-            if let Some(values) = values.get("query_default") {
-                if !values.is_empty() {
-                    Err(anyhow!(
-                        "property value removal left some values: {:?}",
-                        values
-                    ))
-                } else {
-                    Ok(())
-                }
-            } else {
-                Err(anyhow!(
-                    "get_property_values returned without the property: {:?}",
-                    values
-                ))
-            }
-        } else {
-            Err(anyhow!("get_property_values returned None"))
-        }
+        assert_property(&editor, "query_default", None)
     }
 }
 
@@ -116,26 +118,7 @@ fn remove_all_property_values() -> anyhow::Result<()> {
         Err(anyhow!("config clean after change"))
     } else {
         editor.apply_changes()?;
-
-        if let Some(values) = editor.get_property_values(Some(String::from("query_default"))) {
-            if let Some(values) = values.get("query_default") {
-                if !values.is_empty() {
-                    Err(anyhow!(
-                        "all property value removal left some values: {:?}",
-                        values
-                    ))
-                } else {
-                    Ok(())
-                }
-            } else {
-                Err(anyhow!(
-                    "get_property_values returned without the property: {:?}",
-                    values
-                ))
-            }
-        } else {
-            Err(anyhow!("get_property_values returned None"))
-        }
+        assert_property(&editor, "query_default", None)
     }
 }
 
