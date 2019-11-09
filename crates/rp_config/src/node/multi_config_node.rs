@@ -1,5 +1,6 @@
 use super::{Changeable, ConfigNode, FromSchemaNode, Node, NodeName};
 use crate::Property;
+use colored::Colorize;
 use rp_common::Context;
 use rp_schema::{MultiSchemaNode, MultiSchemaNodeSource, NodeLocator, Schema, SchemaNodeTrait};
 use std::{
@@ -8,9 +9,16 @@ use std::{
     rc::{Rc, Weak},
 };
 
+#[derive(Debug, PartialEq, Clone)]
+enum NodeChange {
+    Unchanged,
+    New,
+    Removed,
+}
+
 #[derive(Debug)]
 pub struct MultiConfigNode {
-    nodes: RefCell<HashMap<String, Rc<ConfigNode>>>,
+    nodes: RefCell<HashMap<String, (Rc<ConfigNode>, NodeChange)>>,
     name: String,
     new_node_creation_allowed: NewNodeCreationAllowed,
     node_locator: Rc<NodeLocator>,
@@ -53,7 +61,7 @@ impl Node for MultiConfigNode {
     fn get_node_with_name(&self, name: &str) -> Rc<ConfigNode> {
         let mut nodes = self.nodes.borrow_mut();
         match nodes.get(name) {
-            Some(node) => Rc::clone(&node),
+            Some((node, _)) => Rc::clone(&node),
             _ => {
                 let new_node = Rc::new(
                     ConfigNode::from_schema_node(
@@ -69,7 +77,7 @@ impl Node for MultiConfigNode {
                     .expect("failed to create new node"),
                 );
 
-                nodes.insert(name.to_owned(), Rc::clone(&new_node));
+                nodes.insert(name.to_owned(), (Rc::clone(&new_node), NodeChange::New));
 
                 new_node
             }
@@ -85,10 +93,16 @@ impl Node for MultiConfigNode {
     }
 
     fn pretty_print(&self, indent: usize) {
-        for (name, node) in &*self.nodes.borrow() {
-            println!("{:indent$}{} {{", "", name, indent = indent * 4);
+        for (name, (node, change)) in &*self.nodes.borrow() {
+            let (left_brace, right_brace) = match change {
+                NodeChange::Unchanged => ("{".normal(), "}".normal()),
+                NodeChange::New => ("{".green(), "}".green()),
+                NodeChange::Removed => ("{".red(), "}".red()),
+            };
+
+            println!("{:indent$}{} {}", "", name, left_brace, indent = indent * 4);
             node.pretty_print(indent + 1);
-            println!("{:indent$}}}", "", indent = indent * 4);
+            println!("{:indent$}{}", "", right_brace, indent = indent * 4);
         }
     }
 
@@ -98,11 +112,14 @@ impl Node for MultiConfigNode {
         match self.new_node_creation_allowed {
             NewNodeCreationAllowed::Yes { .. } => {
                 let mut nodes = self.nodes.borrow_mut();
-                nodes
-                    .remove(node)
-                    .ok_or(rp_common::error::NodeRemovalError {
-                        node: String::from(node),
-                    })?;
+                let (_node, change) =
+                    nodes
+                        .get_mut(node)
+                        .ok_or(rp_common::error::NodeRemovalError {
+                            node: String::from(node),
+                        })?;
+                // TODO: handle case when removing non-unchanged node
+                *change = NodeChange::Removed;
                 Ok(())
             }
             NewNodeCreationAllowed::No => Err(rp_common::error::NodeRemovalError {
@@ -115,19 +132,33 @@ impl Node for MultiConfigNode {
 
 impl Changeable for MultiConfigNode {
     fn is_clean(&self) -> bool {
-        self.nodes.borrow().values().all(|node| node.is_clean())
+        self.nodes
+            .borrow()
+            .values()
+            .all(|(node, change)| node.is_clean() && *change == NodeChange::Unchanged)
     }
 
     fn apply_changes(&self) -> anyhow::Result<()> {
-        for node in self.nodes.try_borrow()?.values() {
-            node.apply_changes()?;
-        }
+        let new_nodes: HashMap<String, (Rc<ConfigNode>, NodeChange)> = self
+            .nodes
+            .try_borrow()?
+            .iter()
+            .filter_map(|(name, (node, change))| match change {
+                NodeChange::Unchanged | NodeChange::New => {
+                    node.apply_changes();
+                    Some((name.clone(), (Rc::clone(node), NodeChange::Unchanged)))
+                }
+                NodeChange::Removed => None,
+            })
+            .collect();
+
+        self.nodes.replace(new_nodes);
 
         Ok(())
     }
 
     fn discard_changes(&self) {
-        for node in self.nodes.borrow().values() {
+        for (node, _) in self.nodes.borrow().values() {
             node.discard_changes();
         }
     }
@@ -149,12 +180,15 @@ impl FromSchemaNode<MultiSchemaNode> for MultiConfigNode {
                     result_context.set_value(query.id.to_owned(), result.to_owned());
                     nodes.insert(
                         result.to_owned(),
-                        Rc::new(ConfigNode::from_schema_node(
-                            Rc::new(result_context),
-                            &result.to_owned(),
-                            Weak::clone(&schema),
-                            &schema_node.node,
-                        )?),
+                        (
+                            Rc::new(ConfigNode::from_schema_node(
+                                Rc::new(result_context),
+                                &result.to_owned(),
+                                Weak::clone(&schema),
+                                &schema_node.node,
+                            )?),
+                            NodeChange::Unchanged,
+                        ),
                     );
                 }
                 NewNodeCreationAllowed::No

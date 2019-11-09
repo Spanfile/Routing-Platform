@@ -105,6 +105,7 @@ impl Property {
         let mut values = self.values.try_borrow_mut()?;
 
         if let Some(value) = value {
+            // TODO: handle case when removing non-unchanged value
             *values
                 .get_mut(value)
                 .ok_or_else(|| PropertyError::NoSuchValue(value.to_string()))? =

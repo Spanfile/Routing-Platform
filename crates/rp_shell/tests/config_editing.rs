@@ -153,10 +153,16 @@ fn remove_node() -> anyhow::Result<()> {
     editor.go_up()?;
     editor.remove_node("0")?;
 
-    if editor.get_available_nodes().contains(&String::from("0")) {
-        Err(anyhow!("node not removed after removal"))
+    if editor.is_clean() {
+        Err(anyhow!("config clean after change"))
     } else {
-        Ok(())
+        editor.apply_changes()?;
+
+        if editor.get_available_nodes().contains(&String::from("0")) {
+            Err(anyhow!("node not removed after removal"))
+        } else {
+            Ok(())
+        }
     }
 }
 
