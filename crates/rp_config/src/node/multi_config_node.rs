@@ -94,10 +94,10 @@ impl Node for MultiConfigNode {
 
     fn pretty_print(&self, indent: usize) {
         for (name, (node, change)) in &*self.nodes.borrow() {
-            let (left_brace, right_brace) = match change {
-                NodeChange::Unchanged => ("{".normal(), "}".normal()),
-                NodeChange::New => ("{".green(), "}".green()),
-                NodeChange::Removed => ("{".red(), "}".red()),
+            let (name, left_brace, right_brace) = match change {
+                NodeChange::Unchanged => (name.normal(), "{".normal(), "}".normal()),
+                NodeChange::New => (["+", name].concat().green(), "{".green(), "}".green()),
+                NodeChange::Removed => (["-", name].concat().red(), "{".red(), "}".red()),
             };
 
             println!("{:indent$}{} {}", "", name, left_brace, indent = indent * 4);
