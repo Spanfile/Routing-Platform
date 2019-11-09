@@ -1,0 +1,11 @@
+[package]
+name = "rp_system"
+version = "0.1.0"
+authors = ["Spanfile <spansdev@gmail.com>"]
+edition = "2018"
+
+[dependencies]
+anyhow = "1.0"
+thiserror = "1.0"
+rtnetlink = "0.1.1"
+nftnl = "0.2.1"

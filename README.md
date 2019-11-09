@@ -21,4 +21,7 @@ A software suite to configure and control a Linux-based router appliance. Built 
 
 ## Building
 
-Requires a recent nightly build of Rust. Build normally with `cargo build`.
+Build normally with `cargo build`. Requires a recent nightly build of Rust and the following external packages (these are what they're on Ubuntu, other distros might use different names):
+
+* `libnftnl-dev`
+* `libmnl-dev`
