@@ -1,3 +1,6 @@
+mod link;
+
+use link::Link;
 use neli::{
     consts::{
         nl::Rtm,
@@ -8,16 +11,13 @@ use neli::{
     rtnl::{Ifinfomsg, Rtattr},
     socket::NlSocket,
 };
+use std::convert::TryFrom;
 
 pub fn list() -> anyhow::Result<()> {
     let mut socket = NlSocket::connect(NlFamily::Route, None, None, true)?;
 
     let flags: Vec<Iff> = vec![];
-    let attrs: Vec<Rtattr<Ifla, Vec<u8>>> = vec![Rtattr {
-        rta_len: 0,
-        rta_type: Ifla::Address,
-        rta_payload: vec![],
-    }];
+    let attrs: Vec<Rtattr<Ifla, Vec<u8>>> = vec![];
     let ifinfomsg = Ifinfomsg::new(RtAddrFamily::Inet, Arphrd::Ether, 0, flags, attrs);
     let nlhdr = {
         let len = None;
@@ -34,14 +34,8 @@ pub fn list() -> anyhow::Result<()> {
 
     while let Some(Ok(response)) = iter.next() {
         let payload = response.nl_payload;
-        print!(
-            "{:?} {:?} {:?} {:?} ",
-            payload.ifi_family, payload.ifi_type, payload.ifi_index, payload.ifi_flags
-        );
-        for rtattr in payload.rtattrs {
-            print!(" {:?}", rtattr.rta_type);
-        }
-        println!();
+        let link = Link::try_from(payload)?;
+        println!("{:?}", link);
     }
 
     Ok(())

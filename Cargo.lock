@@ -191,6 +191,14 @@ dependencies = [
 ]
 
 [[package]]
+name = "eui48"
+version = "0.4.6"
+source = "git+https://github.com/Spanfile/eui48.git#df16e0a1ad6a307a09d24cc1377519cf840f3662"
+dependencies = [
+ "rustc-serialize 0.3.24 (registry+https://github.com/rust-lang/crates.io-index)",
+]
+
+[[package]]
 name = "failure"
 version = "0.1.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -662,6 +670,8 @@ name = "rp_system"
 version = "0.1.0"
 dependencies = [
  "anyhow 1.0.19 (registry+https://github.com/rust-lang/crates.io-index)",
+ "byteorder 1.3.2 (registry+https://github.com/rust-lang/crates.io-index)",
+ "eui48 0.4.6 (git+https://github.com/Spanfile/eui48.git)",
  "neli 0.4.3 (registry+https://github.com/rust-lang/crates.io-index)",
  "rtnetlink 0.1.1 (registry+https://github.com/rust-lang/crates.io-index)",
  "thiserror 1.0.4 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -683,6 +693,11 @@ dependencies = [
 [[package]]
 name = "rustc-demangle"
 version = "0.1.16"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+
+[[package]]
+name = "rustc-serialize"
+version = "0.3.24"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 
 [[package]]
@@ -994,6 +1009,7 @@ dependencies = [
 "checksum darling_macro 0.10.2 (registry+https://github.com/rust-lang/crates.io-index)" = "d9b5a2f4ac4969822c62224815d069952656cadc7084fdca9751e6d959189b72"
 "checksum dtoa 0.4.4 (registry+https://github.com/rust-lang/crates.io-index)" = "ea57b42383d091c85abcc2706240b94ab2a8fa1fc81c10ff23c4de06e2a90b5e"
 "checksum enum_dispatch 0.2.0 (registry+https://github.com/rust-lang/crates.io-index)" = "d187ded8d68dfce7d5fe26be489494e1d43edf15896d1df094790d77caf07b27"
+"checksum eui48 0.4.6 (git+https://github.com/Spanfile/eui48.git)" = "<none>"
 "checksum failure 0.1.6 (registry+https://github.com/rust-lang/crates.io-index)" = "f8273f13c977665c5db7eb2b99ae520952fe5ac831ae4cd09d80c4c7042b5ed9"
 "checksum failure_derive 0.1.6 (registry+https://github.com/rust-lang/crates.io-index)" = "0bc225b78e0391e4b8683440bf2e63c2deeeb2ce5189eab46e2b68c6d3725d08"
 "checksum fern 0.5.9 (registry+https://github.com/rust-lang/crates.io-index)" = "e69ab0d5aca163e388c3a49d284fed6c3d0810700e77c5ae2756a50ec1a4daaa"
@@ -1044,6 +1060,7 @@ dependencies = [
 "checksum rgb 0.8.14 (registry+https://github.com/rust-lang/crates.io-index)" = "2089e4031214d129e201f8c3c8c2fe97cd7322478a0d1cdf78e7029b0042efdb"
 "checksum rtnetlink 0.1.1 (registry+https://github.com/rust-lang/crates.io-index)" = "178f3b766dc5f4d5c1507f4a8ba755e83009f1b57ce4a87a599cf835ba4ccd63"
 "checksum rustc-demangle 0.1.16 (registry+https://github.com/rust-lang/crates.io-index)" = "4c691c0e608126e00913e33f0ccf3727d5fc84573623b8d65b2df340b5201783"
+"checksum rustc-serialize 0.3.24 (registry+https://github.com/rust-lang/crates.io-index)" = "dcf128d1287d2ea9d80910b5f1120d0b8eede3fbf1abe91c40d39ea7d51e6fda"
 "checksum rustc_version 0.2.3 (registry+https://github.com/rust-lang/crates.io-index)" = "138e3e0acb6c9fb258b19b67cb8abd63c00679d2851805ea151465464fe9030a"
 "checksum ryu 1.0.2 (registry+https://github.com/rust-lang/crates.io-index)" = "bfa8506c1de11c9c4e4c38863ccbe02a305c8188e85a05a784c9e11e1c3910c8"
 "checksum scopeguard 1.0.0 (registry+https://github.com/rust-lang/crates.io-index)" = "b42e15e59b18a828bbf5c58ea01debb36b9b096346de35d941dcb89009f24a0d"
