@@ -10,6 +10,7 @@ rp_schema = { path = "../rp_schema" }
 rp_config = { path = "../rp_config" }
 rp_common = { path = "../rp_common" }
 rp_log = { path = "../rp_log" }
+rp_system = { path = "../rp_system" }
 command_metadata = { path = "../command_metadata" }
 enum_dispatch = "0.2"
 termion = "1.5"

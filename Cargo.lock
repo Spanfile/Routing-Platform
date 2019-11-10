@@ -650,6 +650,7 @@ dependencies = [
  "rp_config 0.1.0",
  "rp_log 0.1.0",
  "rp_schema 0.1.0",
+ "rp_system 0.1.0",
  "strum 0.16.0 (git+https://github.com/Spanfile/strum.git)",
  "strum_macros 0.16.0 (git+https://github.com/Spanfile/strum.git)",
  "termion 1.5.3 (registry+https://github.com/rust-lang/crates.io-index)",

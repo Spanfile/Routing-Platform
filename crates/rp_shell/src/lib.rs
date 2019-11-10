@@ -13,6 +13,8 @@ use shell::{ExecutableCommand, Shell};
 use std::{rc::Rc, time::Instant};
 
 pub fn run() -> anyhow::Result<()> {
+    rp_system::net::link::list()?;
+
     setup_logging()?;
 
     let binary = include_bytes!(concat!(env!("OUT_DIR"), "/schema"));
