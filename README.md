@@ -9,6 +9,7 @@ A software suite to configure and control a Linux-based router appliance. Built 
 * [[Under work](crates/rp_schema)] Configuration schema
 * [[Under work](crates/rp_config)] Configuration management
 * [[Under work](crates/rp_shell)] Configuration editor shell
+* [[Under work](crates/rp_system)] Network configuration through netlink
 * [Planned] Schema live extension (plugins)
 * [Planned] Configuration API
 * [Planned] Web configuration app (interacts with configuration API)
@@ -24,4 +25,3 @@ A software suite to configure and control a Linux-based router appliance. Built 
 Build normally with `cargo build`. Requires a recent nightly build of Rust and the following external packages (these are what they're on Ubuntu, other distros might use different names):
 
 * `libnftnl-dev`
-* `libmnl-dev`
