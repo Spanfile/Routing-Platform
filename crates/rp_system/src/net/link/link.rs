@@ -24,7 +24,11 @@ impl TryFrom<Ifinfomsg<Ifla>> for Link {
         for rtattr in value.rtattrs {
             match rtattr.rta_type {
                 Ifla::Ifname => {
-                    name = Some(String::from_utf8(rtattr.rta_payload)?);
+                    // strip the null-byte from the payload
+                    let len = rtattr.rta_payload.len();
+                    name = Some(String::from_utf8(
+                        rtattr.rta_payload.into_iter().take(len - 1).collect(),
+                    )?);
                 }
                 Ifla::Address => {
                     address = Some(MacAddress::from_bytes(&rtattr.rta_payload)?);

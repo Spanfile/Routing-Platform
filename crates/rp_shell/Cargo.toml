@@ -12,15 +12,15 @@ rp_common = { path = "../rp_common" }
 rp_log = { path = "../rp_log" }
 rp_system = { path = "../rp_system" }
 command_metadata = { path = "../command_metadata" }
-enum_dispatch = "0.2"
-termion = "1.5"
-chrono = "0.4"
-anyhow = "1.0"
-thiserror = "1.0"
+enum_dispatch = "0.2.0"
+termion = "1.5.3"
+chrono = "0.4.9"
+anyhow = "1.0.22"
+thiserror = "1.0.6"
 strum = { version = "0.16.0", features = ["derive"] }
 strum_macros = "0.16.0"
 lazy_static = "1.4.0"
 
 [build-dependencies]
 rp_schema = { path = "../rp_schema" }
-anyhow = "1.0"
+anyhow = "1.0.22"

@@ -2,7 +2,7 @@ use super::{ExecutableCommand, Shell};
 use crate::ConfigEditor;
 use command_metadata::command;
 use rp_common::{CommandFromArgs, CommandMetadata, ShellMode};
-use strum::{EnumString, EnumVariantNames, VariantNames};
+use strum::{EnumString, EnumVariantNames};
 
 #[command(alias = "quit")]
 #[derive(Debug)]
