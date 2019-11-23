@@ -1,3 +1,5 @@
+use futures::executor::block_on;
+
 fn main() -> anyhow::Result<()> {
-    rp_shell::run()
+    block_on(rp_shell::run())
 }

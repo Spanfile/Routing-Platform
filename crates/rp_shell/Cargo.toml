@@ -15,12 +15,13 @@ command_metadata = { path = "../command_metadata" }
 enum_dispatch = "0.2.0"
 termion = "1.5.3"
 chrono = "0.4.9"
-anyhow = "1.0.22"
+anyhow = "1.0.23"
 thiserror = "1.0.6"
 strum = { version = "0.16.0", features = ["derive"] }
 strum_macros = "0.16.0"
 lazy_static = "1.4.0"
+futures = "0.3.1"
 
 [build-dependencies]
 rp_schema = { path = "../rp_schema" }
-anyhow = "1.0.22"
+anyhow = "1.0.23"

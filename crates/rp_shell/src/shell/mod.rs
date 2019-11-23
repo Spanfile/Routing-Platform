@@ -7,6 +7,7 @@ use crate::error;
 use anyhow::anyhow;
 pub use commands::{Command, ExecutableCommand};
 use completions::Completions;
+use futures::stream::{self, StreamExt};
 use history::HistoryEntry;
 use key_handlers::KeyResult;
 use rp_common::ShellMode;
@@ -50,10 +51,10 @@ impl Shell {
         })
     }
 
-    pub fn process_input(&mut self) -> anyhow::Result<Command> {
+    pub async fn process_input(&mut self) -> anyhow::Result<Command> {
         let input = loop {
             self.print_prompt()?;
-            let input = self.read_input()?;
+            let input = self.read_input().await?;
             if input.trim().is_empty() {
                 continue;
             }
@@ -137,14 +138,15 @@ impl Shell {
         self.flush()
     }
 
-    fn read_input(&mut self) -> anyhow::Result<String> {
-        let mut stdin = io::stdin().keys();
+    async fn read_input(&mut self) -> anyhow::Result<String> {
+        let mut keys = stream::iter(io::stdin().keys());
         let mut reading = true;
 
         self.activate_raw_mode()?;
 
         while reading {
-            if let Some(Ok(key)) = stdin.next() {
+            if let Some(key) = keys.next().await {
+                let key = key?;
                 match key_handlers::get(key)?(key, self) {
                     Ok(result) => match result {
                         KeyResult::Stop => reading = false,

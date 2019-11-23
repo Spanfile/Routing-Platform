@@ -12,7 +12,7 @@ use rp_schema::Schema;
 use shell::{ExecutableCommand, Shell};
 use std::{rc::Rc, time::Instant};
 
-pub fn run() -> anyhow::Result<()> {
+pub async fn run() -> anyhow::Result<()> {
     rp_system::net::link::list()?;
 
     setup_logging()?;
@@ -33,7 +33,7 @@ pub fn run() -> anyhow::Result<()> {
     let mut shell = Shell::new()?;
 
     while shell.running {
-        if let Err(e) = process(&mut shell, &mut editor) {
+        if let Err(e) = process(&mut shell, &mut editor).await {
             match e.downcast_ref() {
                 Some(error::ShellError::Abort) => {
                     println!();
@@ -49,9 +49,9 @@ pub fn run() -> anyhow::Result<()> {
     Ok(())
 }
 
-fn process(shell: &mut Shell, editor: &mut ConfigEditor) -> anyhow::Result<()> {
+async fn process(shell: &mut Shell, editor: &mut ConfigEditor<'_>) -> anyhow::Result<()> {
     shell.prompt = get_prompt(shell, editor);
-    let command = shell.process_input()?;
+    let command = shell.process_input().await?;
 
     if let Some(required_mode) = command.required_shell_mode() {
         if required_mode != shell.mode {
