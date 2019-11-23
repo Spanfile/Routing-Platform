@@ -25,11 +25,11 @@ pub enum MultiSchemaNodeSource {
 
 impl SchemaNodeTrait for MultiSchemaNode {
     fn node_count(&self) -> usize {
-        1
+        1 + self.node.node_count()
     }
 
     fn property_count(&self) -> usize {
-        0
+        self.node.property_count()
     }
 
     fn get_locator(&self) -> Rc<NodeLocator> {
