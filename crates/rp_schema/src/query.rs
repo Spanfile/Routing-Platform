@@ -2,13 +2,13 @@ use rp_common::Context;
 use serde::{Deserialize, Serialize};
 use std::fs;
 
-#[derive(Serialize, Deserialize, Debug, Clone)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq, Hash)]
 pub struct Query {
     pub id: String,
     pub command: Command,
 }
 
-#[derive(Serialize, Deserialize, Debug, Clone)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq, Hash)]
 pub enum Command {
     #[serde(rename = "ls")]
     Ls(String),

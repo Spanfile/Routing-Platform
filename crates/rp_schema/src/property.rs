@@ -5,14 +5,15 @@ use super::{
 use crate::error;
 use anyhow::anyhow;
 use serde::{Deserialize, Serialize};
+use std::collections::HashSet;
 
 #[derive(Serialize, Deserialize, Debug, Default)]
 pub struct Property {
     #[serde(default)]
     pub multiple: bool,
     #[serde(default)]
-    pub default: Vec<DefaultValue>,
-    pub values: Vec<Value>,
+    pub default: HashSet<DefaultValue>,
+    pub values: HashSet<Value>,
     #[serde(default = "Property::default_deletable")]
     pub deletable: bool,
 }
@@ -90,6 +91,11 @@ impl Validate for Property {
 
 impl Merge for Property {
     fn merge(&mut self, other: Self, strategy: MergingStrategy) -> anyhow::Result<()> {
-        unimplemented!()
+        self.multiple = strategy.resolve(self.multiple, other.multiple)?;
+        self.deletable = strategy.resolve(self.deletable, other.deletable)?;
+
+        for default in other.default {}
+
+        Ok(())
     }
 }

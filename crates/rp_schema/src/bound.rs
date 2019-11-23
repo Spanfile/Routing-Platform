@@ -1,11 +1,12 @@
+use ordered_float::OrderedFloat;
 use serde::{Deserialize, Serialize};
 
-#[derive(Serialize, Deserialize, Debug, Clone, Copy)]
+#[derive(Serialize, Deserialize, Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum Bound {
     #[serde(rename = "inclusive")]
-    Inclusive(f64),
+    Inclusive(OrderedFloat<f64>),
     #[serde(rename = "exclusive")]
-    Exclusive(f64),
+    Exclusive(OrderedFloat<f64>),
 }
 
 impl Bound {

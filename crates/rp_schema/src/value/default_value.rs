@@ -2,7 +2,7 @@ use crate::Query;
 use rp_common::Context;
 use serde::{Deserialize, Serialize};
 
-#[derive(Serialize, Deserialize, Debug, Clone)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq, Hash)]
 pub enum DefaultValue {
     #[serde(rename = "literal")]
     Literal(String),

@@ -61,6 +61,7 @@ impl Validate for MultiSchemaNode {
 
 impl Merge for MultiSchemaNode {
     fn merge(&mut self, other: Self, strategy: MergingStrategy) -> anyhow::Result<()> {
-        unimplemented!()
+        self.node.merge(*other.node, strategy)?;
+        Ok(())
     }
 }

@@ -1,7 +1,7 @@
 use crate::{error, Bound, Matches, Schema, Validate};
 use serde::{Deserialize, Serialize};
 
-#[derive(Serialize, Deserialize, Debug, Clone)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq, Hash)]
 pub struct Range {
     pub lower: Bound,
     pub upper: Bound,
