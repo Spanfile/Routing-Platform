@@ -113,11 +113,11 @@ impl Schema {
 }
 
 impl Schema {
-    pub fn print_debug_info(&self) {
-        debug!("Schema templates: {}", self.templates.len());
-        debug!("Schema nodes: {}", self.node_count());
-        debug!("Schema properties: {}", self.property_count());
-        debug!(
+    pub fn print_trace_info(&self) {
+        trace!("Schema templates: {}", self.templates.len());
+        trace!("Schema nodes: {}", self.node_count());
+        trace!("Schema properties: {}", self.property_count());
+        trace!(
             "Schema regex cache DFA size: {} bytes",
             self.regex_cache_dfa_size()
         );

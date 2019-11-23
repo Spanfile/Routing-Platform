@@ -18,12 +18,12 @@ pub async fn run() -> anyhow::Result<()> {
     setup_logging()?;
 
     let binary = include_bytes!(concat!(env!("OUT_DIR"), "/schema"));
-    debug!("Schema binary: {} bytes", binary.len());
+    trace!("Schema binary: {} bytes", binary.len());
 
     let start = Instant::now();
     let schema = Rc::new(Schema::from_binary(binary)?);
     debug!("Schema loaded in {}ms", start.elapsed().as_millis());
-    schema.print_debug_info();
+    schema.print_trace_info();
 
     let start = Instant::now();
     let config = Config::from_schema(Rc::downgrade(&schema))?;
