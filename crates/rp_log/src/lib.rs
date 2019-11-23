@@ -21,7 +21,7 @@ pub fn setup_logging() -> anyhow::Result<()> {
                 msg
             ))
         })
-        .level(log::LevelFilter::Debug)
+        .level(log::LevelFilter::Trace)
         .chain(std::io::stdout())
         .apply()?;
     Ok(())

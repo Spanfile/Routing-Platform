@@ -21,6 +21,7 @@ use termion::{
     input::TermRead,
     raw::{IntoRawMode, RawTerminal},
 };
+use rp_log::*;
 
 pub struct Shell {
     pub running: bool,
@@ -52,27 +53,13 @@ impl Shell {
     }
 
     pub async fn process_input(&mut self) -> anyhow::Result<Command> {
-        let input = loop {
-            self.print_prompt()?;
-            let input = self.read_input().await?;
-            if input.trim().is_empty() {
-                continue;
+        match self.process_input_internal().await {
+            Ok(command) => Ok(command),
+            Err(e) => {
+                trace!("Caught error \"{}\" while processing shell input, clearing buffer", e);
+                self.buffer.clear();
+                Err(e)
             }
-            break input;
-        };
-
-        let input_args = input.to_owned();
-        let args: Vec<&str> = input_args.split_whitespace().collect();
-
-        if let Some(command_name) = args.first() {
-            self.history.push(HistoryEntry::new(input));
-            self.history_index = None;
-            Ok(Command::new(
-                command_name,
-                args.iter().skip(1).map(|s| (*s).to_string()).collect(),
-            )?)
-        } else {
-            Err(anyhow!("Split returned no args"))
         }
     }
 
@@ -136,6 +123,31 @@ impl Shell {
         }
 
         self.flush()
+    }
+
+    async fn process_input_internal(&mut self) -> anyhow::Result<Command> {
+        let input = loop {
+            self.print_prompt()?;
+            let input = self.read_input().await?;
+            if input.trim().is_empty() {
+                continue;
+            }
+            break input;
+        };
+
+        let input_args = input.to_owned();
+        let args: Vec<&str> = input_args.split_whitespace().collect();
+
+        if let Some(command_name) = args.first() {
+            self.history.push(HistoryEntry::new(input));
+            self.history_index = None;
+            Ok(Command::new(
+                command_name,
+                args.iter().skip(1).map(|s| (*s).to_string()).collect(),
+            )?)
+        } else {
+            Err(anyhow!("Split returned no args"))
+        }
     }
 
     async fn read_input(&mut self) -> anyhow::Result<String> {
