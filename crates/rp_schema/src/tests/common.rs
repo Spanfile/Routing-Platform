@@ -50,6 +50,26 @@ nodes: {}"#;
     Schema::from_yaml_file(buf)
 }
 
+pub fn get_merge_node_schema() -> anyhow::Result<Schema> {
+    let mut buf = buffer();
+    let schema = r#"---
+templates: {}
+nodes:
+  "system":
+    properties:
+      "hostname":
+        default:
+          - literal: merge
+        deletable: true
+        values:
+          - literal: merge"#;
+
+    write!(buf, "{}", schema)?;
+    buf.seek(SeekFrom::Start(0))?;
+
+    Schema::from_yaml_file(buf)
+}
+
 pub fn get_new_template_schema() -> anyhow::Result<Schema> {
     let mut buf = buffer();
     let schema = r#"---

@@ -14,8 +14,6 @@ pub struct SingleSchemaNode {
     pub subnodes: HashMap<String, Box<SchemaNode>>,
     #[serde(default)]
     pub properties: HashMap<String, Property>,
-    // #[serde(default)]
-    // pub name: String,
     #[serde(skip)]
     pub locator: Rc<NodeLocator>,
 }

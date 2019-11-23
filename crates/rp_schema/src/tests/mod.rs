@@ -155,3 +155,26 @@ fn merge_theirs_template() -> anyhow::Result<()> {
         Err(anyhow!("schema string template isn't a regex template"))
     }
 }
+
+#[test]
+fn merge_ours_node() -> anyhow::Result<()> {
+    let mut schema = common::get_valid_schema()?;
+    let new_schema = common::get_merge_node_schema()?;
+
+    schema.merge(new_schema, MergingStrategy::Ours)?;
+    let locator = Rc::new(NodeLocator::new(
+        String::from("system"),
+        Some(Rc::new(NodeLocator::new(String::from("schema"), None))),
+    ));
+
+    if let Some(node) = schema.find_node(locator) {
+        if let SchemaNode::SingleSchemaNode(node) = node {
+            // TODO: make sure the property is right
+            Ok(())
+        } else {
+            Err(anyhow!("system node not a SingleSchemaNode"))
+        }
+    } else {
+        Err(anyhow!("system node not in schema"))
+    }
+}

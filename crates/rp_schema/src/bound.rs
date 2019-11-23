@@ -11,6 +11,7 @@ pub enum Bound {
 
 impl Bound {
     pub fn match_against_with(&self, other: Bound, value: f64) -> bool {
+        let value: OrderedFloat<f64> = value.into();
         (match self {
             Bound::Inclusive(bound) => value >= *bound,
             Bound::Exclusive(bound) => value > *bound,
@@ -27,10 +28,10 @@ mod tests {
 
     #[test]
     fn match_against() {
-        let lower_inclusive = Bound::Inclusive(1.0);
-        let lower_exclusive = Bound::Exclusive(1.0);
-        let upper_inclusive = Bound::Inclusive(2.0);
-        let upper_exclusive = Bound::Exclusive(2.0);
+        let lower_inclusive = Bound::Inclusive(1.0.into());
+        let lower_exclusive = Bound::Exclusive(1.0.into());
+        let upper_inclusive = Bound::Inclusive(2.0.into());
+        let upper_exclusive = Bound::Exclusive(2.0.into());
 
         assert!(lower_inclusive.match_against_with(upper_inclusive, 1.0));
         assert!(lower_inclusive.match_against_with(upper_exclusive, 1.0));

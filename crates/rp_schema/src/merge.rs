@@ -14,14 +14,14 @@ pub enum MergingStrategy {
 impl MergingStrategy {
     pub fn resolve<T>(&self, ours: T, theirs: T) -> anyhow::Result<T>
     where
-        T: ToString,
+        T: std::fmt::Debug,
     {
         match self {
             MergingStrategy::Ours => Ok(ours),
             MergingStrategy::Theirs => Ok(theirs),
             MergingStrategy::Error => Err(MergeError::Conflict {
-                this: ours.to_string(),
-                that: theirs.to_string(),
+                this: format!("{:?}", ours),
+                that: format!("{:?}", theirs),
             }
             .into()),
         }

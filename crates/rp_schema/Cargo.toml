@@ -15,4 +15,4 @@ enum_dispatch = "0.2.0"
 regex-automata = "0.1.8"
 anyhow = "1.0.23"
 thiserror = "1.0.6"
-ordered-float = "1.0.2"
+ordered-float = { version = "1.0.2", features = ["serde"] }

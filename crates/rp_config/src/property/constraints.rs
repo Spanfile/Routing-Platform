@@ -13,7 +13,7 @@ impl Constraints {
     pub fn from_schema_property(property: &Property) -> Constraints {
         Constraints {
             multiple: property.multiple,
-            values: property.values.to_vec(),
+            values: property.values.clone().into_iter().collect(),
             deletable: property.deletable,
         }
     }
