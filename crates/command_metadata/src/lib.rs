@@ -25,6 +25,7 @@ pub fn command(
 ) -> proc_macro::TokenStream {
     let attr = parse_macro_input!(attr as AttributeArgs);
     let item = parse_macro_input!(item as ItemStruct);
+    let ident = &item.ident;
 
     let args = match CommandMacroArgs::from_list(&attr) {
         Ok(v) => v,
@@ -35,13 +36,13 @@ pub fn command(
 
     let command_from_args_impl =
         generate_command_from_args(&item).expect("failed to create CommandFromArgs impl");
-    let (command_metadata_impl, aliases) = generate_command_metadata(item.ident.clone(), args)
-        .expect("failed to create CommandMetadata impl");
+    let (command_metadata_impl, aliases) =
+        generate_command_metadata(ident, args).expect("failed to create CommandMetadata impl");
 
     COMMAND_ALIASES
         .lock()
         .unwrap()
-        .insert(item.ident.to_string(), aliases);
+        .insert(ident.to_string(), aliases);
 
     quote!(
         #item
@@ -54,7 +55,7 @@ pub fn command(
 #[proc_macro_derive(CommandEnum)]
 pub fn command_derive(item: proc_macro::TokenStream) -> proc_macro::TokenStream {
     let item = parse_macro_input!(item as ItemEnum);
-    let name = item.ident.clone();
+    let name = &item.ident;
 
     let mut alias_arms = Vec::new();
     let mut shell_mode_arms = Vec::new();
@@ -62,17 +63,15 @@ pub fn command_derive(item: proc_macro::TokenStream) -> proc_macro::TokenStream 
     let mut alias_names = Vec::new();
 
     for variant in item.variants.iter() {
-        let ident = variant.ident.clone();
+        let ident = &variant.ident;
         alias_arms.push(quote!(
             #name::#ident(cmd) => cmd.aliases(),
         ));
 
-        let ident = variant.ident.clone();
         shell_mode_arms.push(quote!(
             #name::#ident(cmd) => cmd.required_shell_mode(),
         ));
 
-        let ident = variant.ident.clone();
         let aliases = COMMAND_ALIASES
             .lock()
             .unwrap()

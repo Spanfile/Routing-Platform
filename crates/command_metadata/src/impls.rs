@@ -4,17 +4,16 @@ use quote::{quote, ToTokens};
 use syn::{Ident, ItemStruct};
 
 pub fn generate_command_metadata(
-    ident: Ident,
+    ident: &Ident,
     args: CommandMacroArgs,
 ) -> anyhow::Result<(TokenStream, Vec<String>)> {
-    let name = ident.clone();
     let mut aliases: Vec<String> = vec![ident.to_string().to_ascii_lowercase()];
     aliases.extend(args.extra_aliases);
     let mode_tokens = shellmode_to_tokens(args.required_shell_mode);
 
     Ok((
         quote!(
-            impl CommandMetadata for #name {
+            impl CommandMetadata for #ident {
                 fn aliases(&self) -> Vec<&'static str> {
                     let mut aliases = Vec::new();
                     #(aliases.push(#aliases);)*
@@ -34,7 +33,8 @@ pub fn generate_command_from_args(item: &ItemStruct) -> anyhow::Result<TokenStre
     let mut initialisers = Vec::new();
 
     for field in item.fields.iter() {
-        let field_name = field.ident.clone().unwrap().to_string();
+        let ident = field.ident.as_ref().unwrap();
+        let field_name = ident.to_string();
         let argument = syn::parse::<ArgumentWrapper>(field.ty.to_token_stream().into())?;
 
         let getter = match argument {
@@ -59,18 +59,17 @@ pub fn generate_command_from_args(item: &ItemStruct) -> anyhow::Result<TokenStre
             }
         };
 
-        let ident = field.ident.clone();
         initialisers.push(quote!(
             #ident: #getter
         ));
     }
 
-    let name = item.ident.clone();
-    let name_str = name.to_string();
+    let ident = &item.ident;
+    let ident_str = ident.to_string();
     Ok(quote!(
-        impl CommandFromArgs for #name {
+        impl CommandFromArgs for #ident {
             fn from_args(mut args: Vec<String>) -> anyhow::Result<Self> {
-                rp_log::debug!("Command: {}{:?}", #name_str, args);
+                rp_log::debug!("Command: {}{:?}", #ident_str, args);
                 // TODO: check for proper amount of arguments
                 Ok(Self {
                     #(#initialisers),*
