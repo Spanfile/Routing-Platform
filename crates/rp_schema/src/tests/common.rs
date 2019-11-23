@@ -36,6 +36,34 @@ nodes:
     Schema::from_yaml_file(buf)
 }
 
+pub fn get_merge_template_schema() -> anyhow::Result<Schema> {
+    let mut buf = buffer();
+    let schema = r#"---
+templates:
+  "string":
+    regex: "a"
+nodes: {}"#;
+
+    write!(buf, "{}", schema)?;
+    buf.seek(SeekFrom::Start(0))?;
+
+    Schema::from_yaml_file(buf)
+}
+
+pub fn get_new_template_schema() -> anyhow::Result<Schema> {
+    let mut buf = buffer();
+    let schema = r#"---
+templates:
+  "new":
+    regex: "."
+nodes: {}"#;
+
+    write!(buf, "{}", schema)?;
+    buf.seek(SeekFrom::Start(0))?;
+
+    Schema::from_yaml_file(buf)
+}
+
 pub fn get_invalid_regex_template_schema() -> anyhow::Result<Schema> {
     let mut buf = buffer();
     let schema = r#"---

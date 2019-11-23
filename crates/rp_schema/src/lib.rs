@@ -3,6 +3,7 @@
 mod bound;
 mod error;
 mod matches;
+mod merge;
 mod node;
 mod property;
 mod query;
@@ -13,8 +14,10 @@ mod validate;
 mod value;
 
 pub use bound::Bound;
+use error::MergeError;
 use flate2::{read::ZlibDecoder, write::ZlibEncoder, Compression};
 pub use matches::Matches;
+pub use merge::{Merge, MergingStrategy};
 pub use node::{
     MultiSchemaNode, MultiSchemaNodeSource, NodeLocator, SchemaNode, SchemaNodeTrait,
     SingleSchemaNode,
@@ -24,7 +27,7 @@ pub use query::Query;
 use rp_log::*;
 use serde::{Deserialize, Serialize};
 use std::{
-    collections::HashMap,
+    collections::{hash_map::Entry, HashMap},
     io::{BufReader, Read, Write},
     rc::Rc,
 };
@@ -189,5 +192,43 @@ impl Schema {
         }
 
         current
+    }
+}
+
+impl Merge for Schema {
+    fn merge(&mut self, other: Self, strategy: MergingStrategy) -> anyhow::Result<()> {
+        for (name, template) in other.templates {
+            match self.templates.entry(name) {
+                Entry::Occupied(mut existing) => match strategy {
+                    MergingStrategy::Ours => (),
+                    MergingStrategy::Theirs => {
+                        existing.insert(template);
+                    }
+                    MergingStrategy::Error => {
+                        return Err(MergeError::Conflict {
+                            this: format!("{:?}", existing),
+                            that: format!("{:?}", template),
+                        }
+                        .into())
+                    }
+                },
+                Entry::Vacant(existing) => {
+                    existing.insert(template);
+                }
+            }
+        }
+
+        for (name, node) in other.nodes {
+            match self.nodes.entry(name) {
+                Entry::Occupied(mut existing) => {
+                    existing.get_mut().merge(*node, strategy)?;
+                }
+                Entry::Vacant(existing) => {
+                    existing.insert(node);
+                }
+            }
+        }
+
+        Ok(())
     }
 }

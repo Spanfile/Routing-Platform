@@ -10,7 +10,7 @@ use std::{cell::RefCell, error::Error, fmt};
 
 #[derive(Debug)]
 pub struct RegexTemplate {
-    regex: String,
+    pub regex: String,
     compiled_regex: RefCell<Option<DenseDFA<Vec<usize>, usize>>>,
 }
 

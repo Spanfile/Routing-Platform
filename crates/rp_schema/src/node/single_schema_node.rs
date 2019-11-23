@@ -1,8 +1,12 @@
 use super::{
-    super::property::Property, NodeLocator, Schema, SchemaNode, SchemaNodeTrait, Validate,
+    super::Property, Merge, MergingStrategy, NodeLocator, Schema, SchemaNode, SchemaNodeTrait,
+    Validate,
 };
 use serde::{Deserialize, Serialize};
-use std::{collections::HashMap, rc::Rc};
+use std::{
+    collections::{hash_map::Entry, HashMap},
+    rc::Rc,
+};
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct SingleSchemaNode {
@@ -54,6 +58,34 @@ impl Validate for SingleSchemaNode {
 
         for node in self.subnodes.values() {
             node.validate(schema)?;
+        }
+
+        Ok(())
+    }
+}
+
+impl Merge for SingleSchemaNode {
+    fn merge(&mut self, other: Self, strategy: MergingStrategy) -> anyhow::Result<()> {
+        for (name, node) in other.subnodes {
+            match self.subnodes.entry(name) {
+                Entry::Occupied(mut existing) => {
+                    existing.get_mut().merge(*node, strategy)?;
+                }
+                Entry::Vacant(existing) => {
+                    existing.insert(node);
+                }
+            }
+        }
+
+        for (name, property) in other.properties {
+            match self.properties.entry(name) {
+                Entry::Occupied(mut existing) => {
+                    existing.get_mut().merge(property, strategy)?;
+                }
+                Entry::Vacant(existing) => {
+                    existing.insert(property);
+                }
+            }
         }
 
         Ok(())

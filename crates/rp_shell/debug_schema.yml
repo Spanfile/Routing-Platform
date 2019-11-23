@@ -1,0 +1,14 @@
+---
+nodes:
+  "debug":
+    properties:
+      "log_level":
+        deletable: false
+        default:
+          - literal: trace
+        values:
+          - literal: error
+          - literal: warn
+          - literal: info
+          - literal: debug
+          - literal: trace

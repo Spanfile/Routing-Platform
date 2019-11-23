@@ -3,7 +3,8 @@ mod node_locator;
 mod single_schema_node;
 use enum_dispatch::enum_dispatch;
 
-use super::{Schema, Validate};
+use super::{Merge, MergingStrategy, Schema, Validate};
+use anyhow::anyhow;
 pub use multi_schema_node::{MultiSchemaNode, MultiSchemaNodeSource};
 pub use node_locator::NodeLocator;
 use serde::{Deserialize, Serialize};
@@ -11,7 +12,7 @@ pub use single_schema_node::SingleSchemaNode;
 use std::rc::Rc;
 
 #[enum_dispatch(SchemaNode)]
-pub trait SchemaNodeTrait {
+pub trait SchemaNodeTrait: Merge {
     fn node_count(&self) -> usize;
     fn property_count(&self) -> usize;
     fn update_locators(&mut self, name: String, previous: Rc<NodeLocator>);
@@ -39,7 +40,7 @@ pub enum SchemaNode {
     SingleSchemaNode,
 }
 
-// enum_dispatch could be used to get rid of this boilerplate impl but it
+// enum_dispatch could be used to get rid of these boilerplate impls but it
 // doesn't seem to support linking multiple traits to a single enum, only
 // multiple enums to a single trait
 impl Validate for SchemaNode {
@@ -47,6 +48,31 @@ impl Validate for SchemaNode {
         match self {
             SchemaNode::SingleSchemaNode(node) => node.validate(schema),
             SchemaNode::MultiSchemaNode(node) => node.validate(schema),
+        }
+    }
+}
+
+impl Merge for SchemaNode {
+    fn merge(&mut self, other: Self, strategy: MergingStrategy) -> anyhow::Result<()> {
+        match self {
+            SchemaNode::SingleSchemaNode(node) => {
+                if let SchemaNode::SingleSchemaNode(other) = other {
+                    node.merge(other, strategy)
+                } else {
+                    Err(anyhow!(
+                        "attempting to merge SingleSchemaNode with MultiSchemaNode"
+                    ))
+                }
+            }
+            SchemaNode::MultiSchemaNode(node) => {
+                if let SchemaNode::MultiSchemaNode(other) = other {
+                    node.merge(other, strategy)
+                } else {
+                    Err(anyhow!(
+                        "attempting to merge MultiSchemaNode with SingleSchemaNode"
+                    ))
+                }
+            }
         }
     }
 }

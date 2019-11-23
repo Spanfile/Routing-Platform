@@ -1,6 +1,6 @@
 use super::{
     value::{DefaultValue, Value},
-    Matches, Schema, Validate,
+    Matches, Merge, MergingStrategy, Schema, Validate,
 };
 use crate::error;
 use anyhow::anyhow;
@@ -85,5 +85,11 @@ impl Validate for Property {
         }
 
         Ok(())
+    }
+}
+
+impl Merge for Property {
+    fn merge(&mut self, other: Self, strategy: MergingStrategy) -> anyhow::Result<()> {
+        unimplemented!()
     }
 }

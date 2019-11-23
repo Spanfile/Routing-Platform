@@ -1,6 +1,6 @@
 use super::{
     super::{Query, Validate},
-    NodeLocator, Schema, SchemaNode, SchemaNodeTrait,
+    Merge, MergingStrategy, NodeLocator, Schema, SchemaNode, SchemaNodeTrait,
 };
 use crate::error;
 use serde::{Deserialize, Serialize};
@@ -56,5 +56,11 @@ impl Validate for MultiSchemaNode {
         }
 
         Ok(())
+    }
+}
+
+impl Merge for MultiSchemaNode {
+    fn merge(&mut self, other: Self, strategy: MergingStrategy) -> anyhow::Result<()> {
+        unimplemented!()
     }
 }

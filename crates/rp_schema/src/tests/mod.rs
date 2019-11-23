@@ -87,3 +87,71 @@ fn property_count() -> anyhow::Result<()> {
         Err(anyhow!("schema doesn't have exactly two properties"))
     }
 }
+
+#[test]
+fn merge_template_without_conflict() -> anyhow::Result<()> {
+    let mut schema = common::get_valid_schema()?;
+    let new_schema = common::get_new_template_schema()?;
+
+    schema.merge(new_schema, MergingStrategy::Ours)?;
+    if let Template::Regex(_template) = schema
+        .templates
+        .get(&String::from("new"))
+        .ok_or_else(|| anyhow!("schema doesn't have new template"))?
+        .as_ref()
+    {
+        Ok(())
+    } else {
+        Err(anyhow!("schema new template isn't a regex template"))
+    }
+}
+
+#[test]
+fn merge_ours_template() -> anyhow::Result<()> {
+    let mut schema = common::get_valid_schema()?;
+    let new_schema = common::get_merge_template_schema()?;
+
+    schema.merge(new_schema, MergingStrategy::Ours)?;
+    if let Template::Regex(template) = schema
+        .templates
+        .get(&String::from("string"))
+        .ok_or_else(|| anyhow!("schema doesn't have string template"))?
+        .as_ref()
+    {
+        if template.regex != ".*" {
+            Err(anyhow!(
+                "string template regex isn't .* (is {} instead)",
+                template.regex
+            ))
+        } else {
+            Ok(())
+        }
+    } else {
+        Err(anyhow!("schema string template isn't a regex template"))
+    }
+}
+
+#[test]
+fn merge_theirs_template() -> anyhow::Result<()> {
+    let mut schema = common::get_valid_schema()?;
+    let new_schema = common::get_merge_template_schema()?;
+
+    schema.merge(new_schema, MergingStrategy::Theirs)?;
+    if let Template::Regex(template) = schema
+        .templates
+        .get(&String::from("string"))
+        .ok_or_else(|| anyhow!("schema doesn't have string template"))?
+        .as_ref()
+    {
+        if template.regex != "a" {
+            Err(anyhow!(
+                "string template regex isn't a (is {} instead)",
+                template.regex
+            ))
+        } else {
+            Ok(())
+        }
+    } else {
+        Err(anyhow!("schema string template isn't a regex template"))
+    }
+}
