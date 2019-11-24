@@ -167,6 +167,7 @@ impl<'a> ConfigEditor<'a> {
     pub fn save(&self) -> anyhow::Result<()> {
         let file = OpenOptions::new()
             .read(true)
+            .write(true)
             .create(true)
             .open("config.save")?;
         self.config.save_config(file)
