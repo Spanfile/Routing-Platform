@@ -1,4 +1,5 @@
 ---
+templates: {}
 nodes:
   "debug":
     properties:
