@@ -17,6 +17,7 @@ use rp_schema::Schema;
 pub use save_load::{save, Save, SaveBuilder};
 use std::{
     collections::HashMap,
+    io::Write,
     rc::{Rc, Weak},
 };
 
@@ -68,8 +69,11 @@ impl Config {
         }
     }
 
-    pub fn save_config(&self) -> anyhow::Result<()> {
-        save(self)
+    pub fn save_config<T>(&self, dest: T) -> anyhow::Result<()>
+    where
+        T: Write,
+    {
+        save(self, dest)
     }
 }
 

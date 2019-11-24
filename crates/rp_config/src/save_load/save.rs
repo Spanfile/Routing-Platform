@@ -1,8 +1,12 @@
 use crate::error::SaveError;
 use rp_log::*;
-use std::{cell::RefCell, collections::HashMap, rc::Rc};
+use serde::Serialize;
+use std::{cell::RefCell, collections::HashMap, io::Write, rc::Rc};
 
-pub fn save(thing: &dyn Save) -> anyhow::Result<()> {
+pub fn save<T>(thing: &dyn Save) -> anyhow::Result<()>
+where
+    T: Write,
+{
     let mut builder = SaveBuilder::new();
     thing.save(&mut builder)?;
     trace!("Built save: {:?}", builder);
