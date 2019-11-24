@@ -223,9 +223,9 @@ impl Property {
                     println!(
                         "{:indent$}{}{} {}",
                         "",
-                        "-".red(),
-                        self.key.red(),
-                        value.red(),
+                        "+".green(),
+                        self.key.green(),
+                        value.green(),
                         indent = indent * 4
                     )
                 }
