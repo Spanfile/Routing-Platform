@@ -13,3 +13,12 @@ nodes:
           - literal: info
           - literal: debug
           - literal: trace
+    subnodes:
+      "config":
+        properties:
+          "save_location":
+            deletable: false
+            default:
+              - literal: "config.save"
+            values:
+              - template: string

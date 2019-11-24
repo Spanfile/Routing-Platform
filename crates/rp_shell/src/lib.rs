@@ -9,8 +9,6 @@ use rp_common::{CommandMetadata, ShellMode};
 use rp_config::Config;
 use rp_log::*;
 use rp_schema::Schema;
-use rp_schema::Merge;
-use rp_schema::MergingStrategy;
 use shell::{ExecutableCommand, Shell};
 use std::{rc::Rc, time::Instant};
 
@@ -20,25 +18,12 @@ pub async fn run() -> anyhow::Result<()> {
     setup_logging()?;
 
     let binary = include_bytes!(concat!(env!("OUT_DIR"), "/schema"));
-    let debug_binary = include_bytes!(concat!(env!("OUT_DIR"), "/debug_schema"));
     trace!("Schema binary: {} bytes", binary.len());
-    trace!("Debug schema binary: {} bytes", debug_binary.len());
 
     let start = Instant::now();
-    let mut schema = Schema::from_binary(binary)?;
+    let schema = Rc::new(Schema::from_binary(binary)?);
     debug!("Schema loaded in {}ms", start.elapsed().as_millis());
     schema.print_trace_info();
-
-    let start = Instant::now();
-    let debug_schema = Schema::from_binary(debug_binary)?;
-    debug!("Debug schema loaded in {}ms", start.elapsed().as_millis());
-    debug_schema.print_trace_info();
-
-    let start = Instant::now();
-    schema.merge(debug_schema, MergingStrategy::Error)?;
-    debug!("Schema merged with debug schema in {}ms", start.elapsed().as_millis());
-
-    let schema = Rc::new(schema);
 
     let start = Instant::now();
     let config = Config::from_schema(Rc::downgrade(&schema))?;

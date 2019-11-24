@@ -10,7 +10,7 @@ pub struct Save;
 
 impl ExecutableCommand for Save {
     fn run(&self, _shell: &mut Shell, config_editor: &mut ConfigEditor) -> anyhow::Result<()> {
-        info!("Saving configuration...");
+        info!("Saving configuration to {}", config_editor.save_location);
         config_editor.save()
     }
 }

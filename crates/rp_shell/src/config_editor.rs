@@ -8,6 +8,7 @@ pub struct ConfigEditor<'a> {
     schema: &'a Schema,
     config: &'a Config,
     node_stack: Vec<Rc<ConfigNode>>,
+    pub save_location: String,
 }
 
 impl<'a> ConfigEditor<'a> {
@@ -16,6 +17,7 @@ impl<'a> ConfigEditor<'a> {
             schema,
             config,
             node_stack: Vec::new(),
+            save_location: String::from("config.save"),
         }
     }
 
@@ -169,7 +171,7 @@ impl<'a> ConfigEditor<'a> {
             .read(true)
             .write(true)
             .create(true)
-            .open("config.save")?;
+            .open(&self.save_location)?;
         self.config.save_config(file)
     }
 }
