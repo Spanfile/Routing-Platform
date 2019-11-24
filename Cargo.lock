@@ -661,8 +661,8 @@ dependencies = [
  "anyhow 1.0.23 (registry+https://github.com/rust-lang/crates.io-index)",
  "lazy_static 1.4.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "regex-automata 0.1.8 (registry+https://github.com/rust-lang/crates.io-index)",
- "strum 0.16.0 (git+https://github.com/Spanfile/strum.git)",
- "strum_macros 0.16.0 (git+https://github.com/Spanfile/strum.git)",
+ "strum 0.16.0 (git+https://github.com/Peternator7/strum)",
+ "strum_macros 0.16.0 (git+https://github.com/Peternator7/strum)",
  "thiserror 1.0.6 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
 
@@ -721,8 +721,8 @@ dependencies = [
  "rp_log 0.1.0",
  "rp_schema 0.1.0",
  "rp_system 0.1.0",
- "strum 0.16.0 (git+https://github.com/Spanfile/strum.git)",
- "strum_macros 0.16.0 (git+https://github.com/Spanfile/strum.git)",
+ "strum 0.16.0 (git+https://github.com/Peternator7/strum)",
+ "strum_macros 0.16.0 (git+https://github.com/Peternator7/strum)",
  "termion 1.5.3 (registry+https://github.com/rust-lang/crates.io-index)",
  "thiserror 1.0.6 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
@@ -853,15 +853,15 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 [[package]]
 name = "strum"
 version = "0.16.0"
-source = "git+https://github.com/Spanfile/strum.git#c8d2c557c32d4adca841251354d481477be0422a"
+source = "git+https://github.com/Peternator7/strum#bc8fa93ee86e8a842cc541cb890eb73bffcd9627"
 dependencies = [
- "strum_macros 0.16.0 (git+https://github.com/Spanfile/strum.git)",
+ "strum_macros 0.16.0 (git+https://github.com/Peternator7/strum)",
 ]
 
 [[package]]
 name = "strum_macros"
 version = "0.16.0"
-source = "git+https://github.com/Spanfile/strum.git#c8d2c557c32d4adca841251354d481477be0422a"
+source = "git+https://github.com/Peternator7/strum#bc8fa93ee86e8a842cc541cb890eb73bffcd9627"
 dependencies = [
  "heck 0.3.1 (registry+https://github.com/rust-lang/crates.io-index)",
  "proc-macro2 1.0.6 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -1130,8 +1130,8 @@ dependencies = [
 "checksum slab 0.4.2 (registry+https://github.com/rust-lang/crates.io-index)" = "c111b5bd5695e56cffe5129854aa230b39c93a305372fdbb2668ca2394eea9f8"
 "checksum smallvec 0.6.13 (registry+https://github.com/rust-lang/crates.io-index)" = "f7b0758c52e15a8b5e3691eae6cc559f08eee9406e548a4477ba4e67770a82b6"
 "checksum strsim 0.9.2 (registry+https://github.com/rust-lang/crates.io-index)" = "032c03039aae92b350aad2e3779c352e104d919cb192ba2fabbd7b831ce4f0f6"
-"checksum strum 0.16.0 (git+https://github.com/Spanfile/strum.git)" = "<none>"
-"checksum strum_macros 0.16.0 (git+https://github.com/Spanfile/strum.git)" = "<none>"
+"checksum strum 0.16.0 (git+https://github.com/Peternator7/strum)" = "<none>"
+"checksum strum_macros 0.16.0 (git+https://github.com/Peternator7/strum)" = "<none>"
 "checksum syn 1.0.8 (registry+https://github.com/rust-lang/crates.io-index)" = "661641ea2aa15845cddeb97dad000d22070bb5c1fb456b96c1cba883ec691e92"
 "checksum synstructure 0.12.3 (registry+https://github.com/rust-lang/crates.io-index)" = "67656ea1dc1b41b1451851562ea232ec2e5a80242139f7e679ceccfb5d61f545"
 "checksum termion 1.5.3 (registry+https://github.com/rust-lang/crates.io-index)" = "6a8fb22f7cde82c8220e5aeacb3258ed7ce996142c77cba193f203515e26c330"
