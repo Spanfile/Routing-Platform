@@ -163,6 +163,10 @@ impl<'a> ConfigEditor<'a> {
     pub fn discard_changes(&self) {
         self.config.discard_changes();
     }
+
+    pub fn save(&self) -> anyhow::Result<()> {
+        self.config.save_config()
+    }
 }
 
 impl<'a> ConfigEditor<'a> {

@@ -1,4 +1,4 @@
-use super::{Changeable, ConfigNode, FromSchemaNode, Node, NodeName};
+use super::{Changeable, ConfigNode, FromSchemaNode, Node, NodeName, Save, SaveBuilder};
 use crate::Property;
 use colored::Colorize;
 use rp_common::Context;
@@ -111,7 +111,7 @@ impl Node for MultiConfigNode {
         // either
         match self.new_node_creation_allowed {
             NewNodeCreationAllowed::Yes { .. } => {
-                let mut nodes = self.nodes.borrow_mut();
+                let mut nodes = self.nodes.try_borrow_mut()?;
                 let (_node, change) =
                     nodes
                         .get_mut(node)
@@ -178,6 +178,18 @@ impl Changeable for MultiConfigNode {
             .collect();
 
         self.nodes.replace(new_nodes);
+    }
+}
+
+impl Save for MultiConfigNode {
+    fn save(&self, builder: &mut SaveBuilder) -> anyhow::Result<()> {
+        for (name, (node, _)) in self.nodes.try_borrow()?.iter() {
+            builder.begin_node(name.clone())?;
+            node.save(builder)?;
+            builder.end_node()?;
+        }
+
+        Ok(())
     }
 }
 

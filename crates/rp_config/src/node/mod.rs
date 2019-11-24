@@ -1,7 +1,7 @@
 mod multi_config_node;
 mod single_config_node;
 
-use super::{Changeable, NodeName, Property};
+use super::{Changeable, NodeName, Property, Save, SaveBuilder};
 use enum_dispatch::enum_dispatch;
 use multi_config_node::MultiConfigNode;
 use rp_common::Context;
@@ -13,7 +13,7 @@ use std::{
 };
 
 #[enum_dispatch]
-pub trait Node: Changeable {
+pub trait Node: Changeable + Save {
     fn name(&self) -> String;
 
     fn get_available_node_names(&self) -> Vec<NodeName>;
@@ -83,6 +83,15 @@ impl Changeable for ConfigNode {
         match self {
             Self::SingleConfigNode(node) => node.discard_changes(),
             Self::MultiConfigNode(node) => node.discard_changes(),
+        }
+    }
+}
+
+impl Save for ConfigNode {
+    fn save(&self, builder: &mut SaveBuilder) -> anyhow::Result<()> {
+        match self {
+            Self::SingleConfigNode(node) => node.save(builder),
+            Self::MultiConfigNode(node) => node.save(builder),
         }
     }
 }

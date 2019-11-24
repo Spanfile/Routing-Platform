@@ -3,6 +3,7 @@ mod configure;
 mod edit;
 mod exit;
 mod history;
+mod save_load;
 mod show;
 
 use super::{super::ConfigEditor, Shell, ShellMode};
@@ -14,6 +15,7 @@ use enum_dispatch::enum_dispatch;
 use exit::Exit;
 use history::History;
 use rp_common::{CommandFromArgs, CommandMetadata};
+use save_load::Save;
 use show::Show;
 
 #[enum_dispatch]
@@ -35,4 +37,5 @@ pub enum Command {
     History,
     Apply,
     Discard,
+    Save,
 }

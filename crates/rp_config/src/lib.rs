@@ -5,6 +5,7 @@ pub mod error;
 mod node;
 mod node_name;
 mod property;
+mod save_load;
 
 use anyhow::anyhow;
 pub use changeable::Changeable;
@@ -13,6 +14,7 @@ pub use node_name::NodeName;
 pub use property::Property;
 use rp_common::Context;
 use rp_schema::Schema;
+pub use save_load::{save, Save, SaveBuilder};
 use std::{
     collections::HashMap,
     rc::{Rc, Weak},
@@ -21,26 +23,6 @@ use std::{
 #[derive(Debug)]
 pub struct Config {
     pub nodes: HashMap<String, Rc<ConfigNode>>,
-}
-
-impl Changeable for Config {
-    fn is_clean(&self) -> bool {
-        self.nodes.values().all(|node| node.is_clean())
-    }
-
-    fn apply_changes(&self) -> anyhow::Result<()> {
-        for node in self.nodes.values() {
-            node.apply_changes()?;
-        }
-
-        Ok(())
-    }
-
-    fn discard_changes(&self) {
-        for node in self.nodes.values() {
-            node.discard_changes();
-        }
-    }
 }
 
 impl Config {
@@ -85,6 +67,10 @@ impl Config {
             _ => panic!(),
         }
     }
+
+    pub fn save_config(&self) -> anyhow::Result<()> {
+        save(self)
+    }
 }
 
 impl Config {
@@ -94,5 +80,37 @@ impl Config {
             node.pretty_print(1);
             println!("}}");
         }
+    }
+}
+
+impl Changeable for Config {
+    fn is_clean(&self) -> bool {
+        self.nodes.values().all(|node| node.is_clean())
+    }
+
+    fn apply_changes(&self) -> anyhow::Result<()> {
+        for node in self.nodes.values() {
+            node.apply_changes()?;
+        }
+
+        Ok(())
+    }
+
+    fn discard_changes(&self) {
+        for node in self.nodes.values() {
+            node.discard_changes();
+        }
+    }
+}
+
+impl Save for Config {
+    fn save(&self, builder: &mut SaveBuilder) -> anyhow::Result<()> {
+        for (name, node) in &self.nodes {
+            builder.begin_node(name.clone())?;
+            node.save(builder)?;
+            builder.end_node()?;
+        }
+
+        Ok(())
     }
 }

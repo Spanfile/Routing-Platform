@@ -1,4 +1,4 @@
-use super::{Changeable, ConfigNode, FromSchemaNode, Node, NodeName};
+use super::{Changeable, ConfigNode, FromSchemaNode, Node, NodeName, Save, SaveBuilder};
 use crate::Property;
 use rp_common::Context;
 use rp_schema::{Schema, SingleSchemaNode};
@@ -107,6 +107,24 @@ impl Changeable for SingleConfigNode {
         for node in self.subnodes.values() {
             node.discard_changes();
         }
+    }
+}
+
+impl Save for SingleConfigNode {
+    fn save(&self, builder: &mut SaveBuilder) -> anyhow::Result<()> {
+        for (name, node) in &self.subnodes {
+            builder.begin_node(name.clone())?;
+            node.save(builder)?;
+            builder.end_node()?;
+        }
+
+        for (name, property) in &self.properties {
+            for value in property.values() {
+                builder.set_property(name.clone(), value)?;
+            }
+        }
+
+        Ok(())
     }
 }
 
