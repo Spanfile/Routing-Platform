@@ -91,10 +91,10 @@ impl Validate for Property {
 
 impl Merge for Property {
     fn merge(&mut self, other: Self, strategy: MergingStrategy) -> anyhow::Result<()> {
-        self.multiple = strategy.resolve(self.multiple, other.multiple)?;
-        self.deletable = strategy.resolve(self.deletable, other.deletable)?;
-        self.values = strategy.resolve(self.values, other.values)?;
-        self.default = strategy.resolve(self.default, other.default)?;
+        strategy.resolve(&mut self.multiple, other.multiple)?;
+        strategy.resolve(&mut self.deletable, other.deletable)?;
+        strategy.resolve(&mut self.values, other.values)?;
+        strategy.resolve(&mut self.default, other.default)?;
 
         Ok(())
     }

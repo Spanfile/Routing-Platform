@@ -1,4 +1,5 @@
 use crate::error::MergeError;
+use std::mem;
 
 pub trait Merge {
     fn merge(&mut self, other: Self, strategy: MergingStrategy) -> anyhow::Result<()>;
@@ -12,18 +13,27 @@ pub enum MergingStrategy {
 }
 
 impl MergingStrategy {
-    pub fn resolve<T>(&self, ours: T, theirs: T) -> anyhow::Result<T>
+    pub fn resolve<T>(&self, ours: &mut T, theirs: T) -> anyhow::Result<()>
     where
-        T: std::fmt::Debug,
+        T: std::fmt::Debug + PartialEq,
     {
         match self {
-            MergingStrategy::Ours => Ok(ours),
-            MergingStrategy::Theirs => Ok(theirs),
-            MergingStrategy::Error => Err(MergeError::Conflict {
-                this: format!("{:?}", ours),
-                that: format!("{:?}", theirs),
+            MergingStrategy::Ours => Ok(()),
+            MergingStrategy::Theirs => {
+                mem::replace(ours, theirs);
+                Ok(())
             }
-            .into()),
+            MergingStrategy::Error => {
+                if *ours != theirs {
+                    Err(MergeError::Conflict {
+                        this: format!("{:?}", ours),
+                        that: format!("{:?}", theirs),
+                    }
+                    .into())
+                } else {
+                    Ok(())
+                }
+            }
         }
     }
 }

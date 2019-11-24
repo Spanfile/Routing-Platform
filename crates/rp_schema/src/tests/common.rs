@@ -58,11 +58,26 @@ nodes:
   "system":
     properties:
       "hostname":
-        default:
-          - literal: merge
-        deletable: true
         values:
-          - literal: merge"#;
+          - template: string
+        default:
+         - literal: router
+        deletable: true"#;
+
+    write!(buf, "{}", schema)?;
+    buf.seek(SeekFrom::Start(0))?;
+
+    Schema::from_yaml_file(buf)
+}
+
+pub fn get_new_node_schema() -> anyhow::Result<Schema> {
+    let mut buf = buffer();
+    let schema = r#"---
+templates: {}
+nodes:
+  "interfaces":
+    subnodes: {}
+    properties: {}"#;
 
     write!(buf, "{}", schema)?;
     buf.seek(SeekFrom::Start(0))?;

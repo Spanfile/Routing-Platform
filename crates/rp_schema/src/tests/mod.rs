@@ -93,7 +93,7 @@ fn merge_template_without_conflict() -> anyhow::Result<()> {
     let mut schema = common::get_valid_schema()?;
     let new_schema = common::get_new_template_schema()?;
 
-    schema.merge(new_schema, MergingStrategy::Ours)?;
+    schema.merge(new_schema, MergingStrategy::Error)?;
     if let Template::Regex(_template) = schema
         .templates
         .get(&String::from("new"))
@@ -169,12 +169,71 @@ fn merge_ours_node() -> anyhow::Result<()> {
 
     if let Some(node) = schema.find_node(locator) {
         if let SchemaNode::SingleSchemaNode(node) = node {
-            // TODO: make sure the property is right
-            Ok(())
+            if let Some(property) = node.properties.get(&String::from("hostname")) {
+                if property.deletable != false {
+                    Err(anyhow!("hostname property is deletable"))
+                } else {
+                    Ok(())
+                }
+            } else {
+                Err(anyhow!("hostname property not in system node"))
+            }
         } else {
             Err(anyhow!("system node not a SingleSchemaNode"))
         }
     } else {
         Err(anyhow!("system node not in schema"))
+    }
+}
+
+#[test]
+fn merge_theirs_node() -> anyhow::Result<()> {
+    let mut schema = common::get_valid_schema()?;
+    let new_schema = common::get_merge_node_schema()?;
+
+    schema.merge(new_schema, MergingStrategy::Theirs)?;
+    let locator = Rc::new(NodeLocator::new(
+        String::from("system"),
+        Some(Rc::new(NodeLocator::new(String::from("schema"), None))),
+    ));
+
+    if let Some(node) = schema.find_node(locator) {
+        if let SchemaNode::SingleSchemaNode(node) = node {
+            if let Some(property) = node.properties.get(&String::from("hostname")) {
+                if property.deletable != true {
+                    Err(anyhow!("hostname property is not deletable"))
+                } else {
+                    Ok(())
+                }
+            } else {
+                Err(anyhow!("hostname property not in system node"))
+            }
+        } else {
+            Err(anyhow!("system node not a SingleSchemaNode"))
+        }
+    } else {
+        Err(anyhow!("system node not in schema"))
+    }
+}
+
+#[test]
+fn merge_new_node() -> anyhow::Result<()> {
+    let mut schema = common::get_valid_schema()?;
+    let new_schema = common::get_new_node_schema()?;
+
+    schema.merge(new_schema, MergingStrategy::Error)?;
+    let locator = Rc::new(NodeLocator::new(
+        String::from("interfaces"),
+        Some(Rc::new(NodeLocator::new(String::from("schema"), None))),
+    ));
+
+    if let Some(node) = schema.find_node(locator) {
+        if let SchemaNode::SingleSchemaNode(_node) = node {
+            Ok(())
+        } else {
+            Err(anyhow!("interfaces node not a SingleSchemaNode"))
+        }
+    } else {
+        Err(anyhow!("interfaces node not in schema"))
     }
 }
