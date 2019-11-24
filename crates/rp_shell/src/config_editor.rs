@@ -1,7 +1,7 @@
 use crate::error;
 use rp_config::{Changeable, Config, ConfigNode, Node, NodeName, Property};
 use rp_schema::Schema;
-use std::{collections::HashMap, rc::Rc};
+use std::{collections::HashMap, fs::OpenOptions, rc::Rc};
 
 #[derive(Debug)]
 pub struct ConfigEditor<'a> {
@@ -165,7 +165,11 @@ impl<'a> ConfigEditor<'a> {
     }
 
     pub fn save(&self) -> anyhow::Result<()> {
-        self.config.save_config()
+        let file = OpenOptions::new()
+            .read(true)
+            .create(true)
+            .open("config.save")?;
+        self.config.save_config(file)
     }
 }
 

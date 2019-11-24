@@ -1,15 +1,17 @@
 use crate::error::SaveError;
 use rp_log::*;
 use serde::Serialize;
+use serde_json;
 use std::{cell::RefCell, collections::HashMap, io::Write, rc::Rc};
 
-pub fn save<T>(thing: &dyn Save) -> anyhow::Result<()>
+pub fn save<T>(thing: &dyn Save, dest: T) -> anyhow::Result<()>
 where
     T: Write,
 {
     let mut builder = SaveBuilder::new();
     thing.save(&mut builder)?;
     trace!("Built save: {:?}", builder);
+    serde_json::to_writer(dest, &builder)?;
     Ok(())
 }
 
@@ -17,9 +19,10 @@ pub trait Save {
     fn save(&self, builder: &mut SaveBuilder) -> anyhow::Result<()>;
 }
 
-#[derive(Debug)]
+#[derive(Debug, Serialize)]
 pub struct SaveBuilder {
     nodes: HashMap<String, Rc<SaveNode>>,
+    #[serde(skip)]
     node_stack: Vec<Rc<SaveNode>>,
 }
 
@@ -59,7 +62,7 @@ impl SaveBuilder {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Serialize)]
 struct SaveNode {
     subnodes: RefCell<HashMap<String, Rc<SaveNode>>>,
     properties: RefCell<HashMap<String, Vec<String>>>,
