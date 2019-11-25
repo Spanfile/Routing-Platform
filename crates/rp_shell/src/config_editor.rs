@@ -17,7 +17,7 @@ impl<'a> ConfigEditor<'a> {
             schema,
             config,
             node_stack: Vec::new(),
-            save_location: String::from("config.save"),
+            save_location: String::from("save/config.save"),
         }
     }
 
