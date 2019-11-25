@@ -5,7 +5,7 @@ use rp_common::{CommandFromArgs, CommandMetadata, ShellMode};
 use rp_log::*;
 use strum::{EnumString, EnumVariantNames};
 
-#[command]
+#[command(required_shell_mode = "Configuration")]
 #[derive(Debug)]
 pub struct Apply {
     save: Option<ApplyArgs>,
@@ -17,14 +17,14 @@ enum ApplyArgs {
     Save,
 }
 
-#[command]
+#[command(required_shell_mode = "Configuration")]
 #[derive(Debug)]
 pub struct Discard;
 
 impl ExecutableCommand for Apply {
     fn run(&self, _shell: &mut Shell, editor: &mut ConfigEditor) -> anyhow::Result<()> {
         if editor.is_clean() {
-            info!("Configuration clean - no changes to apply");
+            info!("No changes to apply (configuration clean)");
         } else {
             if editor.apply_changes()? {
                 if let Some(ApplyArgs::Save) = self.save {
@@ -45,7 +45,7 @@ impl ExecutableCommand for Apply {
 impl ExecutableCommand for Discard {
     fn run(&self, _shell: &mut Shell, editor: &mut ConfigEditor) -> anyhow::Result<()> {
         if editor.is_clean() {
-            info!("Configuration clean - no changes to discard");
+            info!("No changes to discard (configuration clean)");
         } else {
             editor.discard_changes();
         }

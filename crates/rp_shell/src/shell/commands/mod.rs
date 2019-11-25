@@ -20,7 +20,7 @@ use show::Show;
 
 #[enum_dispatch]
 pub trait ExecutableCommand: CommandMetadata {
-    fn run(&self, shell: &mut Shell, config_editor: &mut ConfigEditor) -> anyhow::Result<()>;
+    fn run(&self, shell: &mut Shell, editor: &mut ConfigEditor) -> anyhow::Result<()>;
 }
 
 #[enum_dispatch(ExecutableCommand)]

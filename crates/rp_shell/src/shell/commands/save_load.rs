@@ -9,8 +9,13 @@ use rp_log::*;
 pub struct Save;
 
 impl ExecutableCommand for Save {
-    fn run(&self, _shell: &mut Shell, config_editor: &mut ConfigEditor) -> anyhow::Result<()> {
-        info!("Saving configuration to {}", config_editor.save_location);
-        config_editor.save()
+    fn run(&self, _shell: &mut Shell, editor: &mut ConfigEditor) -> anyhow::Result<()> {
+        if !editor.is_clean() {
+            warn!("There are unapplied changes. Apply them first with `apply` or apply and save them with `apply save`");
+            Ok(())
+        } else {
+            info!("Saving configuration to {}", editor.save_location);
+            editor.save()
+        }
     }
 }
