@@ -33,8 +33,8 @@ impl Node for SingleConfigNode {
         self.properties.keys().map(|key| key.to_owned()).collect()
     }
 
-    fn get_node_with_name(&self, name: &str) -> Rc<ConfigNode> {
-        Rc::clone(self.subnodes.get(name).expect("node not found"))
+    fn get_node_with_name(&self, name: &str) -> anyhow::Result<Option<Rc<ConfigNode>>> {
+        Ok(self.subnodes.get(name).map(|n| Rc::clone(n)))
     }
 
     fn get_property(&self, property: &str) -> Option<&Property> {

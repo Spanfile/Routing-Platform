@@ -67,11 +67,8 @@ impl Config {
         names
     }
 
-    pub fn get_node_with_name(&self, name: &str) -> Rc<ConfigNode> {
-        match self.nodes.get(name) {
-            Some(node) => Rc::clone(node),
-            _ => panic!(), // TODO: ewwwww
-        }
+    pub fn get_node_with_name(&self, name: &str) -> Option<Rc<ConfigNode>> {
+        self.nodes.get(name).map(|n| Rc::clone(n))
     }
 
     pub fn save_config<T>(&self, dest: T) -> anyhow::Result<()>

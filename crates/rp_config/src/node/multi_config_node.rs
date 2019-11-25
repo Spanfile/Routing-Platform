@@ -1,5 +1,6 @@
 use super::{Changeable, ConfigNode, FromSchemaNode, Node, NodeName, Save, SaveBuilder};
 use crate::Property;
+use anyhow::anyhow;
 use colored::Colorize;
 use rp_common::Context;
 use rp_schema::{MultiSchemaNode, MultiSchemaNodeSource, NodeLocator, Schema, SchemaNodeTrait};
@@ -58,28 +59,27 @@ impl Node for MultiConfigNode {
         vec![]
     }
 
-    fn get_node_with_name(&self, name: &str) -> Rc<ConfigNode> {
+    fn get_node_with_name(&self, name: &str) -> anyhow::Result<Option<Rc<ConfigNode>>> {
         let mut nodes = self.nodes.borrow_mut();
         match nodes.get(name) {
-            Some((node, _)) => Rc::clone(&node),
+            Some((node, _)) => Ok(Some(Rc::clone(&node))),
             _ => {
-                let new_node = Rc::new(
-                    ConfigNode::from_schema_node(
-                        Rc::clone(&self.context),
-                        name,
-                        Weak::clone(&self.schema),
-                        self.schema
-                            .upgrade()
-                            .expect("schema dropped")
-                            .find_node(Rc::clone(&self.node_locator))
-                            .expect("schema node not found"),
-                    )
-                    .expect("failed to create new node"),
-                );
+                // TODO: where is it checked that this given name is actually valid for the
+                // MultiConfigNode?
+                let new_node = Rc::new(ConfigNode::from_schema_node(
+                    Rc::clone(&self.context),
+                    name,
+                    Weak::clone(&self.schema),
+                    self.schema
+                        .upgrade()
+                        .ok_or_else(|| anyhow!("schema weak pointer dropped while creating new node into MultiConfigNode"))?
+                        .find_node(Rc::clone(&self.node_locator))
+                        .ok_or_else(|| anyhow!("corresponding schema node for MultiConfigNode not found"))?,
+                )?);
 
                 nodes.insert(name.to_owned(), (Rc::clone(&new_node), NodeChange::New));
 
-                new_node
+                Ok(Some(new_node))
             }
         }
     }

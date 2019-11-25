@@ -55,19 +55,6 @@ impl<'a> ConfigEditor<'a> {
     }
 
     pub fn edit_node(&mut self, name: &str) -> anyhow::Result<()> {
-        // match match self.node_stack.last() {
-        //     Some(n) => &n.subnodes,
-        //     None => &self.config.nodes,
-        // }
-        // .get(&name)
-        // {
-        //     Some(node) => {
-        //         self.node_stack.push(node);
-        //         Ok(())
-        //     }
-        //     None => Err(ConfigEditorError::NodeNotFound(name)),
-        // }
-
         let mut matching_name: Option<NodeName> = None;
         for node_name in match self.node_stack.last() {
             Some(n) => n.get_available_node_names(),
@@ -87,10 +74,13 @@ impl<'a> ConfigEditor<'a> {
         }
 
         if matching_name.is_some() {
-            self.node_stack.push(match self.node_stack.last() {
-                Some(n) => n.get_node_with_name(&name),
-                None => self.config.get_node_with_name(&name),
-            });
+            self.node_stack.push(
+                match self.node_stack.last() {
+                    Some(n) => n.get_node_with_name(&name)?,
+                    None => self.config.get_node_with_name(&name),
+                }
+                .ok_or(error::ConfigEditorError::NodeNotFound(name.to_string()))?,
+            );
             Ok(())
         } else {
             Err(error::ConfigEditorError::NodeNotFound(name.to_string()).into())
