@@ -123,7 +123,7 @@ impl<'a> ConfigEditor<'a> {
 
     pub fn set_property_value(&self, property: &str, value: &str) -> anyhow::Result<()> {
         let property = self.get_property(property)?;
-        Ok(property.set(value, self.schema)?)
+        Ok(property.set(value)?)
     }
 
     pub fn remove_property_value(&self, property: &str, value: Option<&str>) -> anyhow::Result<()> {

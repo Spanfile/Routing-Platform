@@ -28,6 +28,7 @@ pub struct Property {
     // TODO: this is pretty horrible just look it up from the schema or smth
     default_values: Vec<String>,
     constraints: Constraints,
+    schema: Weak<Schema>,
 }
 
 impl Property {
@@ -40,10 +41,10 @@ impl Property {
         let mut values = HashMap::new();
         let constraints = Constraints::from_schema_property(property);
 
-        if let Some(schema) = schema.upgrade() {
+        if let Some(schema_rc) = schema.upgrade() {
             for default in &property.default {
                 for v in default.resolve(&context)? {
-                    constraints.matches(&v, schema.as_ref())?;
+                    constraints.matches(&v, schema_rc.as_ref())?;
                     values.insert(v, PropertyChange::Unchanged);
                 }
             }
@@ -56,6 +57,7 @@ impl Property {
                     default_values: values.iter().map(|(value, _)| value.to_owned()).collect(),
                     values: RefCell::new(values),
                     constraints,
+                    schema,
                 })
             }
         } else {
@@ -71,9 +73,12 @@ impl Property {
             .collect()
     }
 
-    // TODO: ew why pass the schema
-    pub fn set(&self, value: &str, schema: &rp_schema::Schema) -> anyhow::Result<()> {
-        self.constraints.matches(&value, schema)?;
+    pub fn set(&self, value: &str) -> anyhow::Result<()> {
+        let schema = self
+            .schema
+            .upgrade()
+            .ok_or_else(|| anyhow!("schema weak pointer upgrade failed"))?;
+        self.constraints.matches(&value, schema.as_ref())?;
 
         let mut values = self.values.try_borrow_mut()?;
 

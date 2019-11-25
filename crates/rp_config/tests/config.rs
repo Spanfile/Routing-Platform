@@ -16,7 +16,7 @@ fn valid_config() -> anyhow::Result<()> {
 
 #[test]
 fn apply_changes() -> anyhow::Result<()> {
-    let (config, schema) = common::get_valid_config()?;
+    let (config, _schema) = common::get_valid_config()?;
     let node = config
         .get_node_with_name("singlenode")
         .ok_or_else(|| anyhow!("'singlenode' node not in config"))?;
@@ -24,7 +24,7 @@ fn apply_changes() -> anyhow::Result<()> {
         .get_property("simple")
         .ok_or_else(|| anyhow!("'singlenode' node doesn't have property 'simple'"))?;
 
-    property.set("a", schema.as_ref())?;
+    property.set("a")?;
 
     if config.is_clean() {
         Err(anyhow!("config clean after change"))

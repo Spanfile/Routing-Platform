@@ -24,6 +24,7 @@ pub fn get_valid_config() -> anyhow::Result<(Config, Rc<Schema>)> {
     buf.read_to_end(&mut bytes)?;
     let schema = Rc::new(Schema::from_binary(&bytes)?);
 
+    // it's important to return ownership of the schema Rc
     Ok((Config::from_schema(Rc::downgrade(&schema))?, schema))
 }
 
