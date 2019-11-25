@@ -71,6 +71,7 @@ impl Property {
             .collect()
     }
 
+    // TODO: ew why pass the schema
     pub fn set(&self, value: &str, schema: &rp_schema::Schema) -> anyhow::Result<()> {
         self.constraints.matches(&value, schema)?;
 
@@ -153,23 +154,28 @@ impl Changeable for Property {
             .all(|change| *change == PropertyChange::Unchanged)
     }
 
-    fn apply_changes(&self) -> anyhow::Result<()> {
+    fn apply_changes(&self) -> anyhow::Result<bool> {
+        let mut edits = false;
         let new_values: HashMap<String, PropertyChange> = self
             .values
             .try_borrow()?
             .iter()
             .filter_map(|(value, change)| match change {
                 PropertyChange::New | PropertyChange::Edited { .. } => {
+                    edits = true;
                     Some((value.clone(), PropertyChange::Unchanged))
                 }
-                PropertyChange::Removed => None,
-                _ => Some((value.clone(), change.clone())),
+                PropertyChange::Removed => {
+                    edits = true;
+                    None
+                }
+                PropertyChange::Unchanged => Some((value.clone(), change.clone())),
             })
             .collect();
 
         self.values.replace(new_values);
 
-        Ok(())
+        Ok(edits)
     }
 
     fn discard_changes(&self) {

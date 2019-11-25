@@ -11,7 +11,7 @@ fn buffer() -> Cursor<Vec<u8>> {
     Cursor::new(Vec::new())
 }
 
-pub fn get_valid_config() -> anyhow::Result<Config> {
+pub fn get_valid_config() -> anyhow::Result<(Config, Rc<Schema>)> {
     let mut schema = get_valid_schema()?;
     schema.build_regex_cache()?;
 
@@ -24,7 +24,7 @@ pub fn get_valid_config() -> anyhow::Result<Config> {
     buf.read_to_end(&mut bytes)?;
     let schema = Rc::new(Schema::from_binary(&bytes)?);
 
-    Config::from_schema(Rc::downgrade(&schema))
+    Ok((Config::from_schema(Rc::downgrade(&schema))?, schema))
 }
 
 pub fn get_valid_schema() -> anyhow::Result<Schema> {
@@ -36,6 +36,9 @@ templates:
 nodes:
   "singlenode":
     properties:
+      "simple":
+        values:
+          - template: string
       "query_default":
         default:
           - query:

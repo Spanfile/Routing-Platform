@@ -138,20 +138,25 @@ impl Changeable for MultiConfigNode {
             .all(|(node, change)| node.is_clean() && *change == NodeChange::Unchanged)
     }
 
-    fn apply_changes(&self) -> anyhow::Result<()> {
+    fn apply_changes(&self) -> anyhow::Result<bool> {
+        let mut edits = false;
         let new_nodes: HashMap<String, (Rc<ConfigNode>, NodeChange)> = match self
             .nodes
             .try_borrow()?
             .iter()
             .filter_map(|(name, (node, change))| match change {
-                NodeChange::Unchanged | NodeChange::New => {
-                    if let Err(e) = node.apply_changes() {
-                        Some(Err(e))
-                    } else {
+                NodeChange::Unchanged | NodeChange::New => match node.apply_changes() {
+                    Ok(changes) => {
+                        edits = edits || changes;
+                        // TODO: is it bad to always clone existing nodes?
                         Some(Ok((name.clone(), (Rc::clone(node), NodeChange::Unchanged))))
                     }
+                    Err(e) => Some(Err(e)),
+                },
+                NodeChange::Removed => {
+                    edits = true;
+                    None
                 }
-                NodeChange::Removed => None,
             })
             .collect()
         {
@@ -161,7 +166,7 @@ impl Changeable for MultiConfigNode {
 
         self.nodes.replace(new_nodes);
 
-        Ok(())
+        Ok(edits)
     }
 
     fn discard_changes(&self) {

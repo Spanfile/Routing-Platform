@@ -87,16 +87,18 @@ impl Changeable for SingleConfigNode {
             && self.subnodes.values().all(|node| node.is_clean())
     }
 
-    fn apply_changes(&self) -> anyhow::Result<()> {
+    fn apply_changes(&self) -> anyhow::Result<bool> {
+        let mut edits = false;
+
         for prop in self.properties.values() {
-            prop.apply_changes()?;
+            edits = prop.apply_changes()? || edits;
         }
 
         for node in self.subnodes.values() {
-            node.apply_changes()?;
+            edits = node.apply_changes()? || edits;
         }
 
-        Ok(())
+        Ok(edits)
     }
 
     fn discard_changes(&self) {

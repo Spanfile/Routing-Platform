@@ -158,7 +158,7 @@ impl<'a> ConfigEditor<'a> {
         self.config.is_clean()
     }
 
-    pub fn apply_changes(&self) -> anyhow::Result<()> {
+    pub fn apply_changes(&self) -> anyhow::Result<bool> {
         self.config.apply_changes()
     }
 

@@ -16,6 +16,7 @@ use rp_common::Context;
 use rp_schema::Schema;
 pub use save_load::{save, Save, SaveBuilder};
 use std::{
+    cell::RefCell,
     collections::HashMap,
     io::Write,
     rc::{Rc, Weak},
@@ -24,6 +25,7 @@ use std::{
 #[derive(Debug)]
 pub struct Config {
     pub nodes: HashMap<String, Rc<ConfigNode>>,
+    unsaved: RefCell<bool>,
 }
 
 impl Config {
@@ -49,7 +51,10 @@ impl Config {
             return Err(anyhow!("Schema weak reference upgrading failed"));
         }
 
-        Ok(Config { nodes })
+        Ok(Config {
+            nodes,
+            unsaved: RefCell::new(false),
+        })
     }
 
     pub fn get_available_node_names(&self) -> Vec<NodeName> {
@@ -65,7 +70,7 @@ impl Config {
     pub fn get_node_with_name(&self, name: &str) -> Rc<ConfigNode> {
         match self.nodes.get(name) {
             Some(node) => Rc::clone(node),
-            _ => panic!(),
+            _ => panic!(), // TODO: ewwwww
         }
     }
 
@@ -73,7 +78,12 @@ impl Config {
     where
         T: Write,
     {
+        *self.unsaved.try_borrow_mut()? = false;
         save(self, dest)
+    }
+
+    pub fn has_unsaved_changes(&self) -> anyhow::Result<bool> {
+        Ok(*self.unsaved.try_borrow()?)
     }
 }
 
@@ -92,12 +102,18 @@ impl Changeable for Config {
         self.nodes.values().all(|node| node.is_clean())
     }
 
-    fn apply_changes(&self) -> anyhow::Result<()> {
+    fn apply_changes(&self) -> anyhow::Result<bool> {
+        let mut edits = false;
+
         for node in self.nodes.values() {
-            node.apply_changes()?;
+            edits = node.apply_changes()? || edits;
         }
 
-        Ok(())
+        if edits {
+            *self.unsaved.try_borrow_mut()? = true;
+        }
+
+        Ok(edits)
     }
 
     fn discard_changes(&self) {

@@ -72,7 +72,7 @@ impl Changeable for ConfigNode {
         }
     }
 
-    fn apply_changes(&self) -> anyhow::Result<()> {
+    fn apply_changes(&self) -> anyhow::Result<bool> {
         match self {
             Self::SingleConfigNode(node) => node.apply_changes(),
             Self::MultiConfigNode(node) => node.apply_changes(),
