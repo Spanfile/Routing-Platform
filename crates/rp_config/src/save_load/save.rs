@@ -1,4 +1,5 @@
 use crate::error::SaveError;
+use chrono::prelude::*;
 use rp_log::*;
 use serde::Serialize;
 use serde_json;
@@ -21,6 +22,7 @@ pub trait Save {
 
 #[derive(Debug, Serialize)]
 pub struct SaveBuilder {
+    timestamp: DateTime<Utc>,
     nodes: HashMap<String, Rc<SaveNode>>,
     #[serde(skip)]
     node_stack: Vec<Rc<SaveNode>>,
@@ -29,6 +31,7 @@ pub struct SaveBuilder {
 impl SaveBuilder {
     fn new() -> Self {
         SaveBuilder {
+            timestamp: Utc::now(),
             nodes: HashMap::new(),
             node_stack: Vec::new(),
         }
