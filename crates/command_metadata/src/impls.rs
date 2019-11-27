@@ -40,21 +40,39 @@ pub fn generate_command_from_args(item: &ItemStruct) -> anyhow::Result<TokenStre
         let getter = match argument {
             ArgumentWrapper::Vec(argument_type) => {
                 let argument_ident = create_ident(&argument_type)?;
+                let mutator = if argument_type == "String" {
+                    quote!()
+                } else {
+                    quote!(.iter().map(|v| v.parse::<#argument_ident>()).collect::<anyhow::Result<Vec<#argument_ident>>>()?)
+                };
+
                 quote!({
-                    args.iter().map(|v| v.parse::<#argument_ident>()).collect::<Result<Vec<#argument_ident>, _>>()?
+                    args#mutator
                 })
             }
             ArgumentWrapper::Option(argument_type) => {
                 let argument_ident = create_ident(&argument_type)?;
+                let mutator = if argument_type == "String" {
+                    quote!()
+                } else {
+                    quote!(.parse::<#argument_ident>()?)
+                };
+
                 quote!(if args.len() > 0 {
-                    Some(args.remove(0).parse::<#argument_ident>()?)
+                    Some(args.remove(0)#mutator)
                 } else {
                     None
                 })
             }
             ArgumentWrapper::None(argument_type) => {
                 let argument_ident = create_ident(&argument_type)?;
-                quote!(if args.len() > 0 { Some(args.remove(0).parse::<#argument_ident>()?) } else { None }
+                let mutator = if argument_type == "String" {
+                    quote!()
+                } else {
+                    quote!(.parse::<#argument_ident>()?)
+                };
+
+                quote!(if args.len() > 0 { Some(args.remove(0)#mutator) } else { None }
                     .ok_or_else(|| { rp_common::error::CommandError::missing_argument(#field_name, ExpectedValue::Literal(#argument_type)) })?)
             }
         };
