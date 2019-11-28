@@ -60,7 +60,7 @@ impl SaveBuilder {
             node.set_property(name, value)?;
             Ok(())
         } else {
-            Err(SaveError::NoNodeToSetProperty.into())
+            Err(SaveError::NoNodeToSetProperty(name).into())
         }
     }
 }

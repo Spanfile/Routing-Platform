@@ -14,7 +14,10 @@ pub use node_name::NodeName;
 pub use property::Property;
 use rp_common::Context;
 use rp_schema::Schema;
-pub use save_load::{save, Save, SaveBuilder};
+pub use save_load::{
+    load::{load, Load, LoadSource},
+    save::{save, Save, SaveBuilder},
+};
 use std::{
     cell::RefCell,
     collections::HashMap,
@@ -126,6 +129,16 @@ impl Save for Config {
             builder.begin_node(name.clone())?;
             node.save(builder)?;
             builder.end_node()?;
+        }
+
+        Ok(())
+    }
+}
+
+impl Load for Config {
+    fn load<'a>(&self, source: &mut LoadSource<'a>) -> anyhow::Result<()> {
+        for (name, node) in &self.nodes {
+            source.begin_node(name.to_owned())?;
         }
 
         Ok(())
