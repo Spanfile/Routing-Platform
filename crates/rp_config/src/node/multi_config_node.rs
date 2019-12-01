@@ -187,10 +187,13 @@ impl Changeable for MultiConfigNode {
             .nodes
             .borrow()
             .iter()
-            .filter_map(|(name, (node, change))| match change {
-                NodeChange::New => None,
-                NodeChange::Removed | NodeChange::Unchanged => {
-                    Some((name.clone(), (Rc::clone(node), NodeChange::Unchanged)))
+            .filter_map(|(name, (node, change))| {
+                node.discard_changes();
+                match change {
+                    NodeChange::New => None,
+                    NodeChange::Removed | NodeChange::Unchanged => {
+                        Some((name.clone(), (Rc::clone(node), NodeChange::Unchanged)))
+                    }
                 }
             })
             .collect();
