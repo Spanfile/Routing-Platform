@@ -28,6 +28,7 @@ pub async fn run() -> anyhow::Result<()> {
     let start = Instant::now();
     let config = Config::from_schema(Rc::downgrade(&schema))?;
     let mut editor = ConfigEditor::new(&config, &schema);
+    editor.load()?;
     debug!("Config loaded in {}ms", start.elapsed().as_millis());
 
     let mut shell = Shell::new()?;
