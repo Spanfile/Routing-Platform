@@ -81,7 +81,7 @@ impl<'a> ConfigEditor<'a> {
                     Some(n) => n.get_node_with_name(&name)?,
                     None => self.config.get_node_with_name(&name),
                 }
-                .ok_or(error::ConfigEditorError::NodeNotFound(name.to_string()))?,
+                .ok_or_else(|| error::ConfigEditorError::NodeNotFound(name.to_string()))?,
             );
             Ok(())
         } else {

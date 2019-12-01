@@ -13,7 +13,7 @@ pub enum MergingStrategy {
 }
 
 impl MergingStrategy {
-    pub fn resolve<T>(&self, ours: &mut T, theirs: T) -> anyhow::Result<()>
+    pub fn resolve<T>(self, ours: &mut T, theirs: T) -> anyhow::Result<()>
     where
         T: std::fmt::Debug + PartialEq,
     {

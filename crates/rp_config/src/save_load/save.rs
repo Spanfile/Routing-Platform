@@ -88,7 +88,7 @@ impl SaveNode {
         self.properties
             .try_borrow_mut()?
             .entry(name)
-            .or_insert(Vec::new())
+            .or_insert_with(Vec::new)
             .push(value);
         Ok(())
     }

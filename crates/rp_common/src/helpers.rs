@@ -1,4 +1,4 @@
-pub fn equal_vecs<T>(first: &Vec<T>, second: &Vec<T>) -> bool
+pub fn equal_vecs<T>(first: &[T], second: &[T]) -> bool
 where
     T: Ord + Clone,
 {
@@ -6,8 +6,8 @@ where
         return false;
     }
 
-    let mut first = first.clone();
-    let mut second = second.clone();
+    let mut first = first.to_owned();
+    let mut second = second.to_owned();
 
     first.sort();
     second.sort();
