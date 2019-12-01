@@ -1,7 +1,12 @@
 use crate::error;
 use rp_config::{Changeable, Config, ConfigNode, Node, NodeName, Property};
 use rp_schema::Schema;
-use std::{collections::HashMap, fs::OpenOptions, path::PathBuf, rc::Rc};
+use std::{
+    collections::HashMap,
+    fs::OpenOptions,
+    path::{Path, PathBuf},
+    rc::Rc,
+};
 
 #[derive(Debug)]
 pub struct ConfigEditor<'a> {
@@ -158,17 +163,28 @@ impl<'a> ConfigEditor<'a> {
         self.config.discard_changes();
     }
 
+    pub fn get_save_path(&self) -> PathBuf {
+        self.save_directory.join(&self.save_filename)
+    }
+
     pub fn save(&self) -> anyhow::Result<()> {
         let file = OpenOptions::new()
             .read(true)
             .write(true)
             .create(true)
             .truncate(true)
-            .open(self.save_directory.join(&self.save_filename))?;
+            .open(self.get_save_path())?;
         self.config.save_config(file)
     }
 
-    pub fn load(&self, name: &str) -> anyhow::Result<()> {
+    pub fn load(&self) -> anyhow::Result<()> {
+        self.load_from(&self.save_filename)
+    }
+
+    pub fn load_from<P>(&self, name: P) -> anyhow::Result<()>
+    where
+        P: AsRef<Path>,
+    {
         let file = OpenOptions::new()
             .read(true)
             .open(self.save_directory.join(name))?;

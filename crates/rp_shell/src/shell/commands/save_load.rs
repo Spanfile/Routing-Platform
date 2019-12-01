@@ -1,7 +1,7 @@
 use super::{ExecutableCommand, Shell};
 use crate::ConfigEditor;
 use command_metadata::command;
-use rp_common::{error::ExpectedValue, CommandFromArgs, CommandMetadata, ShellMode};
+use rp_common::{CommandFromArgs, CommandMetadata, ShellMode};
 use rp_log::*;
 
 #[command(required_shell_mode = "Configuration")]
@@ -11,7 +11,7 @@ pub struct Save;
 #[command(required_shell_mode = "Configuration")]
 #[derive(Debug)]
 pub struct Load {
-    name: String,
+    name: Option<String>,
 }
 
 impl ExecutableCommand for Save {
@@ -22,7 +22,7 @@ impl ExecutableCommand for Save {
         } else {
             info!(
                 "Saving configuration to {}",
-                editor.save_directory.join(&editor.save_filename).display()
+                editor.get_save_path().display()
             );
             editor.save()
         }
@@ -35,8 +35,16 @@ impl ExecutableCommand for Load {
             warn!("There are unapplied changes. Discard them with `discard` before loading a saved configuration.");
             Ok(())
         } else {
-            info!("Loading configuration from {}", self.name);
-            editor.load(&self.name)
+            if let Some(name) = &self.name {
+                info!("Loading configuration from {}", name);
+                editor.load_from(name)
+            } else {
+                info!(
+                    "Loading configuration from default location {}",
+                    editor.get_save_path().display()
+                );
+                editor.load()
+            }
         }
     }
 }
