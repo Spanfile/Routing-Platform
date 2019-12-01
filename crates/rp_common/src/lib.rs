@@ -1,6 +1,7 @@
 mod commands;
 mod context;
 pub mod error;
+pub mod helpers;
 mod shell_mode;
 
 pub use commands::{CommandFromArgs, CommandMetadata};

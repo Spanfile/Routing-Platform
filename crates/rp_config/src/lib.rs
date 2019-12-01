@@ -99,6 +99,15 @@ impl Config {
             self.discard_changes();
             Err(e)
         } else {
+            if self.is_clean() {
+                warn!(
+                    "Loading new configuration didn't actually load anything (configuration clean)"
+                );
+            } else {
+                self.apply_changes()?;
+                *self.unsaved.try_borrow_mut()? = false;
+            }
+
             Ok(())
         }
     }

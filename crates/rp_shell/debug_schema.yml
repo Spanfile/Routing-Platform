@@ -15,10 +15,18 @@ nodes:
           - literal: trace
     subnodes:
       "config":
-        properties:
-          "save_location":
-            deletable: false
-            default:
-              - literal: "config.save"
-            values:
-              - template: string
+        subnodes:
+          "save":
+            properties:
+              "directory":
+                deletable: false
+                default:
+                  - literal: "save"
+                values:
+                  - template: string
+              "filename":
+                deletable: false
+                default:
+                  - literal: "config.save"
+                values:
+                  - template: string

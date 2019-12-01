@@ -1,8 +1,9 @@
 use super::{
     Changeable, ConfigNode, FromSchemaNode, Load, LoadSource, Node, NodeName, Save, SaveBuilder,
 };
-use crate::Property;
-use rp_common::Context;
+use crate::{error, Property};
+use rp_common::{helpers, Context};
+use rp_log::*;
 use rp_schema::{Schema, SingleSchemaNode};
 use std::{
     collections::HashMap,
@@ -141,8 +142,33 @@ impl Load for SingleConfigNode {
         }
 
         for (name, property) in &self.properties {
-            for value in source.get_property(name)? {
-                property.set(value)?;
+            match source.get_property(name) {
+                Ok(values) => {
+                    let existing = property.values();
+                    if helpers::equal_vecs(&existing, values) {
+                        trace!("Loaded values equal to existing values in node '{}' property '{}', not loading ({:?})", name, self.name, values);
+                    } else {
+                        if !existing.is_empty() {
+                            property.remove(None)?;
+                        }
+
+                        for value in values {
+                            property.set(value)?;
+                        }
+                    }
+                }
+                Err(e) => {
+                    if let Some(error::LoadError::NoSuchProperty(name)) = e.downcast_ref() {
+                        trace!(
+                            "Property '{}' in node '{}' could not be loaded (error: {})",
+                            name,
+                            self.name,
+                            e
+                        );
+                    } else {
+                        return Err(e);
+                    }
+                }
             }
         }
 
