@@ -1,4 +1,6 @@
-use super::{Changeable, ConfigNode, FromSchemaNode, Node, NodeName, Save, SaveBuilder};
+use super::{
+    Changeable, ConfigNode, FromSchemaNode, Load, LoadSource, Node, NodeName, Save, SaveBuilder,
+};
 use crate::Property;
 use rp_common::Context;
 use rp_schema::{Schema, SingleSchemaNode};
@@ -123,6 +125,24 @@ impl Save for SingleConfigNode {
         for (name, property) in &self.properties {
             for value in property.values() {
                 builder.set_property(name.clone(), value)?;
+            }
+        }
+
+        Ok(())
+    }
+}
+
+impl Load for SingleConfigNode {
+    fn load(&self, source: &mut LoadSource) -> anyhow::Result<()> {
+        for (name, node) in &self.subnodes {
+            source.begin_node(name)?;
+            node.load(source)?;
+            source.end_node()?;
+        }
+
+        for (name, property) in &self.properties {
+            for value in source.get_property(name)? {
+                property.set(value)?;
             }
         }
 

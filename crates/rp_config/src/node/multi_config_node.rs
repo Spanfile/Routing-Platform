@@ -1,4 +1,6 @@
-use super::{Changeable, ConfigNode, FromSchemaNode, Node, NodeName, Save, SaveBuilder};
+use super::{
+    Changeable, ConfigNode, FromSchemaNode, Load, LoadSource, Node, NodeName, Save, SaveBuilder,
+};
 use crate::Property;
 use anyhow::anyhow;
 use colored::Colorize;
@@ -33,6 +35,29 @@ enum NewNodeCreationAllowed {
     Yes { template: String },
 }
 
+impl MultiConfigNode {
+    // TODO: where is it checked that this given name is actually valid for the
+    // MultiConfigNode?
+    fn build_new_node(&self, name: &str) -> anyhow::Result<Rc<ConfigNode>> {
+        Ok(Rc::new(ConfigNode::from_schema_node(
+            Rc::clone(&self.context),
+            name,
+            Weak::clone(&self.schema),
+            self.schema
+                .upgrade()
+                .ok_or_else(|| {
+                    anyhow!(
+                        "schema weak pointer dropped while creating new node into MultiConfigNode"
+                    )
+                })?
+                .find_node(Rc::clone(&self.node_locator))
+                .ok_or_else(|| {
+                    anyhow!("corresponding schema node for MultiConfigNode not found")
+                })?,
+        )?))
+    }
+}
+
 impl Node for MultiConfigNode {
     fn name(&self) -> String {
         self.name.to_owned()
@@ -60,23 +85,11 @@ impl Node for MultiConfigNode {
     }
 
     fn get_node_with_name(&self, name: &str) -> anyhow::Result<Option<Rc<ConfigNode>>> {
-        let mut nodes = self.nodes.borrow_mut();
+        let mut nodes = self.nodes.try_borrow_mut()?;
         match nodes.get(name) {
             Some((node, _)) => Ok(Some(Rc::clone(&node))),
             _ => {
-                // TODO: where is it checked that this given name is actually valid for the
-                // MultiConfigNode?
-                let new_node = Rc::new(ConfigNode::from_schema_node(
-                    Rc::clone(&self.context),
-                    name,
-                    Weak::clone(&self.schema),
-                    self.schema
-                        .upgrade()
-                        .ok_or_else(|| anyhow!("schema weak pointer dropped while creating new node into MultiConfigNode"))?
-                        .find_node(Rc::clone(&self.node_locator))
-                        .ok_or_else(|| anyhow!("corresponding schema node for MultiConfigNode not found"))?,
-                )?);
-
+                let new_node = self.build_new_node(name)?;
                 nodes.insert(name.to_owned(), (Rc::clone(&new_node), NodeChange::New));
 
                 Ok(Some(new_node))
@@ -192,6 +205,31 @@ impl Save for MultiConfigNode {
             builder.begin_node(name.clone())?;
             node.save(builder)?;
             builder.end_node()?;
+        }
+
+        Ok(())
+    }
+}
+
+impl Load for MultiConfigNode {
+    fn load(&self, source: &mut LoadSource) -> anyhow::Result<()> {
+        let mut nodes = self.nodes.try_borrow_mut()?;
+        let names: Vec<String> = source.get_node_names();
+        for node_name in names {
+            let node = if let Some((existing, _)) = nodes.get(&node_name) {
+                Rc::clone(existing)
+            } else {
+                let new_node = self.build_new_node(&node_name)?;
+                nodes.insert(
+                    node_name.to_owned(),
+                    (Rc::clone(&new_node), NodeChange::New),
+                );
+                new_node
+            };
+
+            source.begin_node(&node_name)?;
+            node.load(source)?;
+            source.end_node()?;
         }
 
         Ok(())

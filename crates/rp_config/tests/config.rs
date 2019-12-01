@@ -62,3 +62,12 @@ fn save() -> anyhow::Result<()> {
     config.save_config(buf)?;
     Ok(())
 }
+
+#[test]
+fn load() -> anyhow::Result<()> {
+    let (config, _schema) = common::get_valid_config()?;
+    let load_source = common::get_valid_save_data();
+    config.load_config(load_source)?;
+
+    Ok(())
+}

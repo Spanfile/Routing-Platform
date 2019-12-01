@@ -28,6 +28,28 @@ pub fn get_valid_config() -> anyhow::Result<(Config, Rc<Schema>)> {
     Ok((Config::from_schema(Rc::downgrade(&schema))?, schema))
 }
 
+pub fn get_valid_save_data() -> Cursor<String> {
+    Cursor::new(String::from(
+        r#"{
+    "timestamp":"2019-11-25T17:28:20.203048562Z",
+    "nodes":{
+        "singlenode":{
+            "subnodes":{
+            },
+            "properties":{
+                "simple":[
+                    "load"
+                ],
+                "query_default":[
+                    "a"
+                ]
+            }
+        }
+    }
+}"#,
+    ))
+}
+
 pub fn get_valid_schema() -> anyhow::Result<Schema> {
     let mut temp = buffer();
     let schema = r#"---

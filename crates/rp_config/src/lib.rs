@@ -21,7 +21,7 @@ pub use save_load::{
 use std::{
     cell::RefCell,
     collections::HashMap,
-    io::Write,
+    io::{Read, Write},
     rc::{Rc, Weak},
 };
 
@@ -85,6 +85,13 @@ impl Config {
     pub fn has_unsaved_changes(&self) -> anyhow::Result<bool> {
         Ok(*self.unsaved.try_borrow()?)
     }
+
+    pub fn load_config<T>(&self, src: T) -> anyhow::Result<()>
+    where
+        T: Read,
+    {
+        load(self, src)
+    }
 }
 
 impl Config {
@@ -136,9 +143,11 @@ impl Save for Config {
 }
 
 impl Load for Config {
-    fn load<'a>(&self, source: &mut LoadSource<'a>) -> anyhow::Result<()> {
+    fn load(&self, source: &mut LoadSource) -> anyhow::Result<()> {
         for (name, node) in &self.nodes {
-            source.begin_node(name.to_owned())?;
+            source.begin_node(name)?;
+            node.load(source)?;
+            source.end_node()?;
         }
 
         Ok(())

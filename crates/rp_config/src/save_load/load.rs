@@ -2,7 +2,7 @@ use crate::error::LoadError;
 use chrono::prelude::*;
 use rp_log::*;
 use serde::Deserialize;
-use std::{collections::HashMap, io::Read};
+use std::{collections::HashMap, io::Read, rc::Rc};
 
 pub fn load<T>(thing: &dyn Load, src: T) -> anyhow::Result<()>
 where
@@ -14,25 +14,26 @@ where
 }
 
 pub trait Load {
-    fn load<'a>(&self, source: &'a mut LoadSource<'a>) -> anyhow::Result<()>;
+    fn load(&self, source: &mut LoadSource) -> anyhow::Result<()>;
 }
 
 #[derive(Debug, Deserialize)]
-pub struct LoadSource<'a> {
+pub struct LoadSource {
     timestamp: DateTime<Utc>,
-    nodes: HashMap<String, LoadNode>,
+    nodes: HashMap<String, Rc<LoadNode>>,
     #[serde(skip)]
-    node_stack: Vec<&'a LoadNode>,
+    node_stack: Vec<Rc<LoadNode>>,
 }
 
-impl<'a> LoadSource<'a> {
-    pub fn begin_node(&'a mut self, name: String) -> anyhow::Result<()> {
+impl LoadSource {
+    pub fn begin_node(&mut self, name: &str) -> anyhow::Result<()> {
         let new_node = if let Some(node) = self.node_stack.last() {
-            node.get_node(&name)
+            node.get_node(name)
         } else {
             self.nodes
-                .get(&name)
-                .ok_or_else(|| LoadError::NoSuchNode(name.to_string()).into())
+                .get(name)
+                .map(|n| Rc::clone(n))
+                .ok_or_else(|| LoadError::NoSuchNode(name.to_owned()).into())
         }?;
 
         self.node_stack.push(new_node);
@@ -44,32 +45,44 @@ impl<'a> LoadSource<'a> {
         Ok(())
     }
 
-    pub fn get_property(&self, name: String) -> anyhow::Result<&Vec<String>> {
+    pub fn get_property(&self, name: &str) -> anyhow::Result<&Vec<String>> {
         if let Some(node) = self.node_stack.last() {
             node.get_property(name)
         } else {
-            Err(LoadError::NoNodeToGetProperty(name).into())
+            Err(LoadError::NoNodeToGetProperty(name.to_owned()).into())
+        }
+    }
+
+    pub fn get_node_names(&self) -> Vec<String> {
+        if let Some(node) = self.node_stack.last() {
+            node.get_node_names()
+        } else {
+            self.nodes.keys().map(|s| s.to_owned()).collect()
         }
     }
 }
 
 #[derive(Debug, Deserialize)]
-pub struct LoadNode {
-    subnodes: HashMap<String, Box<LoadNode>>,
+struct LoadNode {
+    subnodes: HashMap<String, Rc<LoadNode>>,
     properties: HashMap<String, Vec<String>>,
 }
 
 impl LoadNode {
-    pub fn get_node(&self, name: &str) -> anyhow::Result<&LoadNode> {
+    pub fn get_node(&self, name: &str) -> anyhow::Result<Rc<LoadNode>> {
         self.subnodes
             .get(name)
-            .map(|n| n.as_ref())
+            .map(|n| Rc::clone(n))
             .ok_or_else(|| LoadError::NoSuchNode(name.to_string()).into())
     }
 
-    pub fn get_property(&self, name: String) -> anyhow::Result<&Vec<String>> {
+    pub fn get_property(&self, name: &str) -> anyhow::Result<&Vec<String>> {
         self.properties
-            .get(&name)
-            .ok_or_else(|| LoadError::NoSuchProperty(name).into())
+            .get(name)
+            .ok_or_else(|| LoadError::NoSuchProperty(name.to_owned()).into())
+    }
+
+    pub fn get_node_names(&self) -> Vec<String> {
+        self.subnodes.keys().map(|s| s.to_owned()).collect()
     }
 }
