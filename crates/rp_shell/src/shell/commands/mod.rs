@@ -15,7 +15,7 @@ use enum_dispatch::enum_dispatch;
 use exit::Exit;
 use history::History;
 use rp_common::{CommandFromArgs, CommandMetadata};
-use save_load::Save;
+use save_load::{Load, Save};
 use show::Show;
 
 #[enum_dispatch]
@@ -38,4 +38,5 @@ pub enum Command {
     Apply,
     Discard,
     Save,
+    Load,
 }

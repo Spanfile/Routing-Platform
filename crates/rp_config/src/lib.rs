@@ -13,6 +13,7 @@ pub use node::{ConfigNode, FromSchemaNode, Node};
 pub use node_name::NodeName;
 pub use property::Property;
 use rp_common::Context;
+use rp_log::*;
 use rp_schema::Schema;
 pub use save_load::{
     load::{load, Load, LoadSource},
@@ -90,7 +91,16 @@ impl Config {
     where
         T: Read,
     {
-        load(self, src)
+        if let Err(e) = load(self, src) {
+            trace!(
+                "Caught error ({}) while loading config; discarding changes",
+                e
+            );
+            self.discard_changes();
+            Err(e)
+        } else {
+            Ok(())
+        }
     }
 }
 

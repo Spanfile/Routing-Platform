@@ -1,14 +1,15 @@
 use crate::error;
 use rp_config::{Changeable, Config, ConfigNode, Node, NodeName, Property};
 use rp_schema::Schema;
-use std::{collections::HashMap, fs::OpenOptions, rc::Rc};
+use std::{collections::HashMap, fs::OpenOptions, path::PathBuf, rc::Rc};
 
 #[derive(Debug)]
 pub struct ConfigEditor<'a> {
     schema: &'a Schema,
     config: &'a Config,
     node_stack: Vec<Rc<ConfigNode>>,
-    pub save_location: String,
+    pub save_directory: PathBuf,
+    pub save_filename: PathBuf,
 }
 
 impl<'a> ConfigEditor<'a> {
@@ -17,7 +18,8 @@ impl<'a> ConfigEditor<'a> {
             schema,
             config,
             node_stack: Vec::new(),
-            save_location: String::from("save/config.save"),
+            save_directory: PathBuf::from("./save/"),
+            save_filename: PathBuf::from("config.save"),
         }
     }
 
@@ -161,8 +163,16 @@ impl<'a> ConfigEditor<'a> {
             .read(true)
             .write(true)
             .create(true)
-            .open(&self.save_location)?;
+            .truncate(true)
+            .open(self.save_directory.join(&self.save_filename))?;
         self.config.save_config(file)
+    }
+
+    pub fn load(&self, name: &str) -> anyhow::Result<()> {
+        let file = OpenOptions::new()
+            .read(true)
+            .open(self.save_directory.join(name))?;
+        self.config.load_config(file)
     }
 }
 

@@ -9,7 +9,7 @@ where
     T: Read,
 {
     let mut source = serde_json::from_reader::<T, LoadSource>(src)?;
-    trace!("Loading from source timestamped {}", source.timestamp);
+    trace!("Loading from source: {:?}", source);
     thing.load(&mut source)
 }
 
