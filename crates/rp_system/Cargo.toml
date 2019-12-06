@@ -5,8 +5,8 @@ authors = ["Spanfile <spansdev@gmail.com>"]
 edition = "2018"
 
 [dependencies]
-anyhow = "1.0.22"
-thiserror = "1.0.6"
+anyhow = "1.0.25"
+thiserror = "1.0.9"
 rtnetlink = "0.1.1"
 neli = "0.4.3"
 eui48 = "0.4.6"

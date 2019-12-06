@@ -7,5 +7,5 @@ edition = "2018"
 [dependencies]
 fern = { version = "0.5.9", features = ["colored"] }
 log = "0.4.8"
-anyhow = "1.0.22"
-chrono = "0.4.9"
+anyhow = "1.0.25"
+chrono = "0.4.10"

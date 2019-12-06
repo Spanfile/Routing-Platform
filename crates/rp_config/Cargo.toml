@@ -10,8 +10,8 @@ rp_common = { path = "../rp_common" }
 rp_log = { path = "../rp_log" }
 enum_dispatch = "0.2.0"
 anyhow = "1.0.25"
-thiserror = "1.0.6"
+thiserror = "1.0.9"
 colored = "1.9.0"
 serde = { version = "1.0.103", features = ["derive", "rc"] }
-serde_json = "1.0.42"
+serde_json = "1.0.44"
 chrono = { version = "0.4.10", features = ["serde"] }
