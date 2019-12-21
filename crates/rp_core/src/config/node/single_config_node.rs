@@ -5,9 +5,9 @@ use super::{
 use crate::{
     common::{helpers, Context},
     error,
-    log::*,
     schema::{Schema, SingleSchemaNode},
 };
+use rp_log::*;
 use std::{
     collections::HashMap,
     rc::{Rc, Weak},

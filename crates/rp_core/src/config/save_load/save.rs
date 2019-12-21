@@ -1,5 +1,6 @@
-use crate::{error::SaveError, log::*};
+use crate::error::SaveError;
 use chrono::prelude::*;
+use rp_log::*;
 use serde::Serialize;
 use serde_json;
 use std::{cell::RefCell, collections::HashMap, io::Write, rc::Rc};

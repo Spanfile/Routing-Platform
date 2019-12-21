@@ -3,5 +3,5 @@
 pub mod common;
 pub mod config;
 pub mod error;
-pub mod log;
+pub mod plugin;
 pub mod schema;

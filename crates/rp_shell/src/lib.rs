@@ -8,15 +8,14 @@ pub use config_editor::ConfigEditor;
 use rp_core::{
     common::{CommandMetadata, ShellMode},
     config::Config,
-    log::*,
+    plugin::PluginManager,
     schema::Schema,
 };
+use rp_log::*;
 use shell::{ExecutableCommand, Shell};
 use std::{rc::Rc, time::Instant};
 
 pub async fn run() -> anyhow::Result<()> {
-    rp_system::net::link::list()?;
-
     setup_logging()?;
 
     let binary = include_bytes!(concat!(env!("OUT_DIR"), "/schema"));
@@ -30,6 +29,16 @@ pub async fn run() -> anyhow::Result<()> {
     let start = Instant::now();
     let config = Config::from_schema(Rc::downgrade(&schema))?;
     let mut editor = ConfigEditor::new(&config, &schema);
+    debug!("Config created in {}ms", start.elapsed().as_millis());
+
+    let start = Instant::now();
+    let mut plugin_manager = PluginManager::new();
+    unsafe {
+        plugin_manager.load_plugin("librp_system.so")?;
+    }
+    debug!("Plugins loaded in {}ms", start.elapsed().as_millis());
+
+    let start = Instant::now();
     editor.load()?;
     debug!("Config loaded in {}ms", start.elapsed().as_millis());
 

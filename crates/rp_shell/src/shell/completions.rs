@@ -1,4 +1,4 @@
-use rp_core::log::*;
+use rp_log::*;
 
 #[derive(Debug)]
 pub struct Completions {

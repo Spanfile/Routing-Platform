@@ -10,7 +10,8 @@ use completions::Completions;
 use futures::stream::{self, StreamExt};
 use history::HistoryEntry;
 use key_handlers::KeyResult;
-use rp_core::{common::ShellMode, log::*};
+use rp_core::common::ShellMode;
+use rp_log::*;
 use std::{
     cell::RefCell,
     io::{self, Stdout, Write},

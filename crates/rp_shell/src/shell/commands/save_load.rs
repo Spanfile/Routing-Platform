@@ -1,10 +1,8 @@
 use super::{ExecutableCommand, Shell};
 use crate::ConfigEditor;
 use command_metadata::command;
-use rp_core::{
-    common::{CommandFromArgs, CommandMetadata, ShellMode},
-    log::*,
-};
+use rp_core::common::{CommandFromArgs, CommandMetadata, ShellMode};
+use rp_log::*;
 
 #[command(required_shell_mode = "Configuration")]
 #[derive(Debug)]

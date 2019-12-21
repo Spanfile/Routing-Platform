@@ -10,7 +10,7 @@ mod tests;
 mod validate;
 mod value;
 
-use crate::{error, log::*};
+use crate::error;
 pub use bound::Bound;
 use flate2::{read::ZlibDecoder, write::ZlibEncoder, Compression};
 pub use matches::Matches;
@@ -21,6 +21,7 @@ pub use node::{
 };
 pub use property::Property;
 pub use query::Query;
+use rp_log::*;
 use serde::{Deserialize, Serialize};
 use std::{
     collections::{hash_map::Entry, HashMap},

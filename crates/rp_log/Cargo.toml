@@ -1,0 +1,10 @@
+[package]
+name = "rp_log"
+version = "0.1.0"
+authors = ["Spanfile <spansdev@gmail.com>"]
+edition = "2018"
+
+[dependencies]
+fern = { version = "0.5.9", features = ["colored"] }
+log = "0.4.8"
+anyhow = "1.0.25"

@@ -1,8 +1,8 @@
 mod regex_template;
 
 use super::{value::range::Range, Matches, Schema, Validate};
-use crate::log::*;
 use regex_template::RegexTemplate;
+use rp_log::*;
 use serde::{Deserialize, Serialize};
 
 #[derive(Serialize, Deserialize, Debug)]

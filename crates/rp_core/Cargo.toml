@@ -5,6 +5,8 @@ authors = ["Spanfile <spansdev@gmail.com>"]
 edition = "2018"
 
 [dependencies]
+rp_log = { path = "../rp_log" }
+rp_plugin = { path = "../rp_plugin" }
 enum_dispatch = "0.2.0"
 anyhow = "1.0.25"
 thiserror = "1.0.9"
@@ -18,6 +20,5 @@ regex-automata = "0.1.8"
 ordered-float = { version = "1.0.2", features = ["serde"] }
 strum = "0.17.1"
 strum_macros = "0.17.1"
-fern = { version = "0.5.9", features = ["colored"] }
-log = "0.4.8"
 lazy_static = "1.4.0"
+libloading = "0.5.2"

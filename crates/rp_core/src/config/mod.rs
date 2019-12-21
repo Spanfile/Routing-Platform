@@ -4,12 +4,13 @@ mod node_name;
 mod property;
 mod save_load;
 
-use crate::{common::Context, log::*, schema::Schema};
+use crate::{common::Context, schema::Schema};
 use anyhow::anyhow;
 pub use changeable::Changeable;
 pub use node::{ConfigNode, FromSchemaNode, Node};
 pub use node_name::NodeName;
 pub use property::Property;
+use rp_log::*;
 pub use save_load::{
     load::{load, Load, LoadSource},
     save::{save, Save, SaveBuilder},

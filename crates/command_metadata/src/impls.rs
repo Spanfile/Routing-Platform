@@ -87,7 +87,7 @@ pub fn generate_command_from_args(item: &ItemStruct) -> anyhow::Result<TokenStre
     Ok(quote!(
         impl CommandFromArgs for #ident {
             fn from_args(mut args: Vec<String>) -> anyhow::Result<Self> {
-                rp_core::log::debug!("Command: {}{:?}", #ident_str, args);
+                rp_log::debug!("Command: {}{:?}", #ident_str, args);
                 // TODO: check for proper amount of arguments
                 Ok(Self {
                     #(#initialisers),*

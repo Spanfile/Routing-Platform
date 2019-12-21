@@ -1,0 +1,11 @@
+[package]
+name = "rp_plugin"
+version = "0.1.0"
+authors = ["Spanfile <spansdev@gmail.com>"]
+edition = "2018"
+
+[dependencies]
+rp_log = { path = "../rp_log" }
+
+[lib]
+crate-type = ["cdylib", "rlib"]
