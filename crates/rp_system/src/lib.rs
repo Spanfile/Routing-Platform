@@ -15,11 +15,11 @@ impl Plugin for System {
     }
 
     fn on_load(&self) {
-        debug!("Loading system plugin");
+        trace!("system on_load");
     }
 
     fn on_unload(&self) {
-        debug!("Unloading system plugin");
+        trace!("system on_unload");
     }
 }
 

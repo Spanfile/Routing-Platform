@@ -3,7 +3,7 @@ use rp_log::*;
 use rp_plugin::Plugin;
 use std::ffi::OsStr;
 
-type PluginCreate = unsafe fn() -> *mut dyn Plugin;
+type PluginConstructor = unsafe fn() -> *mut dyn Plugin;
 
 pub struct PluginManager {
     plugins: Vec<Box<dyn Plugin>>,
@@ -18,10 +18,10 @@ impl PluginManager {
         }
     }
 
-    pub unsafe fn load_plugin<P: AsRef<OsStr>>(&mut self, filename: P) -> anyhow::Result<()> {
+    pub fn load_plugin<P: AsRef<OsStr>>(&mut self, filename: P) -> anyhow::Result<()> {
         let lib = Library::new(filename.as_ref())?;
-        let constructor: Symbol<PluginCreate> = lib.get(b"_plugin_create")?;
-        let plugin = Box::from_raw(constructor());
+        let constructor: Symbol<PluginConstructor> = unsafe { lib.get(b"_plugin_create")? };
+        let plugin = unsafe { Box::from_raw(constructor()) };
 
         plugin.on_load();
         debug!("Loaded plugin: {}", plugin.name());

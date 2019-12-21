@@ -33,9 +33,7 @@ pub async fn run() -> anyhow::Result<()> {
 
     let start = Instant::now();
     let mut plugin_manager = PluginManager::new();
-    unsafe {
-        plugin_manager.load_plugin("librp_system.so")?;
-    }
+    plugin_manager.load_plugin("librp_system.so")?;
     debug!("Plugins loaded in {}ms", start.elapsed().as_millis());
 
     let start = Instant::now();
