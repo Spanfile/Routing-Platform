@@ -11,6 +11,7 @@ use futures::stream::{self, StreamExt};
 use history::HistoryEntry;
 use key_handlers::KeyResult;
 use rp_common::ShellMode;
+use rp_log::*;
 use std::{
     cell::RefCell,
     io::{self, Stdout, Write},
@@ -21,7 +22,6 @@ use termion::{
     input::TermRead,
     raw::{IntoRawMode, RawTerminal},
 };
-use rp_log::*;
 
 pub struct Shell {
     pub running: bool,
@@ -56,7 +56,7 @@ impl Shell {
         match self.process_input_internal().await {
             Ok(command) => Ok(command),
             Err(e) => {
-                trace!("Caught error \"{}\" while processing shell input, clearing buffer", e);
+                trace!("Caught error while processing shell input, clearing buffer");
                 self.buffer.clear();
                 Err(e)
             }

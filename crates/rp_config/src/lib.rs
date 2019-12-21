@@ -92,10 +92,7 @@ impl Config {
         T: Read,
     {
         if let Err(e) = load(self, src) {
-            trace!(
-                "Caught error ({}) while loading config; discarding changes",
-                e
-            );
+            trace!("Caught error while loading config; discarding changes",);
             self.discard_changes();
             Err(e)
         } else {

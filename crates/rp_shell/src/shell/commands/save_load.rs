@@ -34,17 +34,15 @@ impl ExecutableCommand for Load {
         if !editor.is_clean() {
             warn!("There are unapplied changes. Discard them with `discard` before loading a saved configuration.");
             Ok(())
+        } else if let Some(name) = &self.name {
+            info!("Loading configuration from {}", name);
+            editor.load_from(name)
         } else {
-            if let Some(name) = &self.name {
-                info!("Loading configuration from {}", name);
-                editor.load_from(name)
-            } else {
-                info!(
-                    "Loading configuration from default location {}",
-                    editor.get_save_path().display()
-                );
-                editor.load()
-            }
+            info!(
+                "Loading configuration from default location {}",
+                editor.get_save_path().display()
+            );
+            editor.load()
         }
     }
 }

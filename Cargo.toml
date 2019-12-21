@@ -4,8 +4,6 @@ members = [
 ]
 
 [patch.crates-io]
-strum = { git = "https://github.com/Peternator7/strum" }
-strum_macros = { git = "https://github.com/Peternator7/strum" }
 eui48 = { git = "https://github.com/Spanfile/eui48.git" }
 
 [profile.release]

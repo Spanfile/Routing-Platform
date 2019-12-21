@@ -34,7 +34,7 @@ impl CommandError {
 
 impl ExpectedValue {
     pub fn from_enum<T: VariantNames>() -> ExpectedValue {
-        Self::OneOf(T::variants())
+        Self::OneOf(T::VARIANTS)
     }
 }
 
