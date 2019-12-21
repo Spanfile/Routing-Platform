@@ -1,4 +1,4 @@
-use rp_common::ShellMode;
+use rp_core::common::ShellMode;
 use thiserror::Error;
 
 #[derive(Debug, Error)]

@@ -1,6 +1,8 @@
 use crate::error;
-use rp_config::{Changeable, Config, ConfigNode, Node, NodeName, Property};
-use rp_schema::Schema;
+use rp_core::{
+    config::{Changeable, Config, ConfigNode, Node, NodeName, Property},
+    schema::Schema,
+};
 use std::{
     collections::HashMap,
     fs::OpenOptions,
@@ -144,7 +146,7 @@ impl<'a> ConfigEditor<'a> {
         if let Some(current) = self.node_stack.last() {
             current.remove_subnode(node)
         } else {
-            Err(rp_common::error::NodeRemovalError {
+            Err(rp_core::error::NodeRemovalError {
                 node: String::from(node),
             }
             .into())

@@ -131,7 +131,7 @@ fn remove_nonexistent_property_value() -> anyhow::Result<()> {
     match result {
         Ok(_) => Err(anyhow!("nonexistent value removal succeeded")),
         Err(e) => {
-            if let Some(rp_config::error::PropertyError::NoSuchValue { .. }) = e.downcast_ref() {
+            if let Some(rp_core::error::PropertyError::NoSuchValue { .. }) = e.downcast_ref() {
                 Ok(())
             } else {
                 Err(e)
@@ -174,7 +174,7 @@ fn remove_nonexistent_node() -> anyhow::Result<()> {
     match result {
         Ok(_) => Err(anyhow!("nonexistent node removal succeeded")),
         Err(e) => {
-            if let Some(rp_common::error::NodeRemovalError { .. }) = e.downcast_ref() {
+            if let Some(rp_core::error::NodeRemovalError { .. }) = e.downcast_ref() {
                 Ok(())
             } else {
                 Err(e)
@@ -193,7 +193,7 @@ fn remove_top_level_node() -> anyhow::Result<()> {
     match result {
         Ok(_) => Err(anyhow!("top-level node removal succeeded")),
         Err(e) => {
-            if let Some(rp_common::error::NodeRemovalError { .. }) = e.downcast_ref() {
+            if let Some(rp_core::error::NodeRemovalError { .. }) = e.downcast_ref() {
                 Ok(())
             } else {
                 Err(e)

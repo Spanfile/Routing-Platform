@@ -1,8 +1,10 @@
 use super::{ExecutableCommand, Shell};
 use crate::ConfigEditor;
 use command_metadata::command;
-use rp_common::{CommandFromArgs, CommandMetadata, ShellMode};
-use rp_log::*;
+use rp_core::{
+    common::{CommandFromArgs, CommandMetadata, ShellMode},
+    log::*,
+};
 use strum::{EnumString, EnumVariantNames};
 
 #[command(alias = "quit")]

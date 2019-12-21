@@ -1,6 +1,6 @@
 use proc_macro2::TokenStream;
 use quote::quote;
-use rp_common::ShellMode;
+use rp_core::common::ShellMode;
 
 pub fn str_to_shellmode(s: String) -> Option<ShellMode> {
     Some(s.parse().unwrap())

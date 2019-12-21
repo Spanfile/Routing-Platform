@@ -1,7 +1,10 @@
 use super::{ExecutableCommand, Shell};
 use crate::ConfigEditor;
 use command_metadata::command;
-use rp_common::{error::ExpectedValue, CommandFromArgs, CommandMetadata, ShellMode};
+use rp_core::{
+    common::{CommandFromArgs, CommandMetadata, ShellMode},
+    error::ExpectedValue,
+};
 
 #[command(required_shell_mode = "Configuration")]
 #[derive(Debug)]

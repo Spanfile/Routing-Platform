@@ -1,4 +1,4 @@
-use rp_schema::{Merge, MergingStrategy, Schema};
+use rp_core::schema::{Merge, MergingStrategy, Schema};
 use std::{env, fs::File, path::Path};
 
 fn main() -> anyhow::Result<()> {

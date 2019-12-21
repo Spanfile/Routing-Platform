@@ -1,6 +1,6 @@
 use super::helpers::*;
 use darling::FromMeta;
-use rp_common::ShellMode;
+use rp_core::common::ShellMode;
 
 #[derive(Debug, FromMeta)]
 pub struct CommandMacroArgs {

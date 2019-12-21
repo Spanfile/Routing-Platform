@@ -1,7 +1,10 @@
 use super::{ExecutableCommand, Shell};
 use crate::ConfigEditor;
 use command_metadata::command;
-use rp_common::{CommandFromArgs, CommandMetadata, ShellMode};
+use rp_core::{
+    common::{CommandFromArgs, CommandMetadata, ShellMode},
+    error,
+};
 use strum::{EnumString, EnumVariantNames};
 
 #[command]
@@ -27,14 +30,14 @@ impl ExecutableCommand for Show {
                         editor.pretty_print_config();
                         Ok(())
                     }
-                    _ => Err(rp_common::error::NotImplemented {
+                    _ => Err(error::NotImplemented {
                         description: format!("{:?}", a),
                     }
                     .into()),
                 },
-                None => Err(rp_common::error::CommandError::missing_argument(
+                None => Err(error::CommandError::missing_argument(
                     "item",
-                    rp_common::error::ExpectedValue::from_enum::<ShowArgument>(),
+                    error::ExpectedValue::from_enum::<ShowArgument>(),
                 )),
             },
             ShellMode::Configuration => traverse(editor, &self.args),

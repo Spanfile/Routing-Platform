@@ -92,7 +92,7 @@ pub fn command_derive(item: proc_macro::TokenStream) -> proc_macro::TokenStream 
             pub fn new(command_name: &str, args: Vec<String>) -> anyhow::Result<Self> {
                 match command_name {
                     #(#command_creation_arms)*
-                    _ => Err(rp_common::error::CommandError::not_found(String::from(command_name))),
+                    _ => Err(rp_core::error::CommandError::not_found(String::from(command_name))),
                 }
             }
 

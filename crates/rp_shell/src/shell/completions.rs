@@ -1,3 +1,5 @@
+use rp_core::log::*;
+
 #[derive(Debug)]
 pub struct Completions {
     commands: Vec<&'static str>,
@@ -5,7 +7,7 @@ pub struct Completions {
 
 impl Completions {
     pub fn new(commands: Vec<&'static str>) -> Self {
-        rp_log::debug!("Completions: commands: {:?}", commands);
+        debug!("Completions: commands: {:?}", commands);
         Completions { commands }
     }
 

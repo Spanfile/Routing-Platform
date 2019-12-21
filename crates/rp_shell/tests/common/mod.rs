@@ -1,5 +1,4 @@
-use rp_config::Config;
-use rp_schema::Schema;
+use rp_core::{config::Config, schema::Schema};
 use std::{
     io::{Cursor, Read, Seek, SeekFrom, Write},
     rc::Rc,

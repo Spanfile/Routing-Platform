@@ -5,10 +5,12 @@ pub mod error;
 mod shell;
 
 pub use config_editor::ConfigEditor;
-use rp_common::{CommandMetadata, ShellMode};
-use rp_config::Config;
-use rp_log::*;
-use rp_schema::Schema;
+use rp_core::{
+    common::{CommandMetadata, ShellMode},
+    config::Config,
+    log::*,
+    schema::Schema,
+};
 use shell::{ExecutableCommand, Shell};
 use std::{rc::Rc, time::Instant};
 

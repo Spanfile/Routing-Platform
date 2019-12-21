@@ -73,7 +73,7 @@ pub fn generate_command_from_args(item: &ItemStruct) -> anyhow::Result<TokenStre
                 };
 
                 quote!(if args.len() > 0 { Some(args.remove(0)#mutator) } else { None }
-                    .ok_or_else(|| { rp_common::error::CommandError::missing_argument(#field_name, ExpectedValue::Literal(#argument_type)) })?)
+                    .ok_or_else(|| { rp_core::error::CommandError::missing_argument(#field_name, ExpectedValue::Literal(#argument_type)) })?)
             }
         };
 
@@ -87,7 +87,7 @@ pub fn generate_command_from_args(item: &ItemStruct) -> anyhow::Result<TokenStre
     Ok(quote!(
         impl CommandFromArgs for #ident {
             fn from_args(mut args: Vec<String>) -> anyhow::Result<Self> {
-                rp_log::debug!("Command: {}{:?}", #ident_str, args);
+                rp_core::log::debug!("Command: {}{:?}", #ident_str, args);
                 // TODO: check for proper amount of arguments
                 Ok(Self {
                     #(#initialisers),*

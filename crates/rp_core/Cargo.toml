@@ -1,0 +1,23 @@
+[package]
+name = "rp_core"
+version = "0.1.0"
+authors = ["Spanfile <spansdev@gmail.com>"]
+edition = "2018"
+
+[dependencies]
+enum_dispatch = "0.2.0"
+anyhow = "1.0.25"
+thiserror = "1.0.9"
+colored = "1.9.0"
+serde = { version = "1.0.104", features = ["derive", "rc"] }
+serde_json = "1.0.44"
+serde_yaml = "0.8.11"
+chrono = { version = "0.4.10", features = ["serde"] }
+flate2 = { version = "1.0.13", features = ["rust_backend"], default-features = false }
+regex-automata = "0.1.8"
+ordered-float = { version = "1.0.2", features = ["serde"] }
+strum = "0.17.1"
+strum_macros = "0.17.1"
+fern = { version = "0.5.9", features = ["colored"] }
+log = "0.4.8"
+lazy_static = "1.4.0"
