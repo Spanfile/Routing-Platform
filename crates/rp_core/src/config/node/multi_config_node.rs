@@ -248,29 +248,37 @@ impl FromSchemaNode<MultiSchemaNode> for MultiConfigNode {
     ) -> anyhow::Result<ConfigNode> {
         let mut nodes = HashMap::new();
 
-        let new_node_creation_allowed = match &schema_node.source {
-            MultiSchemaNodeSource::Query(query) => {
-                for result in &query.run(&context)? {
-                    let mut result_context = Context::new(Some(Rc::clone(&context)));
-                    result_context.set_value(query.id.to_owned(), result.to_owned());
-                    nodes.insert(
-                        result.to_owned(),
-                        (
-                            Rc::new(ConfigNode::from_schema_node(
-                                Rc::new(result_context),
-                                &result.to_owned(),
-                                Weak::clone(&schema),
-                                &schema_node.node,
-                            )?),
-                            NodeChange::Unchanged,
-                        ),
-                    );
-                }
-                NewNodeCreationAllowed::No
+        // let new_node_creation_allowed = match &schema_node.source {
+        //     MultiSchemaNodeSource::Query(query) => {
+        //         for result in &query.run(&context)? {
+        //             let mut result_context = Context::new(Some(Rc::clone(&context)));
+        //             result_context.set_value(query.id.to_owned(), result.to_owned());
+        //             nodes.insert(
+        //                 result.to_owned(),
+        //                 (
+        //                     Rc::new(ConfigNode::from_schema_node(
+        //                         Rc::new(result_context),
+        //                         &result.to_owned(),
+        //                         Weak::clone(&schema),
+        //                         &schema_node.node,
+        //                     )?),
+        //                     NodeChange::Unchanged,
+        //                 ),
+        //             );
+        //         }
+        //         NewNodeCreationAllowed::No
+        //     }
+        //     MultiSchemaNodeSource::Template(template) => NewNodeCreationAllowed::Yes
+        // {         template: template.to_owned(),
+        //     },
+        // };
+
+        let new_node_creation_allowed = if let Some(template) = &schema_node.source.template {
+            NewNodeCreationAllowed::Yes {
+                template: template.clone(),
             }
-            MultiSchemaNodeSource::Template(template) => NewNodeCreationAllowed::Yes {
-                template: template.to_owned(),
-            },
+        } else {
+            NewNodeCreationAllowed::No
         };
 
         Ok(MultiConfigNode {

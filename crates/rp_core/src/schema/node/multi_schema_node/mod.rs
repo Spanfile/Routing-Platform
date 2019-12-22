@@ -1,8 +1,10 @@
+mod node_source;
+
 use super::{
-    super::{Query, Validate},
+    super::{SourceCommand, Validate},
     Merge, MergingStrategy, NodeLocator, Schema, SchemaNode, SchemaNodeTrait,
 };
-use crate::error;
+pub use node_source::MultiSchemaNodeSource;
 use serde::{Deserialize, Serialize};
 use std::rc::Rc;
 
@@ -14,13 +16,6 @@ pub struct MultiSchemaNode {
     pub node: Box<SchemaNode>,
     #[serde(skip)]
     pub locator: Rc<NodeLocator>,
-}
-
-#[derive(Serialize, Deserialize, Debug)]
-#[serde(rename_all = "lowercase")]
-pub enum MultiSchemaNodeSource {
-    Query(Query),
-    Template(String),
 }
 
 impl SchemaNodeTrait for MultiSchemaNode {
@@ -46,14 +41,7 @@ impl SchemaNodeTrait for MultiSchemaNode {
 impl Validate for MultiSchemaNode {
     fn validate(&self, schema: &Schema) -> anyhow::Result<()> {
         self.node.validate(schema)?;
-
-        if let MultiSchemaNodeSource::Template(template) = &self.source {
-            if !schema.templates.contains_key(template) {
-                return Err(
-                    error::SchemaValidationError::MissingTemplate(template.to_owned()).into(),
-                );
-            }
-        }
+        self.source.validate(schema)?;
 
         Ok(())
     }

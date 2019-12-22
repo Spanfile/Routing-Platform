@@ -4,6 +4,7 @@ mod merge;
 mod node;
 mod property;
 mod query;
+mod source_command;
 mod template;
 #[cfg(test)]
 mod tests;
@@ -23,6 +24,7 @@ pub use property::Property;
 pub use query::Query;
 use rp_log::*;
 use serde::{Deserialize, Serialize};
+use source_command::SourceCommand;
 use std::{
     collections::{hash_map::Entry, HashMap},
     io::{BufReader, Read, Write},

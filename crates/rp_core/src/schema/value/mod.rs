@@ -1,7 +1,7 @@
 mod default_value;
 pub mod range;
 
-use super::{Schema, Validate};
+use super::{Schema, SourceCommand, Validate};
 pub use default_value::DefaultValue;
 use range::Range;
 use serde::{Deserialize, Serialize};

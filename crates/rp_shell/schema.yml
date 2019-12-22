@@ -25,15 +25,17 @@ nodes:
     subnodes:
       "ethernet":
         source:
-          query:
-            id: interface
-            command:
-              ls: /sys/class/net
+          id: interface
+          command:
+            function: "system::net::link::list"
         node:
           subnodes:
             "vlan":
               source:
+                id: vlan
                 template: vid
+                command:
+                  property: "{interface}.vlans"
               node:
                 properties:
                   "description":
@@ -53,19 +55,14 @@ nodes:
                 - template: ipv4-cidr
             "hardware":
               default:
-                - query:
-                    id: mac
-                    command:
-                      cat: /sys/class/net/{interface}/address
+                - command:
+                    property: "{interface}.address"
               deletable: false
               values:
                 - template: mac
             "mtu":
               default:
-                - query:
-                    id: mtu
-                    command:
-                      cat: /sys/class/net/{interface}/mtu
+                - command: "{interface}.mtu"
               deletable: false
               values:
                 - range:
