@@ -10,7 +10,7 @@ rp_plugin = { path = "../rp_plugin" }
 enum_dispatch = "0.2.0"
 anyhow = "1.0.25"
 thiserror = "1.0.9"
-colored = "1.9.0"
+colored = "1.9.2"
 serde = { version = "1.0.104", features = ["derive", "rc"] }
 serde_json = "1.0.44"
 serde_yaml = "0.8.11"
